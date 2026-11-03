@@ -657,7 +657,7 @@
                   <i data-lucide="plus-circle" class="w-4 h-4"></i> + Registar Despacho / Andamento
                 </button>
                 <button type="button" onclick="syncCurrentProcessWithDataJud()" class="px-3.5 py-2.5 rounded-xl border border-[#C8A25A] bg-[#FDF8EE] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] text-xs font-bold flex items-center gap-1.5">
-                  <i data-lucide="landmark" class="w-4 h-4"></i> Sincronizar CNJ
+                  <i data-lucide="landmark" class="w-4 h-4"></i> Ver Raio-X DataJud
                 </button>
                 <button type="button" onclick="editCurrentPipelineProcesso()" class="px-3 py-2.5 rounded-xl border border-stone-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1">
                   <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Editar Processo
@@ -2153,10 +2153,9 @@
                 ` : ''}
               </div>
               <div class="flex flex-wrap items-center gap-1.5">
-                <button type="button" onclick="criarTarefaKanbanDeAndamento('${a.id}')"
-                  class="px-2.5 py-1 rounded-lg bg-[#FDF8EE] border border-[#C8A25A] text-[#5C1618] text-[10px] font-bold hover:bg-[#5C1618] hover:text-white transition" title="Transformar este andamento em Tarefa no Kanban">
-                  📌 Virar Tarefa Kanban
-                </button>
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                  ✓ Sincronizado com CRM, Kanban & Portal
+                </span>
                 <button type="button" onclick="openAndamentoModal('${a.id}')" class="px-2.5 py-1 rounded-lg border border-stone-300 dark:border-slate-700 text-[11px] font-semibold">Editar</button>
                 <button type="button" onclick="deleteRecordById('legal_andamentos', '${a.id}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
               </div>
@@ -2212,16 +2211,7 @@
       }
       await loadAdminBundle();
       renderPipelineView();
-      showToast(`Fase atualizada para "${newStage}" no Pipeline e na Ficha do Cliente!`);
-    }
-
-    async function criarTarefaKanbanDeAndamento(andamentoId) {
-      const a = APP.admin.andamentos.find(x => x.id === andamentoId);
-      if (!a) return;
-      openKanbanModal(null, 'Pendente de Audiência/Prazo', a.cliente_id, a.processo_id, {
-        titulo: a.prazo_sugerido ? `${a.titulo_movimento} (${a.prazo_sugerido})` : `Providência: ${a.titulo_movimento}`,
-        descricao: `Originado do andamento processual (${a.origem || 'Pipeline'}): ${a.descricao_tecnica}`
-      });
+      showToast(`Fase atualizada automaticamente no Pipeline, CRM e Portal do Cliente!`);
     }
 
     function syncCurrentProcessWithDataJud() {
@@ -2236,7 +2226,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // VIEW D: INTEGRAÇÃO COM A API PÚBLICA DO DATAJUD (CNJ) — RAIO-X PASSO A PASSO
+    // VIEW D: INTEGRAÇÃO COM A API PÚBLICA DO DATAJUD (CNJ) — 100% AUTOMÁTICA
     // -------------------------------------------------------------------------
     function renderDataJudView() {
       const sel = document.getElementById('datajud-processo-select');
@@ -2248,9 +2238,10 @@
       }).join('');
 
       const proc = APP.admin.processos.find(p => p.id === APP.selectedProcessoId) || APP.admin.processos[0];
-      if (proc && !document.getElementById('datajud-cnj-input').value) {
+      if (proc) {
         document.getElementById('datajud-cnj-input').value = proc.numero_cnj || '';
         onDataJudCnjInput(proc.numero_cnj || '');
+        consultarDataJudCNJ(true);
       }
     }
 
@@ -2260,6 +2251,7 @@
       if (proc) {
         document.getElementById('datajud-cnj-input').value = proc.numero_cnj || '';
         onDataJudCnjInput(proc.numero_cnj || '');
+        consultarDataJudCNJ(true);
       }
     }
 
@@ -2269,7 +2261,7 @@
       document.getElementById('dj-detected-url').textContent = parsed.endpointUrl;
     }
 
-    async function consultarDataJudCNJ() {
+    async function consultarDataJudCNJ(silentToast = false) {
       const cnj = document.getElementById('datajud-cnj-input').value.trim();
       const parsed = parseCNJNumber(cnj);
       const procId = document.getElementById('datajud-processo-select').value || APP.selectedProcessoId;
@@ -2278,8 +2270,10 @@
       const container = document.getElementById('datajud-results-container');
       const btn = document.getElementById('btn-consultar-datajud');
 
-      btn.disabled = true;
-      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Extraindo Raio-X CNJ...`;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sincronizando CNJ...`;
+      }
       refreshIcons();
 
       const isTrabalhista = parsed.tribunalSigla.startsWith('TRT') || (proc.area_direito || '').toLowerCase().includes('trabalh');
@@ -2459,6 +2453,14 @@
 
       APP.datajudLastResult = { parsed, capa, movs };
 
+      // SINCRONIZAÇÃO 100% AUTOMÁTICA EM BACKGROUND COM TODAS AS ABAS!
+      if (proc.id) {
+        await autoSyncDataJudToEcosystem(proc, parsed, capa, movs);
+        if (!silentToast) {
+          showToast('DataJud consultado e sincronizado automaticamente com Pipeline, CRM, Kanban e Portal do Cliente!');
+        }
+      }
+
       container.innerHTML = `
         <!-- PAINEL 1: CAPA RICA DO PROCESSO EXTRAÍDA DO DATAJUD -->
         <div class="p-5 rounded-3xl bg-gradient-to-br from-[#FDF8EE] via-white to-[#FAF3E3] dark:from-slate-800 dark:to-slate-900 border-2 border-[#C8A25A] shadow-sm space-y-4">
@@ -2471,15 +2473,14 @@
                 Raio-X Completo do Processo CNJ ${esc(parsed.formatted || cnj)}
               </h4>
               <p class="text-xs text-slate-600 dark:text-slate-300">
-                Cliente Vinculado: <strong>${esc(cli.nome || 'Selecione o processo acima')}</strong> • ${movs.length} etapas cronológicas detalhadas (do protocolo inicial ao último despacho)
+                Cliente Vinculado: <strong>${esc(cli.nome || 'Processo Vinculado')}</strong> • ${movs.length} etapas cronológicas detalhadas (do protocolo inicial ao último despacho)
               </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <button type="button" onclick="sincronizarTudoDataJud()"
-                class="px-4 py-2.5 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-extrabold flex items-center gap-2 shadow-md">
-                <i data-lucide="refresh-cw" class="w-4 h-4 text-[#E5C888]"></i>
-                Sincronizar Tudo (Capa + Passo a Passo + Pipeline + Prazo no Kanban)
-              </button>
+              <span class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-extrabold flex items-center gap-2 shadow-sm">
+                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                Sincronizado Automaticamente com Pipeline, CRM, Kanban e Portal
+              </span>
             </div>
           </div>
 
@@ -2517,12 +2518,12 @@
           <div class="flex items-center justify-between">
             <h5 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <i data-lucide="list-ordered" class="w-4 h-4 text-[#5C1618] dark:text-[#E5C888]"></i>
-              Histórico Passo a Passo Detalhado do Processo (${movs.length} Movimentações)
+              Histórico Passo a Passo Detalhado do Processo (${movs.length} Movimentações Sincronizadas)
             </h5>
             <span class="text-[11px] text-slate-500">Ordem: do passo mais recente (Passo ${movs.length}) até a abertura do processo (Passo 1)</span>
           </div>
 
-          ${movs.map((m, idx) => `
+          ${movs.map((m) => `
             <div class="p-4 sm:p-5 rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3 shadow-2xs">
               <div class="flex flex-wrap items-start justify-between gap-2 pb-2.5 border-b border-stone-100 dark:border-slate-800">
                 <div class="space-y-1">
@@ -2540,16 +2541,9 @@
                   </div>
                   <h6 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white pt-0.5">${esc(m.titulo_movimento)}</h6>
                 </div>
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <button type="button" onclick="criarTarefaKanbanDePassoDataJud(${idx})"
-                    class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-[11px] font-bold transition">
-                    📌 + Prazo no Kanban
-                  </button>
-                  <button type="button" onclick="importarMovimentoUnicoDataJud(${idx})"
-                    class="px-3 py-1.5 rounded-xl border border-[#5C1618] text-[#5C1618] dark:text-[#E5C888] hover:bg-[#5C1618] hover:text-white text-xs font-bold transition">
-                    + Importar Passo
-                  </button>
-                </div>
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                  ✓ Ativo no Pipeline & Portal
+                </span>
               </div>
 
               <!-- Detalhes Técnicos Ricos: Órgão Julgador, Complementos CNJ, Íntegra e Prazo -->
@@ -2571,7 +2565,7 @@
 
               ${m.prazo_sugerido ? `
                 <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-xs">
-                  <span class="font-bold text-rose-800 dark:text-rose-300">⏰ Providência / Prazo para a Advogada: ${esc(m.prazo_sugerido)}</span>
+                  <span class="font-bold text-rose-800 dark:text-rose-300">⏰ Providência / Prazo (Sincronizado no Kanban): ${esc(m.prazo_sugerido)}</span>
                 </div>
               ` : ''}
 
@@ -2592,97 +2586,71 @@
         </div>
       `;
 
-      btn.disabled = false;
-      btn.innerHTML = `<i data-lucide="search" class="w-4 h-4"></i> Consultar DataJud`;
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="search" class="w-4 h-4"></i> Consultar DataJud`;
+      }
       refreshIcons();
     }
 
-    async function criarTarefaKanbanDePassoDataJud(idx) {
-      if (!APP.datajudLastResult) return;
-      const m = APP.datajudLastResult.movs[idx];
-      const procId = document.getElementById('datajud-processo-select').value || APP.selectedProcessoId;
-      const proc = APP.admin.processos.find(p => p.id === procId);
-      if (!m || !proc) return;
+    async function autoSyncDataJudToEcosystem(proc, parsed, capa, movs) {
+      if (!proc || !proc.id) return;
+      let changed = false;
 
-      openKanbanModal(null, 'Pendente de Audiência/Prazo', proc.cliente_id, proc.id, {
-        titulo: `[DataJud Passo ${m.passo_numero}] ${m.titulo_movimento}`,
-        descricao: `${m.prazo_sugerido || ''}\n\nTeor CNJ: ${m.descricao_tecnica}`.trim()
-      });
-    }
-
-    async function importarMovimentoUnicoDataJud(idx, silent = false) {
-      if (!APP.datajudLastResult) return;
-      const m = APP.datajudLastResult.movs[idx];
-      const procId = document.getElementById('datajud-processo-select').value || APP.selectedProcessoId;
-      const proc = APP.admin.processos.find(p => p.id === procId);
-      if (!proc || !m) return;
-
-      await sb.rpc('legal_save_record', {
-        p_token: APP.token,
-        p_table: 'legal_andamentos',
-        p_record: {
-          processo_id: proc.id,
-          cliente_id: proc.cliente_id,
-          data_hora: m.data_hora,
-          etapa_pipeline: m.etapa_pipeline || proc.fase_pipeline,
-          codigo_cnj: m.codigo_cnj,
-          titulo_movimento: m.titulo_movimento,
-          orgao_julgador: m.orgao_julgador || '',
-          complementos_cnj: m.complementos_cnj || '',
-          descricao_tecnica: m.descricao_tecnica,
-          prazo_sugerido: m.prazo_sugerido || '',
-          explicacao_leiga: m.explicacao_leiga,
-          proximo_passo_leigo: m.proximo_passo_leigo || '',
-          origem: 'DataJud CNJ',
-          visivel_cliente: true
-        }
-      });
-
-      if (!silent) {
-        await loadAdminBundle();
-        showToast(`Passo ${m.passo_numero} importado do DataJud para a Timeline do Processo!`);
+      // 1. Atualiza a Capa do Processo automaticamente se faltar metadado
+      if (!proc.classe_processual || !proc.assuntos_cnj || !proc.sistema_processual) {
+        await sb.rpc('legal_save_record', {
+          p_token: APP.token,
+          p_table: 'legal_processos',
+          p_record: {
+            ...proc,
+            numero_cnj: parsed.formatted || proc.numero_cnj,
+            tribunal: parsed.tribunalSigla || proc.tribunal,
+            vara_comarca: capa.orgao_julgador || proc.vara_comarca,
+            classe_processual: capa.classe_processual,
+            assuntos_cnj: capa.assuntos_cnj,
+            sistema_processual: capa.sistema_processual,
+            grau_jurisdicao: capa.grau_jurisdicao,
+            data_ajuizamento: capa.data_ajuizamento,
+            proximo_prazo: capa.proximo_prazo_sugerido || proc.proximo_prazo,
+            descricao_prazo: capa.descricao_prazo_sugerido || proc.descricao_prazo
+          }
+        });
+        changed = true;
       }
-    }
 
-    async function sincronizarTudoDataJud() {
-      if (!APP.datajudLastResult) return;
-      const { parsed, capa, movs } = APP.datajudLastResult;
-      const procId = document.getElementById('datajud-processo-select').value || APP.selectedProcessoId;
-      const proc = APP.admin.processos.find(p => p.id === procId);
-      if (!proc) return;
-
-      showToast('Sincronizando Capa, Passo a Passo, Pipeline, Ficha CRM e Kanban...', 'info');
-
-      // 1. Atualiza a Capa do Processo com todos os metadados ricos do DataJud
-      await sb.rpc('legal_save_record', {
-        p_token: APP.token,
-        p_table: 'legal_processos',
-        p_record: {
-          ...proc,
-          numero_cnj: parsed.formatted || proc.numero_cnj,
-          tribunal: parsed.tribunalSigla || proc.tribunal,
-          vara_comarca: capa.orgao_julgador || proc.vara_comarca,
-          classe_processual: capa.classe_processual,
-          assuntos_cnj: capa.assuntos_cnj,
-          sistema_processual: capa.sistema_processual,
-          grau_jurisdicao: capa.grau_jurisdicao,
-          data_ajuizamento: capa.data_ajuizamento,
-          proximo_prazo: capa.proximo_prazo_sugerido || proc.proximo_prazo,
-          descricao_prazo: capa.descricao_prazo_sugerido || proc.descricao_prazo
-        }
-      });
-
-      // 2. Importa os movimentos passo a passo (evitando duplicar títulos já existentes no mesmo processo)
+      // 2. Insere automaticamente os passos cronológicos que ainda não estiverem na Timeline do Processo
       const existingTitles = new Set(
         APP.admin.andamentos.filter(a => a.processo_id === proc.id).map(a => a.titulo_movimento)
       );
       for (let i = movs.length - 1; i >= 0; i--) {
-        if (!existingTitles.has(movs[i].titulo_movimento)) {
-          await importarMovimentoUnicoDataJud(i, true);
+        const m = movs[i];
+        if (!existingTitles.has(m.titulo_movimento)) {
+          await sb.rpc('legal_save_record', {
+            p_token: APP.token,
+            p_table: 'legal_andamentos',
+            p_record: {
+              processo_id: proc.id,
+              cliente_id: proc.cliente_id,
+              data_hora: m.data_hora,
+              etapa_pipeline: m.etapa_pipeline || proc.fase_pipeline,
+              codigo_cnj: m.codigo_cnj,
+              titulo_movimento: m.titulo_movimento,
+              orgao_julgador: m.orgao_julgador || '',
+              complementos_cnj: m.complementos_cnj || '',
+              descricao_tecnica: m.descricao_tecnica,
+              prazo_sugerido: m.prazo_sugerido || '',
+              explicacao_leiga: m.explicacao_leiga,
+              proximo_passo_leigo: m.proximo_passo_leigo || '',
+              origem: 'DataJud CNJ',
+              visivel_cliente: true
+            }
+          });
+          changed = true;
         }
       }
 
-      // 3. Cria automaticamente um Cartão de Prazo no Kanban se ainda não houver um para o último despacho
+      // 3. Cria automaticamente o Cartão de Prazo no Kanban se ainda não existir
       const topMov = movs[0];
       if (topMov) {
         const kanbanTitle = `[DataJud ${parsed.tribunalSigla}] ${topMov.titulo_movimento}`;
@@ -2706,17 +2674,13 @@
               ]
             }
           });
+          changed = true;
         }
       }
 
-      await loadAdminBundle();
-      APP.selectedProcessoId = proc.id;
-      switchAdminView('pipeline');
-      showToast('Ecossistema sincronizado: Capa, Passo a Passo, Pipeline e Tarefa Kanban atualizados!');
-    }
-
-    async function importarTodosMovimentosDataJud() {
-      await sincronizarTudoDataJud();
+      if (changed) {
+        await loadAdminBundle();
+      }
     }
 
     // -------------------------------------------------------------------------
@@ -2819,10 +2783,7 @@
           ` : ''}
 
           <div class="pt-2 border-t border-stone-100 dark:border-slate-700 flex items-center justify-between gap-1">
-            <div class="flex items-center gap-1.5">
-              <button type="button" onclick="openKanbanModal('${t.id}')" class="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:underline">Editar</button>
-              ${proc ? `<button type="button" onclick="converterTarefaEmAndamento('${t.id}')" class="text-[10px] font-bold text-[#5C1618] dark:text-[#E5C888] hover:underline" title="Publicar esta tarefa como andamento no Pipeline">+ Pipeline</button>` : ''}
-            </div>
+            <button type="button" onclick="openKanbanModal('${t.id}')" class="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:underline">Editar</button>
             <select onchange="moveKanbanTask('${t.id}', this.value)" class="text-[10px] bg-stone-100 dark:bg-slate-700 rounded px-1.5 py-0.5 font-semibold">
               ${KANBAN_COLUMNS.map(c => `<option value="${c.id}" ${c.id === t.coluna ? 'selected' : ''}>${esc(c.id)}</option>`).join('')}
             </select>
@@ -2831,14 +2792,14 @@
       `;
     }
 
-    async function converterTarefaEmAndamento(taskId) {
-      const t = APP.admin.tarefas_kanban.find(x => x.id === taskId);
-      if (!t) return;
+    async function autoSyncKanbanTaskToPipeline(t) {
+      if (!t || t.coluna !== 'Concluído') return;
       const proc = APP.admin.processos.find(p => p.id === t.processo_id) || APP.admin.processos.find(p => p.cliente_id === t.cliente_id);
-      if (!proc) {
-        showToast('Vincule um cliente/processo a esta tarefa primeiro.', 'error');
-        return;
-      }
+      if (!proc) return;
+      const alreadyExists = APP.admin.andamentos.some(
+        a => a.processo_id === proc.id && a.titulo_movimento === t.titulo
+      );
+      if (alreadyExists) return;
       await sb.rpc('legal_save_record', {
         p_token: APP.token,
         p_table: 'legal_andamentos',
@@ -2856,10 +2817,6 @@
           visivel_cliente: true
         }
       });
-      await loadAdminBundle();
-      APP.selectedProcessoId = proc.id;
-      switchAdminView('pipeline');
-      showToast('Tarefa registada como Andamento na Timeline do Processo e no Portal do Cliente!');
     }
 
     function handleKanbanDragStart(event, taskId) {
@@ -2895,6 +2852,9 @@
         p_table: 'legal_tarefas_kanban',
         p_record: task
       });
+      if (targetCol === 'Concluído') {
+        await autoSyncKanbanTaskToPipeline(task);
+      }
       await loadAdminBundle();
       renderKanbanBoard();
       showToast(`Tarefa movida para "${targetCol}"!`);
@@ -3484,24 +3444,10 @@
               <label class="font-bold block mb-1 text-amber-800 dark:text-amber-300">🔒 Notas Internas da Advogada (Invisível ao Cliente)</label>
               <textarea id="f-cli-notas" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">${esc(c.notas_internas)}</textarea>
             </div>
-
-            ${!c.id ? `
-              <div class="sm:col-span-2 p-3.5 rounded-2xl bg-[#FDF8EE] dark:bg-slate-800 border border-[#C8A25A] space-y-2">
-                <div class="font-extrabold text-[#5C1618] dark:text-[#E5C888] text-xs">🔗 Automação Entre Abas (Ao Cadastrar Este Cliente):</div>
-                <label class="flex items-center gap-2 cursor-pointer font-semibold text-slate-700 dark:text-slate-200">
-                  <input type="checkbox" id="f-cli-auto-login" checked class="w-4 h-4 accent-[#5C1618]">
-                  Criar automaticamente Login do Portal do Cliente na aba Acessos (Utilizador: @primeiro_nome / Senha: 123456)
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer font-semibold text-slate-700 dark:text-slate-200">
-                  <input type="checkbox" id="f-cli-auto-kanban" checked class="w-4 h-4 accent-[#5C1618]">
-                  Criar automaticamente Tarefa de Triagem & Documentação na aba Tarefas (Kanban)
-                </label>
-              </div>
-            ` : ''}
           </div>
           <div class="flex justify-end gap-2 pt-3 border-t border-stone-200 dark:border-slate-800">
             <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border text-xs font-bold">Cancelar</button>
-            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] text-white text-xs font-bold">Salvar e Integrar Abas</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] text-white text-xs font-bold">Salvar Cliente</button>
           </div>
         </form>
       `);
@@ -3510,8 +3456,6 @@
     async function saveClienteForm(e) {
       e.preventDefault();
       const isNew = !document.getElementById('f-cli-id').value;
-      const autoLogin = document.getElementById('f-cli-auto-login')?.checked;
-      const autoKanban = document.getElementById('f-cli-auto-kanban')?.checked;
 
       const rec = {
         id: document.getElementById('f-cli-id').value,
@@ -3535,42 +3479,38 @@
       if (savedId) APP.selectedClienteId = savedId;
 
       if (isNew && savedId) {
-        if (autoLogin) {
-          const handleBase = rec.nome.split(' ')[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '') || 'cliente';
-          await sb.rpc('legal_manage_user', {
-            p_token: APP.token,
-            p_action: 'upsert',
-            p_payload: {
-              username: '@' + handleBase,
-              nome_exibicao: rec.nome,
-              cliente_id: savedId,
-              role: 'cliente',
-              password: '123456',
-              status: 'ativo'
-            }
-          });
-        }
-        if (autoKanban) {
-          await sb.rpc('legal_save_record', {
-            p_token: APP.token,
-            p_table: 'legal_tarefas_kanban',
-            p_record: {
-              titulo: `Triagem Inicial & Procuração — ${rec.nome}`,
-              descricao: `Colher assinatura na procuração ad judicia, contrato de honorários e documentos pessoais de ${rec.nome}.`,
-              coluna: 'A Fazer',
-              prioridade: 'Alta',
-              data_vencimento: new Date(Date.now() + 86400000 * 3).toISOString().slice(0, 10),
-              cliente_id: savedId,
-              etiquetas: ['Novo Cliente', rec.etapa_funil],
-              checklist: [
-                { texto: 'Conferir RG/CPF e comprovante de residência', feito: false },
-                { texto: 'Assinar Procuração e Contrato de Honorários', feito: false }
-              ]
-            }
-          });
-        }
+        const handleBase = rec.nome.split(' ')[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '') || 'cliente';
+        await sb.rpc('legal_manage_user', {
+          p_token: APP.token,
+          p_action: 'upsert',
+          p_payload: {
+            username: '@' + handleBase,
+            nome_exibicao: rec.nome,
+            cliente_id: savedId,
+            role: 'cliente',
+            password: '123456',
+            status: 'ativo'
+          }
+        });
+        await sb.rpc('legal_save_record', {
+          p_token: APP.token,
+          p_table: 'legal_tarefas_kanban',
+          p_record: {
+            titulo: `Triagem Inicial & Procuração — ${rec.nome}`,
+            descricao: `Colher assinatura na procuração ad judicia, contrato de honorários e documentos pessoais de ${rec.nome}.`,
+            coluna: 'A Fazer',
+            prioridade: 'Alta',
+            data_vencimento: new Date(Date.now() + 86400000 * 3).toISOString().slice(0, 10),
+            cliente_id: savedId,
+            etiquetas: ['Novo Cliente', rec.etapa_funil],
+            checklist: [
+              { texto: 'Conferir RG/CPF e comprovante de residência', feito: false },
+              { texto: 'Assinar Procuração e Contrato de Honorários', feito: false }
+            ]
+          }
+        });
       } else if (!isNew && savedId) {
-        // Sincroniza a fase_pipeline dos processos ativos deste cliente se a etapa_funil mudou
+        // Sincroniza automaticamente a fase_pipeline dos processos ativos deste cliente se a etapa_funil mudou
         const procs = APP.admin.processos.filter(p => p.cliente_id === savedId);
         for (const p of procs) {
           if (p.fase_pipeline !== rec.etapa_funil) {
@@ -3586,7 +3526,7 @@
       closeModal();
       await loadAdminBundle();
       renderCurrentAdminView();
-      showToast(isNew ? 'Cliente salvo + Login do Portal e Tarefa no Kanban criados automaticamente!' : 'Ficha do cliente e Pipeline sincronizados!');
+      showToast('Ficha do cliente salva!');
     }
 
     async function deleteCliente(id) {
@@ -3673,16 +3613,10 @@
               <label class="font-bold block mb-1">Descrição do Próximo Prazo</label>
               <input id="f-proc-desc-prazo" value="${esc(p.descricao_prazo || '')}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
             </div>
-            <div class="sm:col-span-2 p-3 rounded-xl bg-[#FDF8EE] dark:bg-slate-800 border border-[#C8A25A] space-y-1.5">
-              <label class="flex items-center gap-2 cursor-pointer font-bold text-[#5C1618] dark:text-[#E5C888]">
-                <input type="checkbox" id="f-proc-sync-all" checked class="w-4 h-4 accent-[#5C1618]">
-                🔗 Sincronizar Etapa na Ficha do Cliente (CRM) e criar Cartão Automático no Kanban para o Próximo Prazo
-              </label>
-            </div>
           </div>
           <div class="flex justify-end gap-2 pt-3 border-t border-stone-200 dark:border-slate-800">
             <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border text-xs font-bold">Cancelar</button>
-            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] text-white text-xs font-bold">Salvar Processo e Integrar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] text-white text-xs font-bold">Salvar Processo</button>
           </div>
         </form>
       `);
@@ -3695,7 +3629,6 @@
     async function saveProcessoForm(e) {
       e.preventDefault();
       const isNew = !document.getElementById('f-proc-id').value;
-      const syncAll = document.getElementById('f-proc-sync-all')?.checked;
       const rec = {
         id: document.getElementById('f-proc-id').value,
         cliente_id: document.getElementById('f-proc-cli').value,
@@ -3722,7 +3655,7 @@
       const savedProcId = data?.record?.id || rec.id;
       if (savedProcId) APP.selectedProcessoId = savedProcId;
 
-      if (syncAll && rec.cliente_id) {
+      if (rec.cliente_id) {
         const cli = APP.admin.clientes.find(c => c.id === rec.cliente_id);
         if (cli && cli.etapa_funil !== rec.fase_pipeline) {
           await sb.rpc('legal_save_record', {
@@ -3776,7 +3709,7 @@
       closeModal();
       await loadAdminBundle();
       renderCurrentAdminView();
-      showToast('Processo salvo e integrado com CRM, Timeline e Kanban!');
+      showToast('Processo salvo!');
     }
 
     function openAndamentoModal(andamentoId = null) {
@@ -3865,7 +3798,7 @@
 
           <div class="flex justify-end gap-2 pt-3 border-t border-stone-200 dark:border-slate-800">
             <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border text-xs font-bold">Cancelar</button>
-            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] text-white text-xs font-bold">Salvar, Publicar e Sincronizar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] text-white text-xs font-bold">Salvar e Publicar</button>
           </div>
         </form>
       `);
@@ -4063,12 +3996,6 @@
               <label class="font-bold block mb-1">Checklist (1 item por linha; use "[x] " no início para marcar como concluído)</label>
               <textarea id="f-kan-check" rows="3" placeholder="[x] Revisar documentos\nProtocolar petição no PJe" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">${esc(checkText)}</textarea>
             </div>
-            <div class="sm:col-span-2 p-2.5 rounded-xl bg-[#FDF8EE] dark:bg-slate-800 border border-[#C8A25A]">
-              <label class="flex items-center gap-2 cursor-pointer font-bold text-[#5C1618] dark:text-[#E5C888]">
-                <input type="checkbox" id="f-kan-sync-proc" checked class="w-4 h-4 accent-[#5C1618]">
-                🔗 Atualizar também o "Próximo Prazo" na Capa do Processo (Pipeline & Dashboard)
-              </label>
-            </div>
           </div>
           <div class="flex items-center justify-between pt-3 border-t border-stone-200 dark:border-slate-800">
             ${t.id ? `<button type="button" onclick="closeModal(); deleteRecordById('legal_tarefas_kanban', '${t.id}');" class="text-xs font-bold text-rose-600">Excluir Cartão</button>` : '<span></span>'}
@@ -4113,7 +4040,7 @@
         p_record: rec
       });
 
-      if (document.getElementById('f-kan-sync-proc')?.checked && procId && rec.data_vencimento) {
+      if (procId && rec.data_vencimento) {
         const proc = APP.admin.processos.find(p => p.id === procId);
         if (proc) {
           await sb.rpc('legal_save_record', {
@@ -4127,11 +4054,14 @@
           });
         }
       }
+      if (rec.coluna === 'Concluído') {
+        await autoSyncKanbanTaskToPipeline(rec);
+      }
 
       closeModal();
       await loadAdminBundle();
       renderCurrentAdminView();
-      showToast('Cartão Kanban salvo e sincronizado com o Processo e Ficha do Cliente!');
+      showToast('Cartão Kanban salvo!');
     }
 
     function openHonorariosParceladosModal(defaultCliId = null) {
@@ -4140,7 +4070,7 @@
       openModal(`
         <form onsubmit="saveHonorariosParceladosForm(event)" class="space-y-4">
           <div class="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-slate-800">
-            <h3 class="text-base font-bold text-slate-900 dark:text-white">Gerar Contrato de Honorários Parcelados (Integrado)</h3>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Gerar Contrato de Honorários Parcelados</h3>
             <button type="button" onclick="closeModal()">✕</button>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -4175,16 +4105,10 @@
                 <option value="Transferência/TED">Transferência/TED</option>
               </select>
             </div>
-            <div class="sm:col-span-2 p-3 rounded-xl bg-[#FDF8EE] dark:bg-slate-800 border border-[#C8A25A]">
-              <label class="flex items-center gap-2 cursor-pointer font-bold text-[#5C1618] dark:text-[#E5C888]">
-                <input type="checkbox" id="f-hon-sync-pipeline" checked class="w-4 h-4 accent-[#5C1618]">
-                🔗 Avançar automaticamente Cliente (CRM) e Processo (Pipeline) para "Contrato Fechado" e publicar no Portal
-              </label>
-            </div>
           </div>
           <div class="flex justify-end gap-2 pt-3 border-t border-stone-200 dark:border-slate-800">
             <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border text-xs font-bold">Cancelar</button>
-            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] text-white text-xs font-bold">Gerar Parcelas e Sincronizar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] text-white text-xs font-bold">Gerar Parcelas</button>
           </div>
         </form>
       `);
@@ -4198,7 +4122,6 @@
       const qtd = Math.max(1, parseInt(document.getElementById('f-hon-parcelas').value, 10) || 1);
       const firstDate = new Date(document.getElementById('f-hon-venc').value + 'T12:00:00');
       const forma = document.getElementById('f-hon-forma').value;
-      const syncPipe = document.getElementById('f-hon-sync-pipeline')?.checked;
       const valorParcela = Math.round((total / qtd) * 100) / 100;
       const grpId = 'CTR-' + Date.now();
       const proc = APP.admin.processos.find(p => p.cliente_id === cliId);
@@ -4228,7 +4151,7 @@
         });
       }
 
-      if (syncPipe && cliId) {
+      if (cliId) {
         const cli = APP.admin.clientes.find(c => c.id === cliId);
         if (cli && (cli.etapa_funil === 'Em Atendimento' || cli.etapa_funil === 'Proposta Enviada')) {
           await sb.rpc('legal_save_record', {
@@ -4267,7 +4190,7 @@
       closeModal();
       await loadAdminBundle();
       renderCurrentAdminView();
-      showToast(`${qtd} parcela(s) geradas e sincronizadas com CRM, Pipeline e Portal do Cliente!`);
+      showToast(`${qtd} parcela(s) geradas com sucesso!`);
     }
 
     function openTransacaoModal(tipo = 'Receita') {
