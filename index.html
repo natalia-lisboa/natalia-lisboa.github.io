@@ -297,7 +297,7 @@
               <i data-lucide="git-commit" class="w-4 h-4"></i> Pipeline & Andamentos
             </button>
             <button type="button" onclick="switchAdminView('datajud'); toggleMobileMenu();" data-nav="datajud" class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition">
-              <i data-lucide="landmark" class="w-4 h-4"></i> Sincronizador DataJud (CNJ)
+              <i data-lucide="landmark" class="w-4 h-4"></i> Acompanhamento do Processo
             </button>
             <button type="button" onclick="switchAdminView('kanban'); toggleMobileMenu();" data-nav="kanban" class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition">
               <i data-lucide="kanban" class="w-4 h-4"></i> Tarefas & Prazos (Kanban)
@@ -358,7 +358,7 @@
         </button>
 
         <button type="button" onclick="switchAdminView('datajud')" data-nav="datajud" class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition">
-          <span class="flex items-center gap-3"><i data-lucide="landmark" class="w-4 h-4"></i> API DataJud (CNJ)</span>
+          <span class="flex items-center gap-3"><i data-lucide="landmark" class="w-4 h-4"></i> Acompanhamento do Processo</span>
           <span class="px-1.5 py-0.5 text-[9px] rounded bg-[#C8A25A]/25 text-[#E5C888] font-bold">CNJ</span>
         </button>
 
@@ -656,7 +656,7 @@
                   <i data-lucide="landmark" class="w-3.5 h-3.5"></i> Conselho Nacional de Justiça — API Pública Oficial
                 </span>
                 <h2 class="text-lg font-bold text-slate-900 dark:text-white mt-2">
-                  Consulta e Sincronização Automática de Processos (DataJud CNJ)
+                  Acompanhamento do Processo (DataJud CNJ)
                 </h2>
                 <p class="text-xs text-slate-500 max-w-2xl mt-1">
                   Insira o número único CNJ (20 dígitos) ou escolha um processo cadastrado. O sistema identifica automaticamente o Tribunal pelos dígitos <code class="font-bold">J.TR</code>, sincroniza os movimentos e prepara os resumos explicativos para o seu cliente.
@@ -1349,7 +1349,7 @@
         'caixa-entrada': ['Caixa de Entrada — Dúvidas dos Clientes', 'Mensagens e dúvidas sobre andamentos enviadas pelos clientes no Portal Externo'],
         clientes: ['CRM de Clientes, WhatsApp & Ficheiros (Storage)', 'Cadastro completo, notas internas sigilosas e gestão de anexos com permissão por cliente'],
         pipeline: ['Pipeline & Andamentos Processuais', 'Acompanhamento cronológico de fases e esclarecimentos claros ao cliente'],
-        datajud: ['Integração Oficial API Pública DataJud (CNJ)', 'Consulta por número CNJ e importação automática de movimentos para a linha do tempo'],
+        datajud: ['Acompanhamento do Processo', 'Consulta oficial por número CNJ e histórico de movimentações dos Tribunais'],
         kanban: ['Quadro de Tarefas & Prazos (Estilo Trello)', 'Arraste e solte cartões entre colunas, controle checklists e alertas de vencimento'],
         financeiro: ['Módulo Financeiro & Honorários Parcelados', 'Fluxo de caixa completo (Contas a Receber / Pagar) e carnês de parcelamento por cliente'],
         acessos: ['Gestão de Acessos RBAC (Portal do Cliente)', 'Crie utilizadores, redefina palavras-passe Bcrypt, suspenda ou simule a visão do cliente']
