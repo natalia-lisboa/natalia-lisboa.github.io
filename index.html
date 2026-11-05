@@ -768,33 +768,12 @@
           </div>
 
           <!-- Barra de Rolagem Horizontal Superior Sincronizada -->
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="scrollKanbanBy(-340)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#C8A25A] hover:text-[#5C1618] dark:hover:text-[#E5C888] text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer transition" title="Rolar para a esquerda">
-              <i data-lucide="chevron-left" class="w-4 h-4"></i>
-            </button>
-            <div id="kanban-top-scrollbar" onscroll="syncKanbanScroll('top')" class="flex-1 overflow-x-scroll overflow-y-hidden h-4 rounded-full bg-stone-200/50 dark:bg-slate-900/90 border border-stone-200/80 dark:border-slate-800 custom-kanban-scroll">
-              <div id="kanban-top-scroll-spacer" class="h-1" style="width: 1800px;"></div>
-            </div>
-            <button type="button" onclick="scrollKanbanBy(340)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#C8A25A] hover:text-[#5C1618] dark:hover:text-[#E5C888] text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer transition" title="Rolar para a direita">
-              <i data-lucide="chevron-right" class="w-4 h-4"></i>
-            </button>
+          <div id="kanban-top-scrollbar" onscroll="syncKanbanScroll('top')" class="w-full overflow-x-auto overflow-y-hidden h-3.5 custom-kanban-scroll">
+            <div id="kanban-top-scroll-spacer" class="h-1"></div>
           </div>
 
-          <!-- Colunas Kanban Dinâmicas com Drag & Drop + Arrastar para Rolar -->
-          <div id="kanban-columns-grid" onscroll="syncKanbanScroll('grid')" class="flex gap-4 overflow-x-scroll pb-4 pt-1 items-start custom-kanban-scroll cursor-grab active:cursor-grabbing select-none"></div>
-
-          <!-- Barra de Rolagem Horizontal Inferior Sincronizada -->
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="scrollKanbanBy(-340)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#C8A25A] hover:text-[#5C1618] dark:hover:text-[#E5C888] text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer transition" title="Rolar para a esquerda">
-              <i data-lucide="chevron-left" class="w-4 h-4"></i>
-            </button>
-            <div id="kanban-bottom-scrollbar" onscroll="syncKanbanScroll('bottom')" class="flex-1 overflow-x-scroll overflow-y-hidden h-4 rounded-full bg-stone-200/50 dark:bg-slate-900/90 border border-stone-200/80 dark:border-slate-800 custom-kanban-scroll">
-              <div id="kanban-bottom-scroll-spacer" class="h-1" style="width: 1800px;"></div>
-            </div>
-            <button type="button" onclick="scrollKanbanBy(340)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#C8A25A] hover:text-[#5C1618] dark:hover:text-[#E5C888] text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer transition" title="Rolar para a direita">
-              <i data-lucide="chevron-right" class="w-4 h-4"></i>
-            </button>
-          </div>
+          <!-- Colunas Kanban Dinâmicas com Drag & Drop + Barra de Rolagem Inferior Única -->
+          <div id="kanban-columns-grid" onscroll="syncKanbanScroll('grid')" class="flex gap-4 overflow-x-auto pb-4 pt-1 items-start custom-kanban-scroll cursor-grab active:cursor-grabbing select-none"></div>
         </section>
 
         <!-- ===================================================================
@@ -2960,11 +2939,8 @@
     function updateKanbanScrollbarsWidth() {
       const grid = document.getElementById('kanban-columns-grid');
       const topSpacer = document.getElementById('kanban-top-scroll-spacer');
-      const bottomSpacer = document.getElementById('kanban-bottom-scroll-spacer');
-      if (!grid) return;
-      const targetWidth = Math.max(grid.scrollWidth, grid.clientWidth + 320);
-      if (topSpacer) topSpacer.style.width = `${targetWidth}px`;
-      if (bottomSpacer) bottomSpacer.style.width = `${targetWidth}px`;
+      if (!grid || !topSpacer) return;
+      topSpacer.style.width = `${grid.scrollWidth}px`;
     }
 
     function syncKanbanScroll(source) {
@@ -2972,16 +2948,11 @@
       isSyncingKanbanScroll = true;
       const grid = document.getElementById('kanban-columns-grid');
       const topBar = document.getElementById('kanban-top-scrollbar');
-      const bottomBar = document.getElementById('kanban-bottom-scrollbar');
-      let left = 0;
-      if (source === 'top' && topBar) left = topBar.scrollLeft;
-      else if (source === 'bottom' && bottomBar) left = bottomBar.scrollLeft;
-      else if (grid) left = grid.scrollLeft;
-
-      if (source !== 'grid' && grid) grid.scrollLeft = left;
-      if (source !== 'top' && topBar) topBar.scrollLeft = left;
-      if (source !== 'bottom' && bottomBar) bottomBar.scrollLeft = left;
-
+      if (source === 'top' && topBar && grid) {
+        grid.scrollLeft = topBar.scrollLeft;
+      } else if (source === 'grid' && grid && topBar) {
+        topBar.scrollLeft = grid.scrollLeft;
+      }
       requestAnimationFrame(() => {
         isSyncingKanbanScroll = false;
       });
