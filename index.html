@@ -141,6 +141,27 @@
       background-color: rgba(200, 162, 90, 0.12) !important;
       border: 2px dashed #C8A25A !important;
     }
+
+    .custom-kanban-scroll::-webkit-scrollbar {
+      height: 12px;
+      display: block;
+    }
+    .custom-kanban-scroll::-webkit-scrollbar-track {
+      background: rgba(148, 163, 184, 0.18);
+      border-radius: 9999px;
+    }
+    .custom-kanban-scroll::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg, #5C1618, #C8A25A);
+      border-radius: 9999px;
+      cursor: pointer;
+    }
+    .custom-kanban-scroll::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(90deg, #7A1F22, #DFB96E);
+    }
+    .custom-kanban-scroll {
+      scrollbar-width: auto;
+      scrollbar-color: #C8A25A rgba(148, 163, 184, 0.18);
+    }
   </style>
 </head>
 <body class="min-h-screen antialiased selection:bg-[#5C1618] selection:text-white">
@@ -746,8 +767,34 @@
             </div>
           </div>
 
-          <!-- Colunas Kanban Dinâmicas com Drag & Drop -->
-          <div id="kanban-columns-grid" class="flex gap-4 overflow-x-auto pb-4 items-start"></div>
+          <!-- Barra de Rolagem Horizontal Superior Sincronizada -->
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="scrollKanbanBy(-340)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#C8A25A] hover:text-[#5C1618] dark:hover:text-[#E5C888] text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer transition" title="Rolar para a esquerda">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <div id="kanban-top-scrollbar" onscroll="syncKanbanScroll('top')" class="flex-1 overflow-x-scroll overflow-y-hidden h-4 rounded-full bg-stone-200/50 dark:bg-slate-900/90 border border-stone-200/80 dark:border-slate-800 custom-kanban-scroll">
+              <div id="kanban-top-scroll-spacer" class="h-1" style="width: 1800px;"></div>
+            </div>
+            <button type="button" onclick="scrollKanbanBy(340)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#C8A25A] hover:text-[#5C1618] dark:hover:text-[#E5C888] text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer transition" title="Rolar para a direita">
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Colunas Kanban Dinâmicas com Drag & Drop + Arrastar para Rolar -->
+          <div id="kanban-columns-grid" onscroll="syncKanbanScroll('grid')" class="flex gap-4 overflow-x-scroll pb-4 pt-1 items-start custom-kanban-scroll cursor-grab active:cursor-grabbing select-none"></div>
+
+          <!-- Barra de Rolagem Horizontal Inferior Sincronizada -->
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="scrollKanbanBy(-340)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#C8A25A] hover:text-[#5C1618] dark:hover:text-[#E5C888] text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer transition" title="Rolar para a esquerda">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <div id="kanban-bottom-scrollbar" onscroll="syncKanbanScroll('bottom')" class="flex-1 overflow-x-scroll overflow-y-hidden h-4 rounded-full bg-stone-200/50 dark:bg-slate-900/90 border border-stone-200/80 dark:border-slate-800 custom-kanban-scroll">
+              <div id="kanban-bottom-scroll-spacer" class="h-1" style="width: 1800px;"></div>
+            </div>
+            <button type="button" onclick="scrollKanbanBy(340)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#C8A25A] hover:text-[#5C1618] dark:hover:text-[#E5C888] text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer transition" title="Rolar para a direita">
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
         </section>
 
         <!-- ===================================================================
@@ -2902,6 +2949,151 @@
 
       grid.innerHTML = colsHtml + addColCardHtml;
       refreshIcons();
+      requestAnimationFrame(() => {
+        updateKanbanScrollbarsWidth();
+        initKanbanPanAndKeyboardScroll();
+      });
+    }
+
+    let isSyncingKanbanScroll = false;
+
+    function updateKanbanScrollbarsWidth() {
+      const grid = document.getElementById('kanban-columns-grid');
+      const topSpacer = document.getElementById('kanban-top-scroll-spacer');
+      const bottomSpacer = document.getElementById('kanban-bottom-scroll-spacer');
+      if (!grid) return;
+      const targetWidth = Math.max(grid.scrollWidth, grid.clientWidth + 320);
+      if (topSpacer) topSpacer.style.width = `${targetWidth}px`;
+      if (bottomSpacer) bottomSpacer.style.width = `${targetWidth}px`;
+    }
+
+    function syncKanbanScroll(source) {
+      if (isSyncingKanbanScroll) return;
+      isSyncingKanbanScroll = true;
+      const grid = document.getElementById('kanban-columns-grid');
+      const topBar = document.getElementById('kanban-top-scrollbar');
+      const bottomBar = document.getElementById('kanban-bottom-scrollbar');
+      let left = 0;
+      if (source === 'top' && topBar) left = topBar.scrollLeft;
+      else if (source === 'bottom' && bottomBar) left = bottomBar.scrollLeft;
+      else if (grid) left = grid.scrollLeft;
+
+      if (source !== 'grid' && grid) grid.scrollLeft = left;
+      if (source !== 'top' && topBar) topBar.scrollLeft = left;
+      if (source !== 'bottom' && bottomBar) bottomBar.scrollLeft = left;
+
+      requestAnimationFrame(() => {
+        isSyncingKanbanScroll = false;
+      });
+    }
+
+    function scrollKanbanBy(delta) {
+      const grid = document.getElementById('kanban-columns-grid');
+      if (!grid) return;
+      grid.scrollBy({ left: delta, behavior: 'smooth' });
+    }
+
+    function initKanbanPanAndKeyboardScroll() {
+      if (window._kanbanPanInitialized) return;
+      window._kanbanPanInitialized = true;
+
+      let isMousePanning = false;
+      let isKeyHeld = false;
+      let startX = 0;
+      let startScrollLeft = 0;
+      let lastX = null;
+
+      const isTypingTarget = (el) => {
+        if (!el) return false;
+        const tag = (el.tagName || '').toUpperCase();
+        return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+      };
+
+      window.addEventListener('resize', () => {
+        if (APP.currentView === 'kanban') updateKanbanScrollbarsWidth();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (APP.currentView !== 'kanban' || isTypingTarget(e.target)) return;
+        const modalBack = document.getElementById('modal-backdrop');
+        if (modalBack && !modalBack.classList.contains('hidden')) return;
+
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          scrollKanbanBy(260);
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          scrollKanbanBy(-260);
+        } else if (e.code === 'Space' || e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt') {
+          if (e.code === 'Space') e.preventDefault();
+          isKeyHeld = true;
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.code === 'Space' || e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt') {
+          isKeyHeld = false;
+          lastX = null;
+        }
+      });
+
+      window.addEventListener('blur', () => {
+        isKeyHeld = false;
+        isMousePanning = false;
+        lastX = null;
+      });
+
+      document.addEventListener('mousedown', (e) => {
+        if (APP.currentView !== 'kanban' || e.button !== 0) return;
+        const viewKanban = document.getElementById('view-kanban');
+        if (!viewKanban || viewKanban.classList.contains('hidden')) return;
+        const modalBack = document.getElementById('modal-backdrop');
+        if (modalBack && !modalBack.classList.contains('hidden')) return;
+
+        if (e.target.closest('button, input, select, textarea, a, #kanban-top-scrollbar, #kanban-bottom-scrollbar')) {
+          return;
+        }
+        if (e.target.closest('.kanban-task-card') && !isKeyHeld) {
+          return;
+        }
+
+        const grid = document.getElementById('kanban-columns-grid');
+        if (!grid) return;
+        isMousePanning = true;
+        startX = e.clientX;
+        startScrollLeft = grid.scrollLeft;
+        lastX = e.clientX;
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (APP.currentView !== 'kanban') return;
+        const grid = document.getElementById('kanban-columns-grid');
+        if (!grid) return;
+
+        if (isMousePanning) {
+          e.preventDefault();
+          const walk = (e.clientX - startX) * 1.35;
+          grid.scrollLeft = startScrollLeft - walk;
+          syncKanbanScroll('grid');
+          lastX = e.clientX;
+          return;
+        }
+
+        if (isKeyHeld && !isTypingTarget(document.activeElement)) {
+          if (lastX !== null) {
+            const dx = e.clientX - lastX;
+            grid.scrollLeft -= dx * 1.6;
+            syncKanbanScroll('grid');
+          }
+          lastX = e.clientX;
+        } else {
+          lastX = e.clientX;
+        }
+      });
+
+      document.addEventListener('mouseup', () => {
+        isMousePanning = false;
+      });
     }
 
     function openKanbanColumnModal(colIdx = null) {
@@ -3089,7 +3281,7 @@
 
       return `
         <div draggable="true" ondragstart="handleKanbanDragStart(event, '${t.id}')"
-          class="cursor-grab active:cursor-grabbing bg-white dark:bg-slate-800 rounded-2xl p-3.5 shadow-xs border border-stone-200/90 dark:border-slate-700 hover:border-[#C8A25A] transition space-y-2.5">
+          class="kanban-task-card cursor-grab active:cursor-grabbing bg-white dark:bg-slate-800 rounded-2xl p-3.5 shadow-xs border border-stone-200/90 dark:border-slate-700 hover:border-[#C8A25A] transition space-y-2.5">
           <div class="flex items-center justify-between gap-1.5 flex-wrap">
             <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold border ${prioColors[t.prioridade] || prioColors['Média']}">
               ${esc(t.prioridade)}
