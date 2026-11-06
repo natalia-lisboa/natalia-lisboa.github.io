@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-radius="soft" data-ground="sand">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -50,9 +50,27 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
+    :root {
+      --p-bg: #FAF8F5;
+      --p-surface: #F3EFEA;
+      --p-ink: #111111;
+      --p-muted: #64748b;
+      --p-accent: #5C1618;
+      --p-accent-ink: #ffffff;
+      --ground-bg: #d9ccb7;
+      --ground-surface: #e9e0d2;
+      --ground-ink: #2a2622;
+      --ground-accent: #C8A25A;
+      --ease: cubic-bezier(.2, .7, .2, 1);
+      --dur: 180ms;
+      --r-sm: 8px;
+      --r-md: 12px;
+      --r-lg: 20px;
+    }
+
     body {
       font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      background-color: #FAF8F5;
+      background-color: var(--p-bg);
       color: #1e293b;
       overflow-x: hidden;
     }
@@ -63,12 +81,21 @@
     .font-editorial {
       font-family: 'Cormorant Garamond', Georgia, serif;
     }
-    .font-mono-tech {
+    .font-mono-tech, .font-mono {
       font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
       font-variant-numeric: tabular-nums;
     }
+    button {
+      transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+    }
     button:active {
       transform: scale(0.98);
+    }
+    .kanban-task-card, [onclick^="openKpiDrilldown"] {
+      transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
+    }
+    .kanban-task-card:hover, [onclick^="openKpiDrilldown"]:hover {
+      transform: translateY(-2px);
     }
     .liquid-glass {
       backdrop-filter: blur(16px);
@@ -1227,7 +1254,7 @@
     // UTILITÁRIOS GERAIS & WHATSAPP
     // -------------------------------------------------------------------------
     function esc(str) {
-      return String(str ?? '')
+      return String(str <i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1 text-[#C8A25A]"></i>'')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -1786,13 +1813,13 @@
                 ${cli.id ? `
                   <button type="button" onclick="APP.selectedClienteId='${cli.id}'; switchAdminView('clientes');"
                     class="px-2.5 py-2 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:border-[#C8A25A]" title="Abrir Ficha no CRM">
-                    👤 CRM
+                    <i data-lucide="user" class="w-3 h-3 inline -mt-0.5 mr-1"></i> CRM
                   </button>
                 ` : ''}
                 ${proc.id ? `
                   <button type="button" onclick="APP.selectedProcessoId='${proc.id}'; switchAdminView('pipeline');"
                     class="px-2.5 py-2 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:border-[#C8A25A]" title="Abrir Processo no Pipeline">
-                    ⚖️ Pipeline
+                    <i data-lucide="scale" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Pipeline
                   </button>
                 ` : ''}
                 <a href="${waUrl}" target="_blank" rel="noopener"
@@ -2112,15 +2139,15 @@
           <div class="flex flex-wrap gap-1.5">
             <a target="_blank" href="${buildWhatsAppLink(cli.telefone, `Olá ${cli.nome}! Aqui é a Dra. Nathalia Lisboa. Seu processo teve uma nova movimentação que já está explicada de forma simples no seu Portal do Cliente!`)}"
               class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-300 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold hover:bg-emerald-600 hover:text-white transition">
-              📣 Aviso de Novo Andamento
+              <i data-lucide="bell" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Aviso de Novo Andamento
             </a>
             <a target="_blank" href="${buildWhatsAppLink(cli.telefone, `Olá ${cli.nome}! Aqui é a Dra. Nathalia Lisboa. Passando para lembrar da nossa audiência agendada e alinhar as orientações finais com você.`)}"
               class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-300 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold hover:bg-emerald-600 hover:text-white transition">
-              ⚖️ Orientação de Audiência
+              <i data-lucide="scale" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Orientação de Audiência
             </a>
             <a target="_blank" href="${buildWhatsAppLink(cli.telefone, `Olá ${cli.nome}! O seu acesso exclusivo ao Portal do Cliente Nathalia Lisboa Advocacia está ativo. Utilizador: ${cliUser ? cliUser.username : '@cliente'} | Senha inicial: 123456`)}"
               class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-300 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold hover:bg-emerald-600 hover:text-white transition">
-              🔑 Enviar Login do Portal
+              <i data-lucide="key-round" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Enviar Login do Portal
             </a>
           </div>
         </div>
@@ -2142,7 +2169,7 @@
             <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 space-y-2">
               <div class="flex items-center justify-between">
                 <span class="font-extrabold text-slate-800 dark:text-white flex items-center gap-1.5">
-                  ⚖️ Processos & Pipeline (${cliProcessos.length})
+                  <i data-lucide="scale" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Processos & Pipeline (${cliProcessos.length})
                 </span>
                 <button type="button" onclick="openProcessoModal(null, '${cli.id}')"
                   class="px-2.5 py-1 rounded-lg bg-[#5C1618] text-white text-[10px] font-bold hover:bg-[#3E0E10]">
@@ -2171,7 +2198,7 @@
             <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 space-y-2">
               <div class="flex items-center justify-between">
                 <span class="font-extrabold text-slate-800 dark:text-white flex items-center gap-1.5">
-                  📋 Tarefas & Prazos no Kanban (${cliTarefas.length})
+                  <i data-lucide="clipboard-list" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Tarefas & Prazos no Kanban (${cliTarefas.length})
                 </span>
                 <button type="button" onclick="openKanbanModal(null, 'A Fazer', '${cli.id}')"
                   class="px-2.5 py-1 rounded-lg bg-[#5C1618] text-white text-[10px] font-bold hover:bg-[#3E0E10]">
@@ -2183,7 +2210,7 @@
                   <div class="p-2 rounded-lg bg-stone-50 dark:bg-slate-800/80 border border-stone-200/70 dark:border-slate-700 flex items-center justify-between gap-2">
                     <div class="min-w-0">
                       <div class="font-bold text-slate-900 dark:text-white truncate text-[11px]">${esc(t.titulo)}</div>
-                      <div class="text-[10px] text-slate-500">${esc(t.coluna)} • Prioridade: <strong>${esc(t.prioridade)}</strong> ${t.data_vencimento ? `• 📅 ${fmtDate(t.data_vencimento)}` : ''}</div>
+                      <div class="text-[10px] text-slate-500">${esc(t.coluna)} • Prioridade: <strong>${esc(t.prioridade)}</strong> ${t.data_vencimento ? `• <i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDate(t.data_vencimento)}` : ''}</div>
                     </div>
                     <button type="button" onclick="openKanbanModal('${t.id}')"
                       class="px-2 py-1 rounded bg-stone-200 dark:bg-slate-700 text-slate-800 dark:text-white text-[10px] font-bold shrink-0">Editar</button>
@@ -2196,7 +2223,7 @@
             <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 space-y-2">
               <div class="flex items-center justify-between">
                 <span class="font-extrabold text-slate-800 dark:text-white flex items-center gap-1.5">
-                  💰 Honorários no Financeiro (${cliFin.length} parc.)
+                  <i data-lucide="wallet" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Honorários no Financeiro (${cliFin.length} parc.)
                 </span>
                 <div class="flex gap-1">
                   <button type="button" onclick="openHonorariosParceladosModal('${cli.id}')"
@@ -2220,7 +2247,7 @@
             <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 space-y-2">
               <div class="flex items-center justify-between">
                 <span class="font-extrabold text-slate-800 dark:text-white flex items-center gap-1.5">
-                  🔑 Portal & Dúvidas do Cliente
+                  <i data-lucide="key-round" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Portal & Dúvidas do Cliente
                 </span>
                 ${cliUser ? `
                   <button type="button" onclick="openUserAccessModal('${cliUser.id}')"
@@ -2237,7 +2264,7 @@
               <div class="text-[11px] text-slate-600 dark:text-slate-300">
                 ${cliDuvidas.length > 0 ? `
                   <div class="flex items-center justify-between p-2 rounded-lg bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200">
-                    <span>📥 <strong>${cliDuvidas.length}</strong> dúvida(s) enviada(s) pelo Portal (${cliDuvidas.filter(d => d.status === 'Pendente').length} pendente)</span>
+                    <span><i data-lucide="inbox" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> <strong>${cliDuvidas.length}</strong> dúvida(s) enviada(s) pelo Portal (${cliDuvidas.filter(d => d.status === 'Pendente').length} pendente)</span>
                     <button type="button" onclick="switchAdminView('caixa-entrada')" class="px-2 py-1 rounded bg-[#5C1618] text-white text-[10px] font-bold">Ver Dúvidas</button>
                   </div>
                 ` : `<div class="text-[11px] text-slate-400 py-1">Nenhuma dúvida pendente em Dúvidas do Cliente.</div>`}
@@ -2285,7 +2312,7 @@
                 <div class="flex items-center gap-2">
                   <button type="button" onclick="toggleAnexoVisibilidade('${a.id}')"
                     class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition ${a.visivel_cliente ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-stone-200 border-stone-300 text-slate-600'}">
-                    ${a.visivel_cliente ? '👁️ Visível ao Cliente' : '🔒 Só Advogada'}
+                    ${a.visivel_cliente ? '<i data-lucide="eye" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Visível ao Cliente' : '<i data-lucide="lock" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Só Advogada'}
                   </button>
                   <a href="${esc(a.file_url)}" target="_blank" rel="noopener"
                     class="px-2.5 py-1 rounded-lg bg-[#5C1618] text-white text-[11px] font-bold flex items-center gap-1">
@@ -2421,31 +2448,31 @@
         </div>
         <div class="sm:col-span-2 lg:col-span-4 p-3 rounded-xl bg-[#FDF8EE]/80 dark:bg-slate-800/80 border border-[#C8A25A]/50 flex flex-wrap items-center justify-between gap-2">
           <div class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <span>🔗 Conexão Rápida deste Processo (${esc(cli.nome || 'Cliente')}):</span>
+            <span><i data-lucide="link" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Conexão Rápida deste Processo (${esc(cli.nome || 'Cliente')}):</span>
           </div>
           <div class="flex flex-wrap items-center gap-1.5">
             ${cli.id ? `
               <button type="button" onclick="APP.selectedClienteId='${cli.id}'; switchAdminView('clientes');"
                 class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-stone-300 dark:border-slate-700 text-[11px] font-bold hover:border-[#5C1618]">
-                👤 Abrir Ficha no CRM
+                <i data-lucide="user" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Abrir Ficha no CRM
               </button>
               <button type="button" onclick="previewSpecificClient('${cli.id}')"
                 class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-stone-300 dark:border-slate-700 text-[11px] font-bold hover:border-[#5C1618]">
-                👁️ Portal do Cliente
+                <i data-lucide="eye" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Portal do Cliente
               </button>
             ` : ''}
             <button type="button" onclick="openKanbanModal(null, 'Pendente de Audiência/Prazo', '${proc.cliente_id}', '${proc.id}')"
               class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-stone-300 dark:border-slate-700 text-[11px] font-bold hover:border-[#5C1618]">
-              📋 + Prazo no Kanban (${procTarefas.length})
+              <i data-lucide="clipboard-list" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> + Prazo no Kanban (${procTarefas.length})
             </button>
             <button type="button" onclick="openHonorariosParceladosModal('${proc.cliente_id}')"
               class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-stone-300 dark:border-slate-700 text-[11px] font-bold hover:border-[#5C1618]">
-              💰 Honorários (${procFin.length} parc.)
+              <i data-lucide="wallet" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Honorários (${procFin.length} parc.)
             </button>
             ${procDuvidas.length > 0 ? `
               <button type="button" onclick="switchAdminView('caixa-entrada')"
                 class="px-2.5 py-1.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold">
-                📥 ${procDuvidas.length} Dúvida(s) na Caixa
+                <i data-lucide="inbox" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> ${procDuvidas.length} Dúvida(s) na Caixa
               </button>
             ` : ''}
           </div>
@@ -2467,15 +2494,15 @@
                   <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#C8A25A] text-[#28080A]">Passo ${stepNumber} de ${movs.length}</span>
                   <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#5C1618] text-[#E5C888]">${esc(a.etapa_pipeline || proc.fase_pipeline)}</span>
                   <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-stone-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">${esc(a.origem)} ${a.codigo_cnj ? `• Cód. CNJ ${a.codigo_cnj}` : ''}</span>
-                  <span class="text-[11px] text-slate-500">📅 ${fmtDateTime(a.data_hora)}</span>
+                  <span class="text-[11px] text-slate-500"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDateTime(a.data_hora)}</span>
                 </div>
                 <h4 class="text-sm font-extrabold text-slate-900 dark:text-white pt-1">${esc(a.titulo_movimento)}</h4>
-                ${a.orgao_julgador ? `<div class="text-[11px] font-semibold text-[#5C1618] dark:text-[#E5C888]">🏛️ Órgão Julgador / Setor: ${esc(a.orgao_julgador)}</div>` : ''}
-                ${a.complementos_cnj ? `<div class="text-[11px] text-slate-500 bg-white/80 dark:bg-slate-900/60 px-2.5 py-1 rounded-lg border border-stone-200/70 dark:border-slate-700">📑 <strong>Complementos CNJ:</strong> ${esc(a.complementos_cnj)}</div>` : ''}
+                ${a.orgao_julgador ? `<div class="text-[11px] font-semibold text-[#5C1618] dark:text-[#E5C888]"><i data-lucide="landmark" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Órgão Julgador / Setor: ${esc(a.orgao_julgador)}</div>` : ''}
+                ${a.complementos_cnj ? `<div class="text-[11px] text-slate-500 bg-white/80 dark:bg-slate-900/60 px-2.5 py-1 rounded-lg border border-stone-200/70 dark:border-slate-700"><i data-lucide="file-text" class="w-3 h-3 inline -mt-0.5 mr-1"></i> <strong>Complementos CNJ:</strong> ${esc(a.complementos_cnj)}</div>` : ''}
                 <p class="text-xs text-slate-600 dark:text-slate-300 pt-0.5">${esc(a.descricao_tecnica)}</p>
                 ${a.prazo_sugerido ? `
                   <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-[11px] text-rose-800 dark:text-rose-300 font-bold">
-                    <span>⏰ Ação / Prazo Sugerido: ${esc(a.prazo_sugerido)}</span>
+                    <span><i data-lucide="clock" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Ação / Prazo Sugerido: ${esc(a.prazo_sugerido)}</span>
                   </div>
                 ` : ''}
               </div>
@@ -2502,7 +2529,7 @@
               <p class="text-xs text-slate-700 dark:text-slate-200 leading-relaxed">${esc(a.explicacao_leiga)}</p>
               ${a.proximo_passo_leigo ? `
                 <div class="pt-1.5 border-t border-[#C8A25A]/30 text-[11px] text-[#5C1618] dark:text-[#E5C888] font-semibold">
-                  🧭 <strong>Próximo Passo Orientado:</strong> ${esc(a.proximo_passo_leigo)}
+                  <i data-lucide="compass" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> <strong>Próximo Passo Orientado:</strong> ${esc(a.proximo_passo_leigo)}
                 </div>
               ` : ''}
             </div>
@@ -2814,7 +2841,7 @@
           <div class="flex flex-wrap items-start justify-between gap-3 pb-3 border-b border-[#C8A25A]/30">
             <div>
               <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#5C1618] text-[#E5C888] text-[10px] font-extrabold uppercase tracking-wider">
-                🏛️ ${esc(sourceLabel)}
+                <i data-lucide="landmark" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> ${esc(sourceLabel)}
               </div>
               <h4 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white mt-1.5">
                 Raio-X Completo do Processo CNJ ${esc(parsed.formatted || cnj)}
@@ -2851,11 +2878,11 @@
             </div>
             <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
               <div class="text-[10px] font-bold uppercase text-slate-400">Data de Ajuizamento & Sigilo</div>
-              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5">📅 ${fmtDate(capa.data_ajuizamento)} • ${esc(capa.nivel_sigilo)}</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.data_ajuizamento)} • ${esc(capa.nivel_sigilo)}</div>
             </div>
             <div class="p-3 rounded-xl bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
               <div class="text-[10px] font-bold uppercase text-rose-600">Próximo Prazo / Ação Detectada</div>
-              <div class="font-extrabold text-rose-800 dark:text-rose-300 mt-0.5">📅 ${fmtDate(capa.proximo_prazo_sugerido)} — ${esc(capa.descricao_prazo_sugerido)}</div>
+              <div class="font-extrabold text-rose-800 dark:text-rose-300 mt-0.5"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.proximo_prazo_sugerido)} — ${esc(capa.descricao_prazo_sugerido)}</div>
             </div>
           </div>
         </div>
@@ -2884,7 +2911,7 @@
                     <span class="px-2.5 py-0.5 rounded-full bg-[#5C1618]/10 text-[#5C1618] dark:bg-slate-800 dark:text-[#E5C888] text-[10px] font-bold">
                       Fase: ${esc(m.etapa_pipeline)}
                     </span>
-                    <span class="text-[11px] font-semibold text-slate-500">📅 ${fmtDateTime(m.data_hora)}</span>
+                    <span class="text-[11px] font-semibold text-slate-500"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDateTime(m.data_hora)}</span>
                   </div>
                   <h6 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white pt-0.5">${esc(m.titulo_movimento)}</h6>
                 </div>
@@ -2896,23 +2923,23 @@
               <!-- Detalhes Técnicos Ricos: Órgão Julgador, Complementos CNJ, Íntegra e Prazo -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                 <div class="p-2.5 rounded-xl bg-stone-50 dark:bg-slate-800/70 border border-stone-200/70 dark:border-slate-700">
-                  <span class="font-bold text-slate-500 block uppercase text-[9px]">🏛️ Órgão Julgador / Setor Responsável</span>
+                  <span class="font-bold text-slate-500 block uppercase text-[9px]"><i data-lucide="landmark" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Órgão Julgador / Setor Responsável</span>
                   <span class="font-bold text-slate-800 dark:text-white">${esc(m.orgao_julgador)}</span>
                 </div>
                 <div class="p-2.5 rounded-xl bg-stone-50 dark:bg-slate-800/70 border border-stone-200/70 dark:border-slate-700">
-                  <span class="font-bold text-slate-500 block uppercase text-[9px]">📑 Complementos Tabelados CNJ</span>
+                  <span class="font-bold text-slate-500 block uppercase text-[9px]"><i data-lucide="file-text" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Complementos Tabelados CNJ</span>
                   <span class="font-medium text-slate-700 dark:text-slate-200">${esc(m.complementos_cnj)}</span>
                 </div>
               </div>
 
               <div class="text-xs text-slate-700 dark:text-slate-300 bg-stone-50/50 dark:bg-slate-800/30 p-3 rounded-xl border border-stone-200/60 dark:border-slate-800">
-                <strong class="text-slate-900 dark:text-white block mb-0.5 text-[11px]">📜 Teor Técnico Completo / Certidão dos Autos:</strong>
+                <strong class="text-slate-900 dark:text-white block mb-0.5 text-[11px]"><i data-lucide="scroll-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Teor Técnico Completo / Certidão dos Autos:</strong>
                 ${esc(m.descricao_tecnica)}
               </div>
 
               ${m.prazo_sugerido ? `
                 <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-xs">
-                  <span class="font-bold text-rose-800 dark:text-rose-300">⏰ Providência / Prazo (Sincronizado no Kanban): ${esc(m.prazo_sugerido)}</span>
+                  <span class="font-bold text-rose-800 dark:text-rose-300"><i data-lucide="clock" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Providência / Prazo (Sincronizado no Kanban): ${esc(m.prazo_sugerido)}</span>
                 </div>
               ` : ''}
 
@@ -2927,7 +2954,7 @@
                 </div>
                 ${m.proximo_passo_leigo ? `
                   <div class="pt-1.5 border-t border-[#C8A25A]/30 text-[11px] text-[#5C1618] dark:text-[#E5C888]">
-                    🧭 <strong>O que acontece a seguir:</strong> ${esc(m.proximo_passo_leigo)}
+                    <i data-lucide="compass" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> <strong>O que acontece a seguir:</strong> ${esc(m.proximo_passo_leigo)}
                   </div>
                 ` : ''}
               </div>
@@ -3601,9 +3628,9 @@
               </div>
               <div class="flex items-center gap-1.5">
                 <button type="button" onclick="APP.selectedClienteId='${cid}'; switchAdminView('clientes');"
-                  class="px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 text-[10px] font-bold">👤 CRM</button>
+                  class="px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 text-[10px] font-bold"><i data-lucide="user" class="w-3 h-3 inline -mt-0.5 mr-1"></i> CRM</button>
                 ${proc ? `<button type="button" onclick="APP.selectedProcessoId='${proc.id}'; switchAdminView('pipeline');"
-                  class="px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 text-[10px] font-bold">⚖️ Pipeline</button>` : ''}
+                  class="px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 text-[10px] font-bold"><i data-lucide="scale" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Pipeline</button>` : ''}
                 <span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-[#5C1618] text-[#E5C888]">${pct}% Quitado</span>
               </div>
             </div>
@@ -3733,12 +3760,12 @@
             <div class="pt-3 border-t border-stone-200/70 dark:border-slate-700 flex flex-wrap items-center gap-1.5">
               <button type="button" onclick="openUserAccessModal('${u.id}')"
                 class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-300 dark:border-slate-700 text-[11px] font-bold">
-                🔑 Redefinir Senha
+                <i data-lucide="key-round" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Redefinir Senha
               </button>
               ${u.cliente_id ? `
                 <button type="button" onclick="previewSpecificClient('${u.cliente_id}')"
                   class="px-2.5 py-1.5 rounded-xl bg-[#FDF8EE] border border-[#C8A25A] text-[#5C1618] text-[11px] font-bold">
-                  👁️ Ver Portal
+                  <i data-lucide="eye" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Ver Portal
                 </button>
               ` : ''}
               ${u.username !== '@nathalia' ? `
@@ -3912,14 +3939,14 @@
                       <div class="flex flex-wrap items-center justify-between gap-2">
                         <div class="flex flex-wrap items-center gap-2">
                           <span class="px-2.5 py-0.5 rounded-full bg-[#C8A25A] text-[#28080A] text-[10px] font-extrabold">Passo ${stepNum} de ${movs.length}</span>
-                          <span class="text-xs font-bold text-slate-500">📅 ${fmtDateTime(a.data_hora)}</span>
+                          <span class="text-xs font-bold text-slate-500"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDateTime(a.data_hora)}</span>
                         </div>
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">${esc(a.etapa_pipeline || p.fase_pipeline)}</span>
                       </div>
 
                       <div>
                         <h4 class="text-base font-extrabold text-slate-900 dark:text-white">${esc(a.titulo_movimento)}</h4>
-                        ${a.orgao_julgador ? `<div class="text-[11px] font-semibold text-[#5C1618] dark:text-[#E5C888] mt-0.5">🏛️ Setor / Vara: ${esc(a.orgao_julgador)}</div>` : ''}
+                        ${a.orgao_julgador ? `<div class="text-[11px] font-semibold text-[#5C1618] dark:text-[#E5C888] mt-0.5"><i data-lucide="landmark" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Setor / Vara: ${esc(a.orgao_julgador)}</div>` : ''}
                         <p class="text-xs text-slate-500 mt-1">${esc(a.descricao_tecnica)}</p>
                       </div>
 
@@ -3946,7 +3973,7 @@
                           <div>${esc(a.explicacao_leiga)}</div>
                           ${a.proximo_passo_leigo ? `
                             <div class="p-2.5 rounded-xl bg-white/80 dark:bg-slate-900/70 border border-[#C8A25A]/30 text-xs text-[#5C1618] dark:text-[#E5C888]">
-                              🧭 <strong>Qual é o próximo passo?</strong> ${esc(a.proximo_passo_leigo)}
+                              <i data-lucide="compass" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> <strong>Qual é o próximo passo?</strong> ${esc(a.proximo_passo_leigo)}
                             </div>
                           ` : ''}
                         </div>
@@ -3958,8 +3985,8 @@
                           <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 text-xs space-y-1">
                             <div class="font-bold text-slate-800 dark:text-white">Sua dúvida: "${esc(d.pergunta_cliente)}"</div>
                             ${d.resposta_advogada
-                              ? `<div class="text-emerald-700 dark:text-emerald-400 font-semibold">⚖️ Resposta da Dra. Nathalia Lisboa: ${esc(d.resposta_advogada)}</div>`
-                              : `<div class="text-amber-700 text-[11px]">⏳ Enviada para a Dra. Nathalia Lisboa — você receberá retorno em breve.</div>`}
+                              ? `<div class="text-emerald-700 dark:text-emerald-400 font-semibold"><i data-lucide="scale" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Resposta da Dra. Nathalia Lisboa: ${esc(d.resposta_advogada)}</div>`
+                              : `<div class="text-amber-700 text-[11px]"><i data-lucide="clock" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Enviada para a Dra. Nathalia Lisboa — você receberá retorno em breve.</div>`}
                           </div>
                         `).join('')}
 
@@ -4137,7 +4164,7 @@
               <input id="f-cli-morada" value="${esc(c.morada)}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
             </div>
             <div class="sm:col-span-2">
-              <label class="font-bold block mb-1 text-amber-800 dark:text-amber-300">🔒 Notas Internas da Advogada (Invisível ao Cliente)</label>
+              <label class="font-bold block mb-1 text-amber-800 dark:text-amber-300"><i data-lucide="lock" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Notas Internas da Advogada (Invisível ao Cliente)</label>
               <textarea id="f-cli-notas" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">${esc(c.notas_internas)}</textarea>
             </div>
           </div>
@@ -4486,7 +4513,7 @@
               <textarea id="f-and-leiga" rows="2" placeholder="Explicação clara e humana para o cliente compreender o andamento..."
                 class="w-full px-3 py-2 rounded-xl border border-[#C8A25A]/50 bg-white dark:bg-slate-900 text-xs">${esc(a.explicacao_leiga)}</textarea>
               <div>
-                <label class="font-bold block mb-1 text-[#5C1618] dark:text-[#E5C888]">🧭 Qual é o Próximo Passo? (Explicação para o Cliente)</label>
+                <label class="font-bold block mb-1 text-[#5C1618] dark:text-[#E5C888]"><i data-lucide="compass" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Qual é o Próximo Passo? (Explicação para o Cliente)</label>
                 <input id="f-and-prox-passo" value="${esc(a.proximo_passo_leigo || '')}" placeholder="Ex: A Dra. Nathalia Lisboa apresentará a manifestação dentro do prazo legal."
                   class="w-full px-3 py-2 rounded-xl border border-[#C8A25A]/50 bg-white dark:bg-slate-900 text-xs">
               </div>
