@@ -1210,6 +1210,38 @@
 
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // Impede que o sistema seja carregado dentro de um iframe de outro site (clickjacking)
+    if (window.top !== window.self) { try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.style.display = 'none'; } }
+
+    // Storage privado: as regras do bucket validam a sessão pelo cabeçalho x-legal-token
+    let _sbStorageClient = null;
+    let _sbStorageToken = null;
+    function storageClient() {
+      if (!_sbStorageClient || _sbStorageToken !== APP.token) {
+        _sbStorageToken = APP.token;
+        _sbStorageClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+          global: { headers: { 'x-legal-token': APP.token || '' } },
+          auth: { persistSession: false, autoRefreshToken: false, storageKey: 'nl-legal-storage' }
+        });
+      }
+      return _sbStorageClient.storage.from('legal-docs');
+    }
+
+    async function openAnexo(anexoId) {
+      const list = [...((APP.admin && APP.admin.anexos) || []), ...((APP.portal && APP.portal.anexos) || [])];
+      const a = list.find(x => x.id === anexoId);
+      if (!a) return showToast('Documento não encontrado.', 'error');
+      const path = a.storage_path || decodeURIComponent(String(a.file_url || '').split('/legal-docs/')[1] || '');
+      if (!path) return showToast('Documento sem arquivo vinculado.', 'error');
+      const win = window.open('', '_blank');
+      const { data, error } = await storageClient().createSignedUrl(path, 120);
+      if (error || !data || !data.signedUrl) {
+        if (win) win.close();
+        return showToast('Não foi possível abrir o documento com segurança.', 'error');
+      }
+      if (win) { win.opener = null; win.location.href = data.signedUrl; } else { window.location.href = data.signedUrl; }
+    }
+
     const PIPELINE_PHASES = [
       'Em Atendimento',
       'Proposta Enviada',
@@ -2402,10 +2434,10 @@
                     class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition ${a.visivel_cliente ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-stone-200 border-stone-300 text-slate-600'}">
                     ${a.visivel_cliente ? '<i data-lucide="eye" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Visível ao Cliente' : '<i data-lucide="lock" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Só Advogada'}
                   </button>
-                  <a href="${esc(a.file_url)}" target="_blank" rel="noopener"
+                  <button type="button" onclick="openAnexo('${a.id}')"
                     class="px-2.5 py-1 rounded-lg bg-[#5C1618] text-white text-[11px] font-bold flex items-center gap-1">
                     <i data-lucide="download" class="w-3 h-3"></i> Abrir
-                  </a>
+                  </button>
                   <button type="button" onclick="deleteRecordById('legal_anexos', '${a.id}')" class="p-1 text-rose-600 hover:bg-rose-50 rounded">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                   </button>
@@ -2426,14 +2458,12 @@
         const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
         const storagePath = `clientes/${clienteId}/${safeName}`;
 
-        const { error: upErr } = await sb.storage.from('legal-docs').upload(storagePath, file, {
+        const { error: upErr } = await storageClient().upload(storagePath, file, {
           cacheControl: '3600',
           upsert: true
         });
         if (upErr) throw upErr;
 
-        const { data: pubData } = sb.storage.from('legal-docs').getPublicUrl(storagePath);
-        const publicUrl = pubData?.publicUrl || `${SUPABASE_URL}/storage/v1/object/public/legal-docs/${storagePath}`;
 
         const proc = APP.admin.processos.find(p => p.cliente_id === clienteId);
         await sb.rpc('legal_save_record', {
@@ -2445,7 +2475,7 @@
             nome_arquivo: file.name,
             categoria: 'Documento / PDF',
             storage_path: storagePath,
-            file_url: publicUrl,
+            file_url: '',
             tamanho_bytes: file.size || 0,
             mime_type: file.type || 'application/pdf',
             visivel_cliente: true
@@ -4112,10 +4142,10 @@
                 <div class="text-[11px] text-slate-500">${esc(a.categoria)} • Disponibilizado em ${fmtDate(a.created_at)}</div>
               </div>
             </div>
-            <a href="${esc(a.file_url)}" target="_blank" rel="noopener"
+            <button type="button" onclick="openAnexo('${a.id}')"
               class="px-3.5 py-2 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold flex items-center gap-1.5 shrink-0">
               <i data-lucide="download" class="w-3.5 h-3.5"></i> Baixar PDF
-            </a>
+            </button>
           </div>
         `).join('');
       }
@@ -5148,6 +5178,10 @@
     }
 
     async function deleteRecordById(table, id) {
+      if (table === 'legal_anexos') {
+        const anx = ((APP.admin && APP.admin.anexos) || []).find(x => x.id === id);
+        if (anx && anx.storage_path) { try { await storageClient().remove([anx.storage_path]); } catch (e) { /* segue com a exclusão do registro */ } }
+      }
       await sb.rpc('legal_delete_record', {
         p_token: APP.token,
         p_table: table,
