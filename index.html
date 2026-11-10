@@ -349,6 +349,17 @@
         transform: none !important;
       }
     }
+      /* Isolamento estrito de rolagem do menu lateral (LEI SUPREMA 2: Zero Bugs) */
+    #desktop-sidebar {
+      overscroll-behavior: contain !important;
+      touch-action: pan-y !important;
+    }
+    #desktop-sidebar nav {
+      overscroll-behavior: contain !important;
+      -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: rgba(200, 162, 90, 0.4) transparent !important;
+    }
   </style>
 </head>
 <body class="min-h-[100dvh] antialiased selection:bg-[#5C1618] selection:text-white">
@@ -525,7 +536,7 @@
     <div id="desktop-sidebar-hotspot" onmouseenter="openDesktopSidebar()" class="hidden lg:block fixed top-0 left-0 w-8 h-24 z-30 pointer-events-auto" title="Passe o cursor ou clique para abrir o menu"></div>
 
     <!-- Sidebar Flutuante / Retrátil (Desktop & Mobile) -->
-    <aside id="desktop-sidebar" onmouseenter="handleSidebarMouseEnter()" onmouseleave="handleSidebarMouseLeave()" class="fixed inset-y-0 left-0 z-50 w-76 sm:w-80 max-w-[88vw] flex flex-col bg-gradient-to-b from-[#3E0E10] via-[#310A0C] to-[#230607] text-white border-r border-[#C8A25A]/30 shadow-2xl transition-transform duration-300 ease-in-out -translate-x-full select-none">
+    <aside id="desktop-sidebar" onmouseenter="handleSidebarMouseEnter()" onmouseleave="handleSidebarMouseLeave()" class="fixed inset-y-0 left-0 z-50 h-[100dvh] max-h-screen w-76 sm:w-80 max-w-[88vw] flex flex-col bg-gradient-to-b from-[#3E0E10] via-[#310A0C] to-[#230607] text-white border-r border-[#C8A25A]/30 shadow-2xl transition-transform duration-300 ease-in-out -translate-x-full select-none overscroll-contain">
       <div class="p-4 sm:p-5 border-b border-white/10">
         <!-- Barra de Ações Superior (Fixar / Fechar) -->
         <div class="flex items-center justify-between pb-3">
@@ -547,7 +558,7 @@
         </div>
       </div>
 
-      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto overscroll-contain min-h-0">
         <div class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-[#E5C888]/60">Gestão do Escritório</div>
         <button type="button" onclick="switchAdminView('dashboard')" data-nav="dashboard" class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition">
           <span class="flex items-center gap-3"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard em Tempo Real</span>
@@ -1452,6 +1463,10 @@
       if (bd && !sidebarPinned) {
         bd.classList.remove('hidden');
       }
+      // Travar rolagem do fundo quando a sidebar estiver aberta em modo flutuante
+      if (!sidebarPinned) {
+        document.body.classList.add('overflow-hidden');
+      }
     }
 
     function closeDesktopSidebar(force = false) {
@@ -1466,6 +1481,8 @@
       if (bd) {
         bd.classList.add('hidden');
       }
+      // Restaurar rolagem normal do corpo da página
+      document.body.classList.remove('overflow-hidden');
     }
 
     function toggleDesktopSidebar(e) {
@@ -1506,6 +1523,11 @@
       if (bd) {
         if (sidebarPinned) bd.classList.add('hidden');
         else bd.classList.remove('hidden');
+      }
+      if (sidebarPinned) {
+        document.body.classList.remove('overflow-hidden');
+      } else {
+        document.body.classList.add('overflow-hidden');
       }
       refreshIcons();
     }
