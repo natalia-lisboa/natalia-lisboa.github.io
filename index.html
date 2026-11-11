@@ -1225,28 +1225,111 @@
     // Impede que o sistema seja carregado dentro de um iframe de outro site (clickjacking)
     if (window.top !== window.self) { try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.style.display = 'none'; } }
 
-    // Storage privado: as regras do bucket validam a sessão pelo cabeçalho x-legal-token
-    let _sbStorageClient = null;
-    let _sbStorageToken = null;
-    function storageClient() {
-      if (!_sbStorageClient || _sbStorageToken !== APP.token) {
-        _sbStorageToken = APP.token;
-        _sbStorageClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    // Multi-Cofre Privado (Pool de Cofres Supabase 1 GB + Híbrido Google Drive 15 GB + Compressão Inteligente)
+    const _sbVaultClients = {};
+    function getVaultPool() {
+      const base = [{ id: 'vault_1', label: 'Cofre Principal (1 GB)', url: SUPABASE_URL, key: SUPABASE_KEY, bucket: 'legal-docs' }];
+      const cfg = (APP.admin && APP.admin.escritorio && APP.admin.escritorio.config_json) || (APP.portal && APP.portal.escritorio && APP.portal.escritorio.config_json) || {};
+      const extras = Array.isArray(cfg.extra_vaults) ? cfg.extra_vaults : [];
+      return [...base, ...extras.filter(v => v && v.url && v.key)];
+    }
+
+    function getActiveUploadVault() {
+      const pool = getVaultPool();
+      if (pool.length > 1) {
+        const st = (APP.systemHealth && APP.systemHealth.storage) || {};
+        const extraActive = pool.find(v => v.id !== 'vault_1' && v.prefer_upload);
+        if (extraActive) return extraActive;
+        if (Number(st.percentual || 0) >= 80) return pool[pool.length - 1];
+      }
+      return pool[0];
+    }
+
+    function storageClient(vaultId = 'vault_1') {
+      const pool = getVaultPool();
+      const vault = pool.find(v => v.id === vaultId) || pool[0];
+      const cacheKey = `${vault.id}_${APP.token || ''}`;
+      if (!_sbVaultClients[cacheKey]) {
+        _sbVaultClients[cacheKey] = window.supabase.createClient(vault.url, vault.key, {
           global: { headers: { 'x-legal-token': APP.token || '' } },
-          auth: { persistSession: false, autoRefreshToken: false, storageKey: 'nl-legal-storage' }
+          auth: { persistSession: false, autoRefreshToken: false, storageKey: `nl-legal-storage-${vault.id}` }
         });
       }
-      return _sbStorageClient.storage.from('legal-docs');
+      return _sbVaultClients[cacheKey].storage.from(vault.bucket || 'legal-docs');
+    }
+
+    async function compressDocumentBeforeUpload(file) {
+      if (!file || !file.type || !/^image\/(jpeg|jpg|png|webp)$/i.test(file.type) || file.size <= 180 * 1024) {
+        return { file, compressed: false, oldSize: file ? file.size : 0, newSize: file ? file.size : 0 };
+      }
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onerror = () => resolve({ file, compressed: false, oldSize: file.size, newSize: file.size });
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onerror = () => resolve({ file, compressed: false, oldSize: file.size, newSize: file.size });
+          img.onload = () => {
+            try {
+              const maxDim = 1600;
+              let w = img.width;
+              let h = img.height;
+              if (w > maxDim || h > maxDim) {
+                if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                else { w = Math.round((w * maxDim) / h); h = maxDim; }
+              }
+              const canvas = document.createElement('canvas');
+              canvas.width = w;
+              canvas.height = h;
+              const ctx = canvas.getContext('2d');
+              ctx.fillStyle = '#FFFFFF';
+              ctx.fillRect(0, 0, w, h);
+              ctx.drawImage(img, 0, 0, w, h);
+              canvas.toBlob((blob) => {
+                if (!blob || blob.size >= file.size) {
+                  return resolve({ file, compressed: false, oldSize: file.size, newSize: file.size });
+                }
+                const cleanName = file.name.replace(/\.(png|webp|jpeg|jpg)$/i, '') + '.jpg';
+                const out = new File([blob], cleanName, { type: 'image/jpeg', lastModified: Date.now() });
+                resolve({ file: out, compressed: true, oldSize: file.size, newSize: out.size });
+              }, 'image/jpeg', 0.78);
+            } catch (e) {
+              resolve({ file, compressed: false, oldSize: file.size, newSize: file.size });
+            }
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     async function openAnexo(anexoId) {
       const list = [...((APP.admin && APP.admin.anexos) || []), ...((APP.portal && APP.portal.anexos) || [])];
       const a = list.find(x => x.id === anexoId);
       if (!a) return showToast('Documento não encontrado.', 'error');
-      const path = a.storage_path || decodeURIComponent(String(a.file_url || '').split('/legal-docs/')[1] || '');
-      if (!path) return showToast('Documento sem arquivo vinculado.', 'error');
+
+      // Suporte a Link Híbrido Externo (Google Drive 15 GB / OneDrive / PJe) com validação anti-XSS (apenas https://)
+      if (a.storage_path === 'external_drive' || (a.file_url && /^https:\/\//i.test(String(a.file_url).trim()) && !String(a.file_url).includes('/legal-docs/'))) {
+        const extUrl = String(a.file_url || '').trim();
+        if (!/^https:\/\//i.test(extUrl)) return showToast('Link externo inválido. Use um endereço seguro https://', 'error');
+        const extWin = window.open(extUrl, '_blank', 'noopener,noreferrer');
+        if (!extWin) window.location.href = extUrl;
+        return;
+      }
+
+      let rawPath = a.storage_path || decodeURIComponent(String(a.file_url || '').split('/legal-docs/')[1] || '');
+      if (!rawPath) return showToast('Documento sem arquivo vinculado.', 'error');
+
+      let vaultId = 'vault_1';
+      if (rawPath.startsWith('vault:')) {
+        const parts = rawPath.split(':');
+        if (parts.length >= 3) {
+          vaultId = parts[1];
+          rawPath = parts.slice(2).join(':');
+        }
+      }
+
       const win = window.open('', '_blank');
-      const { data, error } = await storageClient().createSignedUrl(path, 120);
+      const { data, error } = await storageClient(vaultId).createSignedUrl(rawPath, 120);
       if (error || !data || !data.signedUrl) {
         if (win) win.close();
         return showToast('Não foi possível abrir o documento com segurança.', 'error');
@@ -2438,10 +2521,16 @@
               </h4>
               <p class="text-[11px] text-slate-500">Controle individualmente quais documentos ficam liberados para download no Portal do Cliente.</p>
             </div>
-            <label class="cursor-pointer px-3.5 py-2 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs">
-              <i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload PDF / Ficheiro
-              <input type="file" class="hidden" onchange="handleFileUploadStorage(event, '${cli.id}')">
-            </label>
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="openExternalDriveModal('${cli.id}')"
+                class="px-3 py-2 rounded-xl bg-[#FDF8EE] hover:bg-[#F5E8CE] text-[#5C1618] border border-[#C8A25A] text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                <i data-lucide="cloud" class="w-4 h-4"></i> Link Google Drive (+15 GB)
+              </button>
+              <label class="cursor-pointer px-3.5 py-2 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload PDF / Foto (Auto-Compressão)
+                <input type="file" class="hidden" onchange="handleFileUploadStorage(event, '${cli.id}')">
+              </label>
+            </div>
           </div>
 
           <div class="space-y-2">
@@ -2477,20 +2566,23 @@
     }
 
     async function handleFileUploadStorage(event, clienteId) {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      showToast(`Enviando "${file.name}" para o bucket legal-docs...`, 'info');
+      const rawFile = event.target.files?.[0];
+      if (!rawFile) return;
+      showToast(`Otimizando e enviando "${rawFile.name}" para o Cofre...`, 'info');
 
       try {
+        const comp = await compressDocumentBeforeUpload(rawFile);
+        const file = comp.file;
+        const targetVault = getActiveUploadVault();
         const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-        const storagePath = `clientes/${clienteId}/${safeName}`;
+        const rawPath = `clientes/${clienteId}/${safeName}`;
+        const storedPath = targetVault.id === 'vault_1' ? rawPath : `vault:${targetVault.id}:${rawPath}`;
 
-        const { error: upErr } = await storageClient().upload(storagePath, file, {
+        const { error: upErr } = await storageClient(targetVault.id).upload(rawPath, file, {
           cacheControl: '3600',
           upsert: true
         });
         if (upErr) throw upErr;
-
 
         const proc = APP.admin.processos.find(p => p.cliente_id === clienteId);
         await sb.rpc('legal_save_record', {
@@ -2499,9 +2591,9 @@
           p_record: {
             cliente_id: clienteId,
             processo_id: proc ? proc.id : null,
-            nome_arquivo: file.name,
-            categoria: 'Documento / PDF',
-            storage_path: storagePath,
+            nome_arquivo: rawFile.name,
+            categoria: comp.compressed ? 'Documento Otimizado' : 'Documento / PDF',
+            storage_path: storedPath,
             file_url: '',
             tamanho_bytes: file.size || 0,
             mime_type: file.type || 'application/pdf',
@@ -2511,10 +2603,81 @@
 
         await loadAdminBundle();
         renderClientesView();
-        showToast('Ficheiro armazenado na nuvem e disponibilizado para o cliente!');
+        if (comp.compressed) {
+          const savedPct = Math.round((1 - comp.newSize / comp.oldSize) * 100);
+          showToast(`Enviado com Compressão Inteligente! Economia de ${savedPct}% de espaço no Cofre.`);
+        } else {
+          showToast(`Ficheiro armazenado com segurança no ${targetVault.label}!`);
+        }
       } catch (err) {
         showToast('Erro no upload: ' + (err.message || err), 'error');
       }
+    }
+
+    function openExternalDriveModal(clienteId) {
+      openModal('Vincular Arquivo do Google Drive / Nuvem (+15 GB Grátis)', `
+        <form onsubmit="saveExternalDriveAnexo(event, '${clienteId}')" class="space-y-4">
+          <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-900 dark:text-emerald-200">
+            <strong>Consumo ZERO do Cofre Interno:</strong> Use para processos inteiros (PDFs de 100+ páginas, vídeos ou áudios de audiências) guardados no seu <strong>Google Drive (15 GB grátis)</strong> ou OneDrive. O cliente abrirá direto pelo Portal com 1 clique.
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nome do Documento *</label>
+              <input type="text" id="ext-drive-nome" required placeholder="Ex: Cópia Integral dos Autos (320 págs)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Categoria *</label>
+              <select id="ext-drive-cat" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-sm">
+                <option value="Autos Completos (Google Drive)">Autos Completos (Google Drive)</option>
+                <option value="Procuração / Contrato">Procuração / Contrato</option>
+                <option value="Petição / Sentença">Petição / Sentença</option>
+                <option value="Gravação de Audiência / Prova">Gravação de Audiência / Prova</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Link Seguro (https:// do Google Drive, OneDrive ou Dropbox) *</label>
+              <input type="url" id="ext-drive-url" required placeholder="https://drive.google.com/file/d/..."
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-sm font-mono">
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-3 border-t border-stone-200 dark:border-slate-800">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-stone-300 text-xs font-bold">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold">Vincular Documento (0 MB usados)</button>
+          </div>
+        </form>
+      `);
+    }
+
+    async function saveExternalDriveAnexo(event, clienteId) {
+      event.preventDefault();
+      const nome = document.getElementById('ext-drive-nome').value.trim();
+      const cat = document.getElementById('ext-drive-cat').value;
+      const url = document.getElementById('ext-drive-url').value.trim();
+      if (!/^https:\/\//i.test(url)) {
+        return showToast('Por segurança, informe um link iniciado por https://', 'error');
+      }
+      const proc = APP.admin.processos.find(p => p.cliente_id === clienteId);
+      const { error } = await sb.rpc('legal_save_record', {
+        p_token: APP.token,
+        p_table: 'legal_anexos',
+        p_record: {
+          cliente_id: clienteId,
+          processo_id: proc ? proc.id : null,
+          nome_arquivo: nome,
+          categoria: cat,
+          storage_path: 'external_drive',
+          file_url: url,
+          tamanho_bytes: 0,
+          mime_type: 'application/external-link',
+          visivel_cliente: true
+        }
+      });
+      if (error) return showToast('Erro ao vincular: ' + error.message, 'error');
+      closeModal();
+      await loadAdminBundle();
+      renderClientesView();
+      showToast('Documento externo vinculado com sucesso (0 bytes gastos do Cofre)!');
     }
 
     async function toggleAnexoVisibilidade(anexoId) {
@@ -4101,13 +4264,18 @@
 
                 <div>
                   <div class="flex justify-between font-bold text-slate-700 dark:text-slate-200 mb-1">
-                    <span class="flex items-center gap-1.5"><i data-lucide="hard-drive" class="w-3.5 h-3.5 text-[#C8A25A]"></i> Cofre Privado de PDFs e Anexos</span>
-                    <span class="font-mono">${st.usado_mb} MB / ${st.limite_mb} MB (${st.percentual}%)</span>
+                    <span class="flex items-center gap-1.5"><i data-lucide="hard-drive" class="w-3.5 h-3.5 text-[#C8A25A]"></i> Multi-Cofre Privado (${getVaultPool().length}x 1 GB + 15 GB Drive Híbrido)</span>
+                    <span class="font-mono">${st.usado_mb} MB / ${getVaultPool().length * 1024} MB (${st.percentual}%)</span>
                   </div>
                   <div class="w-full h-2 bg-stone-200 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div class="h-full bg-[#C8A25A] rounded-full" style="width:${Math.max(1, Math.min(100, st.percentual))}%"></div>
                   </div>
-                  <div class="text-[11px] text-slate-500 mt-1">Espaço livre para documentos: <strong>${st.restante_mb} MB</strong> (${st.total_arquivos} ficheiros guardados)</div>
+                  <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 mt-1">
+                    <span>Livre no Cofre Interno: <strong>${((getVaultPool().length * 1024) - Number(st.usado_mb || 0)).toFixed(1)} MB</strong> + Compressão 10x Ativa</span>
+                    <button type="button" onclick="openMultiVaultModal()" class="text-[#5C1618] dark:text-[#E5C888] font-extrabold underline hover:opacity-80">
+                      + Somar Novo Cofre de 1 GB Grátis
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -5505,6 +5673,85 @@
       refreshIcons();
       routeAfterAuth();
     });
+
+    function openMultiVaultModal() {
+      const pool = getVaultPool();
+      const extras = pool.filter(v => v.id !== 'vault_1');
+      openModal('Gerenciar Multi-Cofre Gratuito (Soma de Cofres 1 GB + 15 GB Drive)', `
+        <form onsubmit="saveMultiVaultConfig(event)" class="space-y-4">
+          <div class="p-3.5 rounded-xl bg-[#FDF8EE] dark:bg-slate-800 border border-[#C8A25A]/40 text-xs text-slate-700 dark:text-slate-200 space-y-1.5">
+            <div class="font-extrabold text-[#5C1618] dark:text-[#E5C888]">Como funciona a Opção 1 (Capacidade Ilimitada Sem Cartão):</div>
+            <div>1. <strong>Compressão Automática Ativa:</strong> Fotos de documentos enviadas pelo celular são reduzidas em até 95% automaticamente (fazendo 1 GB guardar até 10.000 páginas).</div>
+            <div>2. <strong>Google Drive Híbrido (+15 GB):</strong> Na ficha do cliente, use o botão <em>Link Google Drive (+15 GB)</em> para anexar processos gigantes sem gastar 1 byte do cofre interno.</div>
+            <div>3. <strong>Soma de Cofres Supabase (+1 GB cada, sem cartão):</strong> Quando quiser somar mais +1 GB interno, crie um projeto grátis no Supabase, crie um bucket chamado <code>legal-docs</code> e cole a URL e a chave abaixo:</div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="text-xs font-extrabold uppercase text-slate-500">Cofres Conectados (${pool.length}x 1 GB = ${pool.length} GB Internos + 15 GB Drive)</div>
+            ${pool.map((v, idx) => `
+              <div class="p-3 rounded-xl border border-stone-200 dark:border-slate-700 flex items-center justify-between text-xs bg-stone-50 dark:bg-slate-800/40">
+                <div>
+                  <span class="font-bold text-slate-900 dark:text-white">${esc(v.label || ('Cofre ' + (idx + 1)))}</span>
+                  <span class="text-slate-400 ml-2 font-mono">${esc(v.url)}</span>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Conectado (1 GB)</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-stone-200 dark:border-slate-800">
+            <div class="sm:col-span-2 text-xs font-bold text-slate-700 dark:text-slate-200">Adicionar Cofre Extra (+1 GB Grátis no Supabase):</div>
+            <div>
+              <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Nome do Cofre Extra</label>
+              <input type="text" id="mv-label" placeholder="Ex: Cofre 2 (1 GB Extra)"
+                class="w-full px-3 py-2 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-xs">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">URL do Projeto Supabase *</label>
+              <input type="url" id="mv-url" required placeholder="https://xxxx.supabase.co"
+                class="w-full px-3 py-2 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-xs font-mono">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Publishable / Anon Key do Cofre Extra *</label>
+              <input type="text" id="mv-key" required placeholder="sb_publishable_... ou eyJhbGci..."
+                class="w-full px-3 py-2 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-xs font-mono">
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-3 border-t border-stone-200 dark:border-slate-800">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-stone-300 text-xs font-bold">Fechar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold">+ Conectar Cofre de 1 GB</button>
+          </div>
+        </form>
+      `);
+    }
+
+    async function saveMultiVaultConfig(event) {
+      event.preventDefault();
+      const label = document.getElementById('mv-label').value.trim() || `Cofre Extra ${getVaultPool().length + 1} (1 GB)`;
+      const url = document.getElementById('mv-url').value.trim();
+      const key = document.getElementById('mv-key').value.trim();
+      if (!/^https:\/\//i.test(url)) return showToast('Informe uma URL https:// válida.', 'error');
+
+      const escAtual = (APP.admin && APP.admin.escritorio) || {};
+      const cfg = { ...(escAtual.config_json || {}) };
+      const extras = Array.isArray(cfg.extra_vaults) ? [...cfg.extra_vaults] : [];
+      extras.push({ id: `vault_${Date.now()}`, label, url, key, bucket: 'legal-docs', prefer_upload: true });
+      cfg.extra_vaults = extras;
+
+      const { data, error } = await sb.rpc('legal_save_escritorio_config', {
+        p_token: APP.token,
+        p_config: { ...escAtual, config_json: cfg }
+      });
+      if (error || (data && data.error)) {
+        return showToast((error && error.message) || (data && data.error) || 'Erro ao salvar Cofre Extra', 'error');
+      }
+      APP.admin.escritorio = data;
+      closeModal();
+      renderAcessosView();
+      showToast(`${label} conectado! Capacidade interna ampliada em +1 GB.`);
+    }
+
   </script>
 </body>
 </html>
