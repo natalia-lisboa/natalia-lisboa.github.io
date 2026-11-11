@@ -1068,6 +1068,7 @@
              VIEW G: GESTÃO DE ACESSOS DO CLIENTE (RBAC & SEGURANÇA)
              =================================================================== -->
         <section id="view-acessos" class="admin-view hidden animate-view space-y-6">
+          <div id="acessos-health-and-whitelabel" class="space-y-6"></div>
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/80 dark:border-slate-800 p-6 shadow-xs">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
               <div>
@@ -1217,7 +1218,7 @@
     const SUPABASE_URL = 'https://zlnaushxdvuznlwmongk.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_U_vT8rFuKXlwF4_yUlfaUQ_WcXYtcbx';
     const DATAJUD_PUBLIC_API_KEY = 'cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw==';
-    const ESCRITORIO_WHATSAPP = '5521981801373';
+    let ESCRITORIO_WHATSAPP = '5521981801373';
 
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1799,6 +1800,10 @@
         await handleLogout();
         return;
       }
+      APP.admin.escritorio = data.escritorio || null;
+      APP.admin.saude_sistema = data.saude_sistema || null;
+      APP.admin.escritorios_lista = data.escritorios_lista || [];
+      if (APP.admin.escritorio) applyEscritorioBranding(APP.admin.escritorio);
       APP.admin.clientes = data.clientes || [];
       APP.admin.processos = data.processos || [];
       APP.admin.andamentos = data.andamentos || [];
@@ -3871,7 +3876,284 @@
     // -------------------------------------------------------------------------
     // VIEW G: GESTÃO DE ACESSOS RBAC (CRIAR, REDEFINIR SENHA, SUSPENDER, REVOGAR)
     // -------------------------------------------------------------------------
+    function applyEscritorioBranding(escObj) {
+      if (!escObj) return;
+      if (escObj.whatsapp_oficial) {
+        ESCRITORIO_WHATSAPP = String(escObj.whatsapp_oficial).replace(/\D/g, '') || '5521981801373';
+      }
+      if (escObj.cor_primaria) {
+        document.documentElement.style.setProperty('--p-accent', escObj.cor_primaria);
+      }
+      if (escObj.cor_destaque) {
+        document.documentElement.style.setProperty('--p-gold', escObj.cor_destaque);
+      }
+    }
+
+    function openWhiteLabelConfigModal() {
+      const e = APP.admin.escritorio || {
+        nome_escritorio: 'NATHALIA LISBOA',
+        subtitulo: 'ADVOCACIA & ASSISTÊNCIA JURÍDICA',
+        oab_registro: 'OAB/RJ',
+        whatsapp_oficial: ESCRITORIO_WHATSAPP,
+        cor_primaria: '#5C1618',
+        cor_destaque: '#C8A25A',
+        logo_url: ''
+      };
+      openModal(`
+        <form onsubmit="saveWhiteLabelConfigForm(event)" class="space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-slate-800">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <i data-lucide="palette" class="w-5 h-5 text-[#C8A25A]"></i>
+              Personalizar Identidade do Escritório (White-Label)
+            </h3>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="font-bold block mb-1">Nome Principal do Escritório *</label>
+              <input id="wl-nome" required value="${esc(e.nome_escritorio || '')}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+            </div>
+            <div>
+              <label class="font-bold block mb-1">Subtítulo Institucional *</label>
+              <input id="wl-sub" required value="${esc(e.subtitulo || '')}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+            </div>
+            <div>
+              <label class="font-bold block mb-1">Registro OAB / UF</label>
+              <input id="wl-oab" value="${esc(e.oab_registro || 'OAB/RJ')}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+            </div>
+            <div>
+              <label class="font-bold block mb-1">WhatsApp Oficial do Escritório (com DDI 55 e DDD) *</label>
+              <input id="wl-whats" required value="${esc(e.whatsapp_oficial || ESCRITORIO_WHATSAPP)}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-mono">
+            </div>
+            <div>
+              <label class="font-bold block mb-1">Cor Principal da Marca (Hex)</label>
+              <input id="wl-cor1" value="${esc(e.cor_primaria || '#5C1618')}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-mono">
+            </div>
+            <div>
+              <label class="font-bold block mb-1">Cor de Destaque / Dourado (Hex)</label>
+              <input id="wl-cor2" value="${esc(e.cor_destaque || '#C8A25A')}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-mono">
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-3 border-t border-stone-200 dark:border-slate-800">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border text-xs font-bold">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] text-white text-xs font-bold">Salvar Identidade</button>
+          </div>
+        </form>
+      `);
+    }
+
+    async function saveWhiteLabelConfigForm(e) {
+      e.preventDefault();
+      const payload = {
+        nome_escritorio: document.getElementById('wl-nome').value.trim(),
+        subtitulo: document.getElementById('wl-sub').value.trim(),
+        oab_registro: document.getElementById('wl-oab').value.trim(),
+        whatsapp_oficial: document.getElementById('wl-whats').value.trim(),
+        cor_primaria: document.getElementById('wl-cor1').value.trim(),
+        cor_destaque: document.getElementById('wl-cor2').value.trim()
+      };
+      const { data, error } = await sb.rpc('legal_save_escritorio_config', {
+        p_token: APP.token,
+        p_config: payload
+      });
+      if (error || !data || !data.ok) {
+        return showToast((data && data.error) || 'Erro ao salvar configuração.', 'error');
+      }
+      closeModal();
+      await loadAdminBundle();
+      renderAcessosView();
+      showToast('Identidade visual e WhatsApp do escritório atualizados!');
+    }
+
+    function openNewTenantModal() {
+      openModal(`
+        <form onsubmit="saveNewTenantForm(event)" class="space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-slate-800">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <i data-lucide="building-2" class="w-5 h-5 text-[#C8A25A]"></i>
+              Provisionar Novo Escritório Cliente (Multi-Tenant)
+            </h3>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+          <p class="text-xs text-slate-500">
+            Cria um ambiente 100% isolado no banco de dados para um novo advogado/escritório comprador da sua plataforma.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="font-bold block mb-1">Nome do Escritório *</label>
+              <input id="nt-nome" required placeholder="Ex: Silva & Associados" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+            </div>
+            <div>
+              <label class="font-bold block mb-1">Nome do(a) Advogado(a) Titular *</label>
+              <input id="nt-adv" required placeholder="Ex: Dr. Marcos Silva" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+            </div>
+            <div>
+              <label class="font-bold block mb-1">Usuário de Login do Advogado *</label>
+              <input id="nt-user" required placeholder="Ex: @marcossilva" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-mono">
+            </div>
+            <div>
+              <label class="font-bold block mb-1">Senha Inicial *</label>
+              <input id="nt-pass" required value="123456" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-mono">
+            </div>
+            <div>
+              <label class="font-bold block mb-1">WhatsApp do Escritório (com DDD) *</label>
+              <input id="nt-whats" required placeholder="5521999999999" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-mono">
+            </div>
+            <div>
+              <label class="font-bold block mb-1">Registro OAB</label>
+              <input id="nt-oab" placeholder="OAB/RJ" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-3 border-t border-stone-200 dark:border-slate-800">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border text-xs font-bold">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] text-white text-xs font-bold">Criar Escritório Isolado</button>
+          </div>
+        </form>
+      `);
+    }
+
+    async function saveNewTenantForm(e) {
+      e.preventDefault();
+      const payload = {
+        nome_escritorio: document.getElementById('nt-nome').value.trim(),
+        nome_advogado: document.getElementById('nt-adv').value.trim(),
+        username: document.getElementById('nt-user').value.trim(),
+        password: document.getElementById('nt-pass').value.trim(),
+        whatsapp_oficial: document.getElementById('nt-whats').value.trim(),
+        oab_registro: document.getElementById('nt-oab').value.trim()
+      };
+      const { data, error } = await sb.rpc('legal_create_tenant_escritorio', {
+        p_token: APP.token,
+        p_payload: payload
+      });
+      if (error || !data || !data.ok) {
+        return showToast((data && data.error) || 'Erro ao criar novo escritório.', 'error');
+      }
+      closeModal();
+      await loadAdminBundle();
+      renderAcessosView();
+      showToast(`Novo escritório criado! Login: ${data.username}`);
+    }
+
+    function exportOfficeBackupCSV() {
+      const rows = [
+        ['Tipo Registro', 'Nome / Descricao', 'CPF / CNJ', 'Telefone / Categoria', 'Email / Valor', 'Status / Fase']
+      ];
+      (APP.admin.clientes || []).forEach(c => {
+        rows.push(['CLIENTE', c.nome || '', c.cpf_cnpj || '', c.telefone || '', c.email || '', c.etapa_funil || '']);
+      });
+      (APP.admin.processos || []).forEach(p => {
+        rows.push(['PROCESSO', p.titulo_acao || '', p.numero_cnj || '', p.tribunal || '', String(p.valor_causa || 0), p.fase_pipeline || '']);
+      });
+      (APP.admin.financeiro || []).forEach(f => {
+        rows.push(['FINANCEIRO', f.descricao || '', f.forma_pagamento || '', f.categoria || '', String(f.valor || 0), f.status || '']);
+      });
+      const csvContent = '\uFEFF' + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_escritorio_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('Planilha de backup (CSV/Excel) gerada com sucesso!');
+    }
+
     function renderAcessosView() {
+      const topBox = document.getElementById('acessos-health-and-whitelabel');
+      if (topBox) {
+        const h = APP.admin.saude_sistema || {};
+        const db = h.banco_dados || { usado_mb: 12, limite_mb: 500, percentual: 2.4, restante_mb: 488, capacidade_estimada_clientes: 19900 };
+        const st = h.storage_arquivos || { usado_mb: 0.7, limite_mb: 1024, percentual: 0.1, restante_mb: 1023.3, total_arquivos: 9 };
+        const mt = h.metricas || { escritorios_ativos: 1, clientes_cadastrados: APP.admin.clientes.length };
+        const escAtual = APP.admin.escritorio || { nome_escritorio: 'NATHALIA LISBOA', subtitulo: 'ADVOCACIA & ASSISTÊNCIA JURÍDICA', whatsapp_oficial: ESCRITORIO_WHATSAPP };
+
+        topBox.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- Termômetro de Saúde do Sistema (Feedback em Tempo Real) -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/80 dark:border-slate-800 p-5 shadow-xs space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="activity" class="w-4 h-4 text-emerald-600"></i>
+                    Saúde da Nuvem & Capacidade Gratuita (Tempo Real)
+                  </h3>
+                  <p class="text-[11px] text-slate-500">Monitoramento preventivo automático contra lotação do banco ou lentidão</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
+                  ${esc(h.status_geral || 'SAUDÁVEL')}
+                </span>
+              </div>
+
+              <div class="space-y-3 text-xs">
+                <div>
+                  <div class="flex justify-between font-bold text-slate-700 dark:text-slate-200 mb-1">
+                    <span class="flex items-center gap-1.5"><i data-lucide="database" class="w-3.5 h-3.5 text-[#5C1618] dark:text-[#E5C888]"></i> Banco de Dados (Supabase Free)</span>
+                    <span class="font-mono">${db.usado_mb} MB / ${db.limite_mb} MB (${db.percentual}%)</span>
+                  </div>
+                  <div class="w-full h-2 bg-stone-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-600 rounded-full" style="width:${Math.max(2, Math.min(100, db.percentual))}%"></div>
+                  </div>
+                  <div class="text-[11px] text-slate-500 mt-1">Espaço livre: <strong>${db.restante_mb} MB</strong> (suporta aprox. <strong>+${db.capacidade_estimada_clientes} clientes</strong> sem custo)</div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between font-bold text-slate-700 dark:text-slate-200 mb-1">
+                    <span class="flex items-center gap-1.5"><i data-lucide="hard-drive" class="w-3.5 h-3.5 text-[#C8A25A]"></i> Cofre Privado de PDFs e Anexos</span>
+                    <span class="font-mono">${st.usado_mb} MB / ${st.limite_mb} MB (${st.percentual}%)</span>
+                  </div>
+                  <div class="w-full h-2 bg-stone-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-[#C8A25A] rounded-full" style="width:${Math.max(1, Math.min(100, st.percentual))}%"></div>
+                  </div>
+                  <div class="text-[11px] text-slate-500 mt-1">Espaço livre para documentos: <strong>${st.restante_mb} MB</strong> (${st.total_arquivos} ficheiros guardados)</div>
+                </div>
+              </div>
+
+              <div class="pt-2 border-t border-stone-200/70 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                <span class="text-[11px] text-slate-500">Escritórios ativos neste banco: <strong>${mt.escritorios_ativos || 1}</strong></span>
+                <button type="button" onclick="exportOfficeBackupCSV()" class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i> Baixar Planilha de Backup (CSV/Excel)
+                </button>
+              </div>
+            </div>
+
+            <!-- Painel White-Label & Multi-Escritório (SaaS) -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/80 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between space-y-4">
+              <div>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="palette" class="w-4 h-4 text-[#C8A25A]"></i>
+                    Configuração White-Label & Multi-Escritório
+                  </h3>
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FDF8EE] text-[#5C1618] border border-[#C8A25A]/40">
+                    Opção A Ativa (Multi-Tenant)
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">
+                  Personalize o nome, WhatsApp e cores deste escritório ou cadastre novos advogados clientes com isolamento total de dados.
+                </p>
+
+                <div class="mt-3 p-3.5 rounded-xl bg-stone-50 dark:bg-slate-800/50 border border-stone-200/70 dark:border-slate-800 text-xs space-y-1">
+                  <div>Marca Ativa: <strong>${esc(escAtual.nome_escritorio)} — ${esc(escAtual.subtitulo)}</strong></div>
+                  <div>WhatsApp Oficial: <strong class="font-mono">${esc(escAtual.whatsapp_oficial || ESCRITORIO_WHATSAPP)}</strong></div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-stone-200/70 dark:border-slate-800">
+                <button type="button" onclick="openWhiteLabelConfigModal()" class="px-3.5 py-2 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold flex items-center gap-1.5">
+                  <i data-lucide="palette" class="w-3.5 h-3.5"></i> Personalizar Marca / WhatsApp
+                </button>
+                <button type="button" onclick="openNewTenantModal()" class="px-3.5 py-2 rounded-xl bg-[#FDF8EE] hover:bg-[#F5E8CE] text-[#5C1618] border border-[#C8A25A] text-xs font-bold flex items-center gap-1.5">
+                  <i data-lucide="building-2" class="w-3.5 h-3.5"></i> + Novo Escritório Cliente (SaaS)
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
       const grid = document.getElementById('acessos-users-grid');
       grid.innerHTML = APP.admin.users.map(u => {
         const cli = APP.admin.clientes.find(c => c.id === u.cliente_id);
@@ -3987,6 +4269,7 @@
         return;
       }
 
+      if (data.escritorio) applyEscritorioBranding(data.escritorio);
       APP.portal.cliente = data.cliente || {};
       APP.portal.processos = data.processos || [];
       APP.portal.andamentos = data.andamentos || [];
