@@ -910,13 +910,13 @@
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/80 dark:border-slate-800 p-6 shadow-xs space-y-5">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#5C1618]/10 text-[#5C1618] dark:bg-[#C8A25A]/20 dark:text-[#E5C888]">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-[#5C1618]/10 text-[#5C1618] dark:bg-[#C8A25A]/20 dark:text-[#E5C888]">
                   <i data-lucide="landmark" class="w-3.5 h-3.5"></i> CNJ • DataJud Oficial
                 </span>
-                <h2 class="text-lg font-bold text-slate-900 dark:text-white mt-2">
+                <h2 class="text-xl font-extrabold text-slate-900 dark:text-white mt-2">
                   Acompanhamento do Processo
                 </h2>
-                <p class="text-xs text-slate-500 max-w-2xl mt-1">
+                <p class="text-sm text-slate-600 dark:text-slate-300 max-w-2xl mt-1">
                   Consulte pelo número CNJ ou vincule a um processo cadastrado para sincronizar movimentações e resumos ao cliente.
                 </p>
               </div>
@@ -924,31 +924,31 @@
 
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
               <div class="md:col-span-4">
-                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Vincular Processo</label>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Vincular Processo</label>
                 <select id="datajud-processo-select" onchange="onDataJudSelectProcesso(this.value)"
-                  class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-xs font-bold"></select>
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-sm font-bold"></select>
               </div>
               <div class="md:col-span-5">
-                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Número CNJ</label>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Número CNJ</label>
                 <input id="datajud-cnj-input" type="text" oninput="onDataJudCnjInput(this.value)" placeholder="0000000-00.0000.8.26.0000"
                   class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-sm font-mono font-bold">
               </div>
               <div class="md:col-span-3">
                 <button type="button" id="btn-consultar-datajud" onclick="consultarDataJudCNJ()"
-                  class="w-full py-2.5 px-4 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md">
+                  class="w-full py-2.5 px-4 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-sm font-bold flex items-center justify-center gap-2 shadow-md">
                   <i data-lucide="search" class="w-4 h-4"></i> Consultar DataJud
                 </button>
               </div>
             </div>
 
-            <div id="datajud-endpoint-info" class="text-xs bg-stone-50 dark:bg-slate-800/70 rounded-xl p-3 border border-stone-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
+            <div id="datajud-endpoint-info" class="text-sm bg-stone-50 dark:bg-slate-800/70 rounded-xl p-3 border border-stone-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <span>Tribunal: <strong id="dj-detected-tribunal" class="text-[#5C1618] dark:text-[#E5C888]">TJSP</strong></span>
-                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
+                <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
                   <i data-lucide="check" class="w-3 h-3"></i> Conexão Oficial Ativa
                 </span>
               </div>
-              <span class="font-mono text-[10px] text-slate-400 truncate max-w-xs" id="dj-detected-url">https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search</span>
+              <span class="font-mono text-xs text-slate-400 truncate max-w-xs" id="dj-detected-url">https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search</span>
             </div>
 
             <div id="datajud-results-container" class="space-y-4"></div>
@@ -2889,18 +2889,18 @@
     function getEventHighlightClass(titulo) {
       const t = String(titulo || '').toUpperCase();
       if (t.includes('RENÚNCIA') || t.includes('RENUNCIA') || t.includes('SENTENÇA') || t.includes('SENTENCA') || t.includes('EXTINÇÃO')) {
-        return 'bg-[#5C1618] text-white font-extrabold px-2 py-0.5 rounded shadow-2xs text-[11px] inline-block';
+        return 'bg-[#5C1618] text-white font-extrabold px-2.5 py-1 rounded-md shadow-2xs text-xs sm:text-sm inline-block';
       }
       if (t.includes('DJEN') || t.includes('PUBLICADO') || t.includes('DISPONIBILIZADO')) {
-        return 'bg-emerald-700 text-white font-bold px-2 py-0.5 rounded text-[11px] inline-block';
+        return 'bg-emerald-700 text-white font-bold px-2.5 py-1 rounded-md text-xs sm:text-sm inline-block';
       }
       if (t.includes('INTIMAÇÃO') || t.includes('INTIMACAO') || t.includes('EXPEDIDA') || t.includes('PRAZO') || t.includes('AUDIÊNCIA') || t.includes('AUDIENCIA')) {
-        return 'bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2 py-0.5 rounded text-[11px] dark:bg-amber-950/80 dark:text-amber-200 inline-block';
+        return 'bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2.5 py-1 rounded-md text-xs sm:text-sm dark:bg-amber-950/80 dark:text-amber-200 inline-block';
       }
       if (t.includes('CONCLUSOS') || t.includes('DESPACHO') || t.includes('DECISÃO') || t.includes('DECISAO')) {
-        return 'bg-stone-200 text-slate-800 border border-stone-300 font-bold px-2 py-0.5 rounded text-[11px] dark:bg-slate-700 dark:text-white inline-block';
+        return 'bg-stone-200 text-slate-800 border border-stone-300 font-bold px-2.5 py-1 rounded-md text-xs sm:text-sm dark:bg-slate-700 dark:text-white inline-block';
       }
-      return 'text-slate-900 dark:text-white font-bold text-xs inline-block';
+      return 'text-slate-900 dark:text-white font-extrabold text-xs sm:text-sm inline-block';
     }
 
     function formatEventDateParts(dStr) {
@@ -2991,7 +2991,7 @@
 
     function renderEprocEventsTable(items, options = {}) {
       if (!items || items.length === 0) {
-        return `<div class="text-xs text-slate-400 py-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800">Nenhum evento processual registrado ainda.</div>`;
+        return `<div class="text-sm text-slate-400 py-10 text-center bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800">Nenhum evento processual registrado ainda.</div>`;
       }
 
       const total = items.length;
@@ -3000,13 +3000,13 @@
       return `
         <div class="overflow-hidden rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
+            <table class="w-full text-left text-sm border-collapse">
               <thead>
-                <tr class="bg-[#F8F5EF] dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-[#C8A25A]/30 dark:border-slate-700">
-                  <th class="py-3 px-3 w-14 text-center">Evento</th>
-                  <th class="py-3 px-3 w-32 whitespace-nowrap">Data / Hora</th>
-                  <th class="py-3 px-4 min-w-[320px]">Movimentação dos Autos (Eproc / PJe)</th>
-                  <th class="py-3 px-3 w-36 text-center whitespace-nowrap">Ações</th>
+                <tr class="bg-[#F8F5EF] dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 font-black text-xs sm:text-[13px] uppercase tracking-wider border-b border-[#C8A25A]/30 dark:border-slate-700">
+                  <th class="py-3.5 px-3 w-16 text-center">Evento</th>
+                  <th class="py-3.5 px-3.5 w-36 whitespace-nowrap">Data / Hora</th>
+                  <th class="py-3.5 px-4 min-w-[340px]">Movimentação dos Autos (Eproc / PJe)</th>
+                  <th class="py-3.5 px-3.5 w-40 text-center whitespace-nowrap">Ações</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-stone-200 dark:divide-slate-800">
@@ -3019,66 +3019,66 @@
                   return `
                     <tr class="hover:bg-stone-50/80 dark:hover:bg-slate-800/50 transition-colors align-top">
                       <!-- 1. Evento -->
-                      <td class="py-3 px-3 text-center border-r border-stone-100 dark:border-slate-800/80">
-                        <div class="font-mono text-xs font-black text-slate-900 dark:text-white">${evNum}</div>
-                        <div class="text-[9px] font-mono text-slate-400 mt-0.5">${item.codigo_cnj ? `Cód. ${item.codigo_cnj}` : 'Autos'}</div>
+                      <td class="py-4 px-3 text-center border-r border-stone-100 dark:border-slate-800/80">
+                        <div class="font-mono text-sm sm:text-base font-black text-slate-900 dark:text-white">${evNum}</div>
+                        <div class="text-[11px] sm:text-xs font-mono text-slate-500 mt-0.5">${item.codigo_cnj ? `Cód. ${item.codigo_cnj}` : 'Autos'}</div>
                       </td>
 
                       <!-- 2. Data / Hora -->
-                      <td class="py-3 px-3 whitespace-nowrap border-r border-stone-100 dark:border-slate-800/80">
-                        <div class="font-mono font-bold text-slate-900 dark:text-white text-xs">${dt.date}</div>
-                        <div class="font-mono text-[10px] text-slate-500 mt-0.5">${dt.time}</div>
-                        <span class="mt-1 inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-stone-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      <td class="py-4 px-3.5 whitespace-nowrap border-r border-stone-100 dark:border-slate-800/80">
+                        <div class="font-mono font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm">${dt.date}</div>
+                        <div class="font-mono text-xs text-slate-500 mt-0.5">${dt.time}</div>
+                        <span class="mt-1.5 inline-block px-2 py-0.5 rounded text-[11px] sm:text-xs font-bold bg-stone-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                           ${esc(item.etapa_pipeline || 'Em Curso')}
                         </span>
                       </td>
 
                       <!-- 3. Movimentação dos Autos (Estilo Eproc / PJe) -->
-                      <td class="py-3 px-4 space-y-1.5 border-r border-stone-100 dark:border-slate-800/80">
+                      <td class="py-4 px-4 space-y-2 border-r border-stone-100 dark:border-slate-800/80">
                         <div class="flex flex-wrap items-center gap-2">
                           <span class="${getEventHighlightClass(item.titulo_movimento)}">
                             ${esc(item.titulo_movimento)}
                           </span>
                           ${item.prazo_sugerido ? `
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-900">
-                              <i data-lucide="clock" class="w-3 h-3"></i> ${esc(item.prazo_sugerido)}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-900">
+                              <i data-lucide="clock" class="w-3.5 h-3.5"></i> ${esc(item.prazo_sugerido)}
                             </span>
                           ` : ''}
                         </div>
 
                         ${item.descricao_tecnica ? `
-                          <div class="text-[11px] text-slate-600 dark:text-slate-300 font-sans leading-relaxed">
+                          <div class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-sans leading-relaxed">
                             ${esc(item.descricao_tecnica)}
                           </div>
                         ` : ''}
 
                         ${item.complementos_cnj && item.complementos_cnj !== item.descricao_tecnica ? `
-                          <div class="text-[10px] text-slate-400 font-mono">
+                          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-mono">
                             ${esc(item.complementos_cnj)}
                           </div>
                         ` : ''}
                       </td>
 
                       <!-- 4. Ações & Botão Ver Tradução -->
-                      <td class="py-3 px-3 text-center whitespace-nowrap">
-                        <div class="flex flex-col items-center gap-1.5">
+                      <td class="py-4 px-3.5 text-center whitespace-nowrap">
+                        <div class="flex flex-col items-center gap-2">
                           <button type="button" onclick="toggleTraducaoRow('${rowId}')"
-                            class="px-2.5 py-1 rounded-xl bg-[#FAF3E3] hover:bg-[#F5E9CE] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] border border-[#C8A25A]/45 text-xs font-bold flex items-center gap-1 shadow-2xs hover:scale-102 transition">
-                            <i data-lucide="message-square-text" class="w-3.5 h-3.5 text-[#C8A25A]"></i>
+                            class="px-3 py-1.5 rounded-xl bg-[#FAF3E3] hover:bg-[#F5E9CE] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] border border-[#C8A25A]/45 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-2xs hover:scale-102 transition">
+                            <i data-lucide="message-square-text" class="w-4 h-4 text-[#C8A25A]"></i>
                             Ver Tradução
                           </button>
 
-                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isVisible ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-stone-200 text-slate-600'}">
+                          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${isVisible ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-stone-200 text-slate-600'}">
                             ${isVisible ? '✓ No Portal' : 'Oculto'}
                           </span>
 
                           ${options.isPipeline && item.id ? `
-                            <div class="flex items-center gap-1 mt-0.5">
-                              <button type="button" onclick="openAndamentoModal('${item.id}')" class="px-2 py-0.5 rounded text-[10px] font-bold border border-stone-300 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800">
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                              <button type="button" onclick="openAndamentoModal('${item.id}')" class="px-2.5 py-1 rounded text-xs font-bold border border-stone-300 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800">
                                 Editar
                               </button>
                               <button type="button" onclick="deleteRecordById('legal_andamentos', '${item.id}')" class="p-1 text-rose-600 hover:bg-rose-50 rounded" title="Excluir">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
                               </button>
                             </div>
                           ` : ''}
@@ -3088,26 +3088,26 @@
 
                     <!-- Linha Expansível da Tradução ao Cliente (Aparece ao clicar em 'Ver Tradução') -->
                     <tr id="trad-row-${rowId}" class="hidden bg-[#FDFBF7] dark:bg-slate-900/95 border-b border-[#C8A25A]/35">
-                      <td colspan="4" class="p-3 sm:p-4">
+                      <td colspan="4" class="p-4 sm:p-5">
                         <input type="hidden" id="trad-titulo-${rowId}" value="${esc(item.titulo_movimento)}">
                         <input type="hidden" id="trad-desctec-${rowId}" value="${esc(item.descricao_tecnica)}">
 
-                        <div class="p-3.5 rounded-2xl bg-[#FAF3E3] dark:bg-slate-800 border border-[#C8A25A]/45 space-y-2.5 shadow-xs">
-                          <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#C8A25A]/30">
-                            <div class="flex items-center gap-2">
-                              <span class="w-6 h-6 rounded-lg bg-[#5C1618] text-[#E5C888] flex items-center justify-center text-xs font-bold">
+                        <div class="p-4 sm:p-5 rounded-2xl bg-[#FAF3E3] dark:bg-slate-800 border border-[#C8A25A]/45 space-y-3 shadow-xs">
+                          <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#C8A25A]/30">
+                            <div class="flex items-center gap-2.5">
+                              <span class="w-7 h-7 rounded-lg bg-[#5C1618] text-[#E5C888] flex items-center justify-center text-sm font-bold">
                                 ${evNum}
                               </span>
                               <div>
-                                <h6 class="text-xs font-extrabold text-[#5C1618] dark:text-[#E5C888] flex items-center gap-1.5">
-                                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#C8A25A]"></i>
+                                <h6 class="text-sm font-extrabold text-[#5C1618] dark:text-[#E5C888] flex items-center gap-1.5">
+                                  <i data-lucide="sparkles" class="w-4 h-4 text-[#C8A25A]"></i>
                                   Tradução ao Cliente (Linguagem Clara)
                                 </h6>
-                                <span class="text-[10px] text-slate-500">${esc(item.titulo_movimento)}</span>
+                                <span class="text-xs text-slate-500">${esc(item.titulo_movimento)}</span>
                               </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                              <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer">
+                            <div class="flex items-center gap-2.5">
+                              <label class="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 cursor-pointer">
                                 <input type="checkbox" id="trad-visivel-${rowId}" ${isVisible ? 'checked' : ''} class="w-4 h-4 accent-[#5C1618]">
                                 Visível no Portal do Cliente
                               </label>
@@ -3118,28 +3118,28 @@
                           </div>
 
                           <div>
-                            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">
+                            <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-400 mb-1.5">
                               O que isto quer dizer? (Explicação em Linguagem Simples)
                             </label>
                             <textarea id="trad-texto-${rowId}" rows="2"
-                              class="w-full p-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5C1618] leading-relaxed">${esc(item.explicacao_leiga || 'Movimentação processual registrada nos autos pelo cartório.')}</textarea>
+                              class="w-full p-3 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5C1618] leading-relaxed">${esc(item.explicacao_leiga || 'Movimentação processual registrada nos autos pelo cartório.')}</textarea>
                           </div>
 
                           <div>
-                            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Próximo Passo</label>
+                            <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-400 mb-1.5">Próximo Passo</label>
                             <input type="text" id="trad-proximo-${rowId}" value="${esc(item.proximo_passo_leigo || '')}"
                               placeholder="Ex: O juiz analisará o processo para assinar o despacho."
-                              class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5C1618]">
+                              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5C1618]">
                           </div>
 
                           <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#C8A25A]/20">
-                            <span class="text-[11px] text-slate-500">Reflete imediatamente na Área do Cliente</span>
+                            <span class="text-xs text-slate-500">Reflete imediatamente na Área do Cliente</span>
                             <div class="flex items-center gap-2">
-                              <button type="button" onclick="toggleTraducaoRow('${rowId}')" class="px-3 py-1.5 rounded-xl border border-stone-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800">
+                              <button type="button" onclick="toggleTraducaoRow('${rowId}')" class="px-3.5 py-2 rounded-xl border border-stone-300 dark:border-slate-700 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800">
                                 Fechar
                               </button>
-                              <button type="button" onclick="saveTraducaoInline('${item.id || ''}', '${rowId}', ${idx})" class="px-4 py-1.5 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs">
-                                <i data-lucide="check" class="w-3.5 h-3.5"></i> Salvar
+                              <button type="button" onclick="saveTraducaoInline('${item.id || ''}', '${rowId}', ${idx})" class="px-4 py-2 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs">
+                                <i data-lucide="check" class="w-4 h-4"></i> Salvar
                               </button>
                             </div>
                           </div>
@@ -3413,21 +3413,21 @@
 
       container.innerHTML = `
         <!-- PAINEL 1: CAPA RICA DO PROCESSO EXTRAÍDA DO DATAJUD -->
-        <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#FDF8EE] via-white to-[#FAF3E3] dark:from-slate-800 dark:to-slate-900 border border-[#C8A25A]/60 shadow-xs space-y-3.5">
+        <div class="p-5 rounded-2xl bg-gradient-to-br from-[#FDF8EE] via-white to-[#FAF3E3] dark:from-slate-800 dark:to-slate-900 border border-[#C8A25A]/60 shadow-xs space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#C8A25A]/30">
             <div>
-              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#5C1618] text-[#E5C888] text-[10px] font-extrabold uppercase tracking-wider">
-                <i data-lucide="landmark" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> ${esc(sourceLabel)}
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#5C1618] text-[#E5C888] text-[11px] font-extrabold uppercase tracking-wider">
+                <i data-lucide="landmark" class="w-4 h-4 inline -mt-0.5 mr-1"></i> ${esc(sourceLabel)}
               </div>
-              <h4 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white mt-1">
+              <h4 class="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-1.5">
                 Processo CNJ ${esc(parsed.formatted || cnj)}
               </h4>
-              <p class="text-xs text-slate-600 dark:text-slate-300">
-                Cliente: <strong>${esc(cli.nome || 'Vinculado')}</strong> • ${movs.length} movimentações
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                Cliente: <strong>${esc(cli.nome || 'Vinculado')}</strong> • ${movs.length} movimentações sincronizadas
               </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <span class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs">
+              <span class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs">
                 <i data-lucide="check-circle-2" class="w-4 h-4"></i>
                 Sincronizado
               </span>
@@ -3435,30 +3435,30 @@
           </div>
 
           <!-- Metadados Principais da Capa Processual -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
-            <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
-              <div class="text-[10px] font-bold uppercase text-slate-400">Classe</div>
-              <div class="font-extrabold text-slate-900 dark:text-white mt-0.5 truncate" title="${esc(capa.classe_processual)}">${esc(cleanCapaClasse(capa.classe_processual))}</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+            <div class="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
+              <div class="text-xs font-bold uppercase text-slate-400">Classe</div>
+              <div class="font-black text-slate-900 dark:text-white mt-0.5 truncate text-sm sm:text-base" title="${esc(capa.classe_processual)}">${esc(cleanCapaClasse(capa.classe_processual))}</div>
             </div>
-            <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
-              <div class="text-[10px] font-bold uppercase text-slate-400">Assunto</div>
-              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5 truncate" title="${esc(capa.assuntos_cnj)}">${esc(cleanCapaAssunto(capa.assuntos_cnj))}</div>
+            <div class="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
+              <div class="text-xs font-bold uppercase text-slate-400">Assunto</div>
+              <div class="font-extrabold text-slate-800 dark:text-slate-200 mt-0.5 truncate text-sm sm:text-base" title="${esc(capa.assuntos_cnj)}">${esc(cleanCapaAssunto(capa.assuntos_cnj))}</div>
             </div>
-            <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
-              <div class="text-[10px] font-bold uppercase text-slate-400">Vara / Órgão</div>
-              <div class="font-bold text-[#5C1618] dark:text-[#E5C888] mt-0.5 truncate" title="${esc(capa.orgao_julgador)}">${esc(capa.orgao_julgador)}</div>
+            <div class="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
+              <div class="text-xs font-bold uppercase text-slate-400">Vara / Órgão</div>
+              <div class="font-extrabold text-[#5C1618] dark:text-[#E5C888] mt-0.5 truncate text-sm sm:text-base" title="${esc(capa.orgao_julgador)}">${esc(capa.orgao_julgador)}</div>
             </div>
-            <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
-              <div class="text-[10px] font-bold uppercase text-slate-400">Sistema & Instância</div>
-              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5">${esc(cleanCapaSistema(capa.sistema_processual))} • ${esc(cleanCapaGrau(capa.grau_jurisdicao))}</div>
+            <div class="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
+              <div class="text-xs font-bold uppercase text-slate-400">Sistema & Instância</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5 text-xs sm:text-sm">${esc(cleanCapaSistema(capa.sistema_processual))} • ${esc(cleanCapaGrau(capa.grau_jurisdicao))}</div>
             </div>
-            <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
-              <div class="text-[10px] font-bold uppercase text-slate-400">Ajuizamento & Sigilo</div>
-              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.data_ajuizamento)} • ${esc(cleanCapaSigilo(capa.nivel_sigilo))}</div>
+            <div class="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
+              <div class="text-xs font-bold uppercase text-slate-400">Ajuizamento & Sigilo</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5 text-xs sm:text-sm"><i data-lucide="calendar" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.data_ajuizamento)} • ${esc(cleanCapaSigilo(capa.nivel_sigilo))}</div>
             </div>
-            <div class="p-3 rounded-xl bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
-              <div class="text-[10px] font-bold uppercase text-rose-600">Próximo Prazo</div>
-              <div class="font-extrabold text-rose-800 dark:text-rose-300 mt-0.5"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.proximo_prazo_sugerido)} • ${esc(cleanCapaPrazo(capa.descricao_prazo_sugerido))}</div>
+            <div class="p-3.5 rounded-xl bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
+              <div class="text-xs font-bold uppercase text-rose-600">Próximo Prazo</div>
+              <div class="font-black text-rose-800 dark:text-rose-300 mt-0.5 text-xs sm:text-sm"><i data-lucide="calendar" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.proximo_prazo_sugerido)} • ${esc(cleanCapaPrazo(capa.descricao_prazo_sugerido))}</div>
             </div>
           </div>
         </div>
@@ -3467,13 +3467,13 @@
         <div class="space-y-3 pt-2">
           <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-stone-200 dark:border-slate-800">
             <div>
-              <h5 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h5 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <i data-lucide="table-2" class="w-4 h-4 text-[#5C1618] dark:text-[#E5C888]"></i>
                 Movimentações Processuais (Eproc / PJe) • ${movs.length} eventos
               </h5>
-              <p class="text-[11px] text-slate-500">Histórico oficial dos autos com tradução simplificada ao cliente</p>
+              <p class="text-xs text-slate-500">Histórico oficial dos autos com tradução simplificada ao cliente</p>
             </div>
-            <span class="text-[10px] font-mono font-bold text-slate-500 bg-stone-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+            <span class="text-xs font-mono font-bold text-slate-500 bg-stone-100 dark:bg-slate-800 px-3 py-1 rounded-lg">
               Ordem: Evento ${movs.length} ao 1
             </span>
           </div>
