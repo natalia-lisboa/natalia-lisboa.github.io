@@ -2802,62 +2802,7 @@
 
       const movs = APP.admin.andamentos.filter(a => a.processo_id === proc.id);
       const timelineEl = document.getElementById('pipeline-timeline-list');
-      if (movs.length === 0) {
-        timelineEl.innerHTML = `<div class="text-xs text-slate-400 py-8 text-center">Nenhum andamento registado neste processo. Clique em "+ Registar Despacho / Andamento" ou "Sincronizar CNJ".</div>`;
-      } else {
-        timelineEl.innerHTML = movs.map((a, idx) => {
-          const stepNumber = movs.length - idx;
-          return `
-          <div class="p-4 sm:p-5 rounded-2xl border border-stone-200 dark:border-slate-800 bg-stone-50/40 dark:bg-slate-800/30 space-y-3">
-            <div class="flex flex-wrap items-start justify-between gap-2">
-              <div class="space-y-1">
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#C8A25A] text-[#28080A]">Passo ${stepNumber} de ${movs.length}</span>
-                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#5C1618] text-[#E5C888]">${esc(a.etapa_pipeline || proc.fase_pipeline)}</span>
-                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-stone-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">${esc(a.origem)} ${a.codigo_cnj ? `• Cód. CNJ ${a.codigo_cnj}` : ''}</span>
-                  <span class="text-[11px] text-slate-500"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDateTime(a.data_hora)}</span>
-                </div>
-                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white pt-1">${esc(a.titulo_movimento)}</h4>
-                ${a.orgao_julgador ? `<div class="text-[11px] font-semibold text-[#5C1618] dark:text-[#E5C888]"><i data-lucide="landmark" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Órgão Julgador / Setor: ${esc(a.orgao_julgador)}</div>` : ''}
-                ${a.complementos_cnj ? `<div class="text-[11px] text-slate-500 bg-white/80 dark:bg-slate-900/60 px-2.5 py-1 rounded-lg border border-stone-200/70 dark:border-slate-700"><i data-lucide="file-text" class="w-3 h-3 inline -mt-0.5 mr-1"></i> <strong>Complementos CNJ:</strong> ${esc(a.complementos_cnj)}</div>` : ''}
-                <p class="text-xs text-slate-600 dark:text-slate-300 pt-0.5">${esc(a.descricao_tecnica)}</p>
-                ${a.prazo_sugerido ? `
-                  <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-[11px] text-rose-800 dark:text-rose-300 font-bold">
-                    <span><i data-lucide="clock" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Ação / Prazo Sugerido: ${esc(a.prazo_sugerido)}</span>
-                  </div>
-                ` : ''}
-              </div>
-              <div class="flex flex-wrap items-center gap-1.5">
-                <span class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
-                  ✓ Sincronizado com CRM, Kanban & Portal
-                </span>
-                <button type="button" onclick="openAndamentoModal('${a.id}')" class="px-2.5 py-1 rounded-lg border border-stone-300 dark:border-slate-700 text-[11px] font-semibold">Editar</button>
-                <button type="button" onclick="deleteRecordById('legal_andamentos', '${a.id}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-              </div>
-            </div>
-
-            <!-- Card de Esclarecimento Acessível ao Cliente -->
-            <div class="p-3.5 rounded-xl bg-[#FAF8F5] dark:bg-slate-800/80 border border-[#C8A25A]/40 space-y-1.5 shadow-2xs">
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-[11px] font-extrabold text-[#5C1618] dark:text-[#E5C888] flex items-center gap-1.5">
-                  <i data-lucide="message-square-text" class="w-3.5 h-3.5 text-[#C8A25A]"></i>
-                  Esclarecimento ao Cliente (Linguagem Acessível):
-                </span>
-                <span class="text-[10px] font-bold ${a.visivel_cliente ? 'text-emerald-700' : 'text-slate-400'}">
-                  ${a.visivel_cliente ? '✓ Publicado no Portal do Cliente' : 'Oculto do Cliente'}
-                </span>
-              </div>
-              <p class="text-xs text-slate-700 dark:text-slate-200 leading-relaxed">${esc(a.explicacao_leiga)}</p>
-              ${a.proximo_passo_leigo ? `
-                <div class="pt-1.5 border-t border-[#C8A25A]/30 text-[11px] text-[#5C1618] dark:text-[#E5C888] font-semibold">
-                  <i data-lucide="compass" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> <strong>Próximo Passo Orientado:</strong> ${esc(a.proximo_passo_leigo)}
-                </div>
-              ` : ''}
-            </div>
-          </div>
-        `;
-        }).join('');
-      }
+      timelineEl.innerHTML = renderEprocEventsTable(movs, { isPipeline: true, procId: proc.id });
       refreshIcons();
     }
 
@@ -2903,6 +2848,168 @@
     // -------------------------------------------------------------------------
     // VIEW D: INTEGRAÇÃO COM A API PÚBLICA DO DATAJUD (CNJ) — 100% AUTOMÁTICA
     // -------------------------------------------------------------------------
+    
+    function getEventHighlightClass(titulo) {
+      const t = String(titulo || '').toUpperCase();
+      if (t.includes('RENÚNCIA') || t.includes('RENUNCIA') || t.includes('SENTENÇA') || t.includes('SENTENCA') || t.includes('EXTINÇÃO')) {
+        return 'bg-[#5C1618] text-white font-extrabold px-2 py-0.5 rounded shadow-2xs text-[11px] inline-block';
+      }
+      if (t.includes('DJEN') || t.includes('PUBLICADO') || t.includes('DISPONIBILIZADO')) {
+        return 'bg-emerald-700 text-white font-bold px-2 py-0.5 rounded text-[11px] inline-block';
+      }
+      if (t.includes('INTIMAÇÃO') || t.includes('INTIMACAO') || t.includes('EXPEDIDA') || t.includes('PRAZO') || t.includes('AUDIÊNCIA') || t.includes('AUDIENCIA')) {
+        return 'bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2 py-0.5 rounded text-[11px] dark:bg-amber-950/80 dark:text-amber-200 inline-block';
+      }
+      if (t.includes('CONCLUSOS') || t.includes('DESPACHO') || t.includes('DECISÃO') || t.includes('DECISAO')) {
+        return 'bg-stone-200 text-slate-800 border border-stone-300 font-bold px-2 py-0.5 rounded text-[11px] dark:bg-slate-700 dark:text-white inline-block';
+      }
+      return 'text-slate-900 dark:text-white font-bold text-xs inline-block';
+    }
+
+    function formatEventDateParts(dStr) {
+      if (!dStr) return { date: '—', time: '—' };
+      const d = new Date(dStr);
+      if (isNaN(d.getTime())) return { date: fmtDate(dStr), time: '—' };
+      return {
+        date: d.toLocaleDateString('pt-BR'),
+        time: d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      };
+    }
+
+    function renderEprocEventsTable(items, options = {}) {
+      if (!items || items.length === 0) {
+        return `<div class="text-xs text-slate-400 py-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800">Nenhum evento processual registrado ainda.</div>`;
+      }
+
+      const total = items.length;
+      return `
+        <div class="overflow-hidden rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-[#F8F5EF] dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-[#C8A25A]/30 dark:border-slate-700">
+                  <th class="py-3 px-3 w-16 text-center">Evento</th>
+                  <th class="py-3 px-3 w-36 whitespace-nowrap">Data / Hora</th>
+                  <th class="py-3 px-4 min-w-[320px]">Descrição Oficial dos Autos (Eproc / PJe)</th>
+                  <th class="py-3 px-4 min-w-[340px] bg-[#FAF3E3]/60 dark:bg-amber-950/20 text-[#5C1618] dark:text-[#E5C888] border-l border-[#C8A25A]/25">
+                    <span class="flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#C8A25A]"></i> Tradução para o Cliente (Portal)</span>
+                  </th>
+                  <th class="py-3 px-3 w-28 text-center whitespace-nowrap">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-stone-200 dark:divide-slate-800">
+                ${items.map((item, idx) => {
+                  const evNum = item.passo_numero || (total - idx);
+                  const dt = formatEventDateParts(item.data_hora);
+                  const isVisible = item.visivel_cliente !== false;
+
+                  return `
+                    <tr class="hover:bg-stone-50/80 dark:hover:bg-slate-800/50 transition-colors align-top">
+                      <!-- 1. Evento -->
+                      <td class="py-3.5 px-3 text-center border-r border-stone-100 dark:border-slate-800/80">
+                        <div class="font-mono text-xs font-black text-slate-900 dark:text-white">${evNum}</div>
+                        <div class="text-[9px] font-mono text-slate-400 mt-0.5">${item.codigo_cnj ? `Cód. ${item.codigo_cnj}` : 'Autos'}</div>
+                      </td>
+
+                      <!-- 2. Data / Hora -->
+                      <td class="py-3.5 px-3 whitespace-nowrap border-r border-stone-100 dark:border-slate-800/80">
+                        <div class="font-mono font-bold text-slate-900 dark:text-white text-xs">${dt.date}</div>
+                        <div class="font-mono text-[11px] text-slate-500 mt-0.5">${dt.time}</div>
+                        <span class="mt-1.5 inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-stone-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                          ${esc(item.etapa_pipeline || 'Em Curso')}
+                        </span>
+                      </td>
+
+                      <!-- 3. Descrição Oficial dos Autos (Estilo Eproc) -->
+                      <td class="py-3.5 px-4 space-y-2 border-r border-stone-100 dark:border-slate-800/80">
+                        <div>
+                          <span class="${getEventHighlightClass(item.titulo_movimento)}">
+                            ${esc(item.titulo_movimento)}
+                          </span>
+                        </div>
+
+                        ${item.orgao_julgador ? `
+                          <div class="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+                            <i data-lucide="landmark" class="w-3 h-3 text-[#5C1618] dark:text-[#E5C888] shrink-0"></i>
+                            <span>${esc(item.orgao_julgador)}</span>
+                          </div>
+                        ` : ''}
+
+                        ${item.complementos_cnj ? `
+                          <div class="text-[10px] text-slate-500 font-mono bg-stone-50 dark:bg-slate-800/70 p-1.5 rounded border border-stone-200/60 dark:border-slate-700">
+                            ${esc(item.complementos_cnj)}
+                          </div>
+                        ` : ''}
+
+                        ${item.descricao_tecnica ? `
+                          <div class="text-[11px] text-slate-700 dark:text-slate-300 font-sans leading-relaxed bg-stone-50/60 dark:bg-slate-800/40 p-2 rounded-lg border border-stone-200/50 dark:border-slate-700/60">
+                            <strong class="text-[10px] uppercase text-slate-400 block mb-0.5">Certidão dos Autos:</strong>
+                            ${esc(item.descricao_tecnica)}
+                          </div>
+                        ` : ''}
+
+                        ${item.prazo_sugerido ? `
+                          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900 text-[10px] font-bold">
+                            <i data-lucide="clock" class="w-3 h-3"></i>
+                            <span>Prazo / Providência: ${esc(item.prazo_sugerido)}</span>
+                          </div>
+                        ` : ''}
+                      </td>
+
+                      <!-- 4. Área do Cliente (Tradução Humanizada & Próximos Passos) -->
+                      <td class="py-3.5 px-4 bg-[#FDF9EE]/60 dark:bg-amber-950/10 border-l border-[#C8A25A]/25">
+                        <div class="p-3 rounded-xl bg-[#FAF3E3] dark:bg-slate-800/90 border border-[#C8A25A]/40 space-y-2 shadow-2xs">
+                          <div class="flex items-center justify-between gap-1 text-[11px] font-extrabold text-[#5C1618] dark:text-[#E5C888]">
+                            <span class="flex items-center gap-1.5">
+                              <i data-lucide="message-square-text" class="w-3.5 h-3.5 text-[#C8A25A]"></i>
+                              Esclarecimento ao Cliente (Linguagem Acessível):
+                            </span>
+                            <span class="text-[9px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 px-1.5 py-0.5 rounded">
+                              ${isVisible ? 'Portal Ativo' : 'Oculto'}
+                            </span>
+                          </div>
+
+                          <p class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+                            ${esc(item.explicacao_leiga || 'O que isto quer dizer? Movimentação de rotina no processo realizada pelo cartório.')}
+                          </p>
+
+                          ${item.proximo_passo_leigo ? `
+                            <div class="pt-1.5 border-t border-[#C8A25A]/30 text-[11px] text-[#5C1618] dark:text-[#E5C888]">
+                              <i data-lucide="compass" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i>
+                              <strong>O que acontece a seguir:</strong> ${esc(item.proximo_passo_leigo)}
+                            </div>
+                          ` : ''}
+                        </div>
+                      </td>
+
+                      <!-- 5. Status & Ações -->
+                      <td class="py-3.5 px-3 text-center whitespace-nowrap">
+                        <div class="flex flex-col items-center gap-1.5">
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isVisible ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-stone-200 text-slate-600'}">
+                            ${isVisible ? '✓ No Portal' : 'Oculto'}
+                          </span>
+                          ${options.isPipeline && item.id ? `
+                            <div class="flex items-center gap-1 mt-1">
+                              <button type="button" onclick="openAndamentoModal('${item.id}')" class="px-2 py-1 rounded text-[10px] font-bold border border-stone-300 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800">
+                                Editar
+                              </button>
+                              <button type="button" onclick="deleteRecordById('legal_andamentos', '${item.id}')" class="p-1 text-rose-600 hover:bg-rose-50 rounded">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                              </button>
+                            </div>
+                          ` : ''}
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
     function renderDataJudView() {
       const sel = document.getElementById('datajud-processo-select');
       sel.innerHTML = APP.admin.processos.map(p => {
@@ -3208,79 +3315,22 @@
           </div>
         </div>
 
-        <!-- PAINEL 2: TRILHA PASSO A PASSO CRONOLÓGICA RICA DO PROCESSO -->
+        <!-- PAINEL 2: TABELA DE EVENTOS PROCESSUAIS (ESTILO EPROC / PJE MODERNO + TRADUÇÃO AO CLIENTE) -->
         <div class="space-y-3 pt-2">
-          <div class="flex items-center justify-between">
-            <h5 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-              <i data-lucide="list-ordered" class="w-4 h-4 text-[#5C1618] dark:text-[#E5C888]"></i>
-              Histórico Passo a Passo Detalhado do Processo (${movs.length} Movimentações Sincronizadas)
-            </h5>
-            <span class="text-[11px] text-slate-500">Ordem: do passo mais recente (Passo ${movs.length}) até a abertura do processo (Passo 1)</span>
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-stone-200 dark:border-slate-800">
+            <div>
+              <h5 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <i data-lucide="table-2" class="w-4 h-4 text-[#5C1618] dark:text-[#E5C888]"></i>
+                Tabela de Eventos Processuais (Eproc / PJe) — ${movs.length} Movimentações Sincronizadas
+              </h5>
+              <p class="text-[11px] text-slate-500">Histórico cronológico oficial com tradução simultânea para o Portal do Cliente</p>
+            </div>
+            <span class="text-[10px] font-mono font-bold text-slate-500 bg-stone-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+              Ordem: Evento ${movs.length} até Evento 1
+            </span>
           </div>
 
-          ${movs.map((m) => `
-            <div class="p-4 sm:p-5 rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3 shadow-2xs">
-              <div class="flex flex-wrap items-start justify-between gap-2 pb-2.5 border-b border-stone-100 dark:border-slate-800">
-                <div class="space-y-1">
-                  <div class="flex flex-wrap items-center gap-1.5">
-                    <span class="px-2.5 py-0.5 rounded-full bg-[#C8A25A] text-[#28080A] text-[10px] font-extrabold">
-                      PASSO ${m.passo_numero} DE ${m.total_passos}
-                    </span>
-                    <span class="px-2 py-0.5 rounded bg-stone-100 dark:bg-slate-800 text-[10px] font-mono font-bold text-slate-700 dark:text-slate-200">
-                      Cód. TPU/CNJ ${m.codigo_cnj}
-                    </span>
-                    <span class="px-2.5 py-0.5 rounded-full bg-[#5C1618]/10 text-[#5C1618] dark:bg-slate-800 dark:text-[#E5C888] text-[10px] font-bold">
-                      Fase: ${esc(m.etapa_pipeline)}
-                    </span>
-                    <span class="text-[11px] font-semibold text-slate-500"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDateTime(m.data_hora)}</span>
-                  </div>
-                  <h6 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white pt-0.5">${esc(m.titulo_movimento)}</h6>
-                </div>
-                <span class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
-                  ✓ Ativo no Pipeline & Portal
-                </span>
-              </div>
-
-              <!-- Detalhes Técnicos Ricos: Órgão Julgador, Complementos CNJ, Íntegra e Prazo -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                <div class="p-2.5 rounded-xl bg-stone-50 dark:bg-slate-800/70 border border-stone-200/70 dark:border-slate-700">
-                  <span class="font-bold text-slate-500 block uppercase text-[9px]"><i data-lucide="landmark" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Órgão Julgador / Setor Responsável</span>
-                  <span class="font-bold text-slate-800 dark:text-white">${esc(m.orgao_julgador)}</span>
-                </div>
-                <div class="p-2.5 rounded-xl bg-stone-50 dark:bg-slate-800/70 border border-stone-200/70 dark:border-slate-700">
-                  <span class="font-bold text-slate-500 block uppercase text-[9px]"><i data-lucide="file-text" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Complementos Tabelados CNJ</span>
-                  <span class="font-medium text-slate-700 dark:text-slate-200">${esc(m.complementos_cnj)}</span>
-                </div>
-              </div>
-
-              <div class="text-xs text-slate-700 dark:text-slate-300 bg-stone-50/50 dark:bg-slate-800/30 p-3 rounded-xl border border-stone-200/60 dark:border-slate-800">
-                <strong class="text-slate-900 dark:text-white block mb-0.5 text-[11px]"><i data-lucide="scroll-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Teor Técnico Completo / Certidão dos Autos:</strong>
-                ${esc(m.descricao_tecnica)}
-              </div>
-
-              ${m.prazo_sugerido ? `
-                <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-xs">
-                  <span class="font-bold text-rose-800 dark:text-rose-300"><i data-lucide="clock" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Providência / Prazo (Sincronizado no Kanban): ${esc(m.prazo_sugerido)}</span>
-                </div>
-              ` : ''}
-
-              <!-- Esclarecimento Acessível + Próximo Passo -->
-              <div class="p-3.5 rounded-xl bg-[#FAF8F5] dark:bg-slate-800 text-xs border border-[#C8A25A]/40 space-y-1.5 shadow-2xs">
-                <div>
-                  <strong class="text-[#5C1618] dark:text-[#E5C888] flex items-center gap-1.5">
-                    <i data-lucide="message-square-text" class="w-3.5 h-3.5"></i>
-                    Esclarecimento ao Cliente (Linguagem Acessível):
-                  </strong>
-                  <p class="text-slate-700 dark:text-slate-200 mt-1">${esc(m.explicacao_leiga)}</p>
-                </div>
-                ${m.proximo_passo_leigo ? `
-                  <div class="pt-1.5 border-t border-[#C8A25A]/30 text-[11px] text-[#5C1618] dark:text-[#E5C888]">
-                    <i data-lucide="compass" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> <strong>O que acontece a seguir:</strong> ${esc(m.proximo_passo_leigo)}
-                  </div>
-                ` : ''}
-              </div>
-            </div>
-          `).join('')}
+          ${renderEprocEventsTable(movs, { isPipeline: false })}
         </div>
       `;
 
