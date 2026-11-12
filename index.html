@@ -911,25 +911,25 @@
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#5C1618]/10 text-[#5C1618] dark:bg-[#C8A25A]/20 dark:text-[#E5C888]">
-                  <i data-lucide="landmark" class="w-3.5 h-3.5"></i> Conselho Nacional de Justiça — API Pública Oficial
+                  <i data-lucide="landmark" class="w-3.5 h-3.5"></i> CNJ • DataJud Oficial
                 </span>
                 <h2 class="text-lg font-bold text-slate-900 dark:text-white mt-2">
                   Acompanhamento do Processo
                 </h2>
                 <p class="text-xs text-slate-500 max-w-2xl mt-1">
-                  Insira o número único CNJ (20 dígitos) ou escolha um processo cadastrado. O sistema identifica automaticamente o Tribunal pelos dígitos <code class="font-bold">J.TR</code>, sincroniza os movimentos e prepara os resumos explicativos para o seu cliente.
+                  Consulte pelo número CNJ ou vincule a um processo cadastrado para sincronizar movimentações e resumos ao cliente.
                 </p>
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
               <div class="md:col-span-4">
-                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Vincular ao Processo do Escritório</label>
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Vincular Processo</label>
                 <select id="datajud-processo-select" onchange="onDataJudSelectProcesso(this.value)"
                   class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-xs font-bold"></select>
               </div>
               <div class="md:col-span-5">
-                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Número CNJ do Processo</label>
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Número CNJ</label>
                 <input id="datajud-cnj-input" type="text" oninput="onDataJudCnjInput(this.value)" placeholder="0000000-00.0000.8.26.0000"
                   class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-sm font-mono font-bold">
               </div>
@@ -942,8 +942,13 @@
             </div>
 
             <div id="datajud-endpoint-info" class="text-xs bg-stone-50 dark:bg-slate-800/70 rounded-xl p-3 border border-stone-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
-              <span>Tribunal Detectado: <strong id="dj-detected-tribunal" class="text-[#5C1618] dark:text-[#E5C888]">TJSP</strong></span>
-              <span class="font-mono text-[11px] text-slate-500 truncate" id="dj-detected-url">https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search</span>
+              <div class="flex items-center gap-2">
+                <span>Tribunal: <strong id="dj-detected-tribunal" class="text-[#5C1618] dark:text-[#E5C888]">TJSP</strong></span>
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
+                  <i data-lucide="check" class="w-3 h-3"></i> Conexão Oficial Ativa
+                </span>
+              </div>
+              <span class="font-mono text-[10px] text-slate-400 truncate max-w-xs" id="dj-detected-url">https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search</span>
             </div>
 
             <div id="datajud-results-container" class="space-y-4"></div>
@@ -1687,36 +1692,36 @@
     function translateLegalMovementLocal(titulo, descricaoTecnica, etapa = 'Em Curso') {
       const combined = `${titulo || ''} ${descricaoTecnica || ''}`.toLowerCase();
       if (/concluso/.test(combined) && /(senten|julgamento|mérito|merito)/.test(combined)) {
-        return 'O seu processo já está na mesa do(a) Juiz(a) pronto para receber a decisão final (sentença). Todas as provas e argumentos necessários desta etapa já foram entregues. Agora aguardamos a análise e o pronunciamento do Juiz.';
+        return 'O processo está com o juiz para decisão final (sentença). Todas as provas já foram apresentadas; agora aguardamos a decisão.';
       }
       if (/concluso/.test(combined)) {
-        return 'O processo foi encaminhado para a mesa do(a) Juiz(a) para que ele(a) analise o último pedido feito e dê um andamento (chamado de despacho ou decisão). Não é necessária nenhuma ação sua neste momento.';
+        return 'O processo foi enviado para o juiz analisar o último pedido e dar andamento. Nenhuma ação necessária da sua parte no momento.';
       }
       if (/(procedente|julgo procedente)/.test(combined)) {
-        return 'Excelente notícia! O(A) Juiz(a) proferiu a sentença reconhecendo os seus direitos no processo. A Dra. Nathalia Lisboa já está acompanhando os prazos para os próximos passos ou eventual fase de recebimento.';
+        return 'Sentença favorável! O juiz reconheceu os seus direitos no processo. Já estamos acompanhando os prazos dos próximos passos.';
       }
       if (/(audiência|audiencia)/.test(combined) && /(conciliação|conciliacao|mediação|cejusc)/.test(combined)) {
-        return 'Foi marcada uma Audiência de Conciliação! É uma reunião oficial onde tentaremos chegar a um bom acordo de forma amigável e mais rápida. A Dra. Nathalia Lisboa orientará você com antecedência sobre a data, horário e como participar.';
+        return 'Audiência de conciliação agendada. A Dra. Nathalia Lisboa preparará você com antecedência para participar com total segurança.';
       }
       if (/(audiência|audiencia)/.test(combined)) {
-        return 'Foi agendada uma Audiência no seu processo. Nessa etapa, o(a) Juiz(a) ouve as partes para avançar na solução do caso. Fique tranquilo(a): a Dra. Nathalia Lisboa preparará todos os detalhes com você antes do dia.';
+        return 'Audiência agendada no processo. A Dra. Nathalia Lisboa cuidará de todos os detalhes e orientará você antes da data.';
       }
       if (/(citação|citacao|mandado|ar positivo)/.test(combined)) {
-        return 'A outra parte do processo foi chamada oficialmente pela Justiça para tomar ciência da ação e apresentar sua defesa dentro do prazo legal. Isso significa que o processo avançou de forma regular!';
+        return 'A outra parte foi notificada oficialmente pela Justiça para apresentar defesa dentro do prazo legal.';
       }
       if (/(contestação|contestacao|defesa apresentada)/.test(combined)) {
-        return 'A parte contrária apresentou a defesa dela no processo. Isso faz parte do andamento normal! Agora a Dra. Nathalia Lisboa fará a manifestação (réplica) rebatendo os argumentos e reforçando os seus direitos.';
+        return 'A parte contrária apresentou defesa. Isso é normal no andamento; a Dra. Nathalia Lisboa já está preparando a resposta oficial.';
       }
       if (/(recurso|apelação|apelacao|agravo|contrarrazões)/.test(combined)) {
-        return 'O processo está em fase de análise por um colegiado de Juízes/Desembargadores no Tribunal (Fase Recursal) para revisão ou confirmação da decisão. A Dra. Nathalia Lisboa já cuidou da defesa técnica dos seus interesses.';
+        return 'O processo está em fase recursal no Tribunal para análise pelos desembargadores. Sua defesa técnica segue ativa e resguardada.';
       }
       if (/(trânsito em julgado|transito em julgado|transitado)/.test(combined)) {
-        return 'A decisão do seu processo tornou-se definitiva! Não cabem mais recursos contra ela. Agora entramos na etapa final para fazer valer na prática o que foi decidido pela Justiça.';
+        return 'Decisão final definitiva! Não cabem mais recursos e agora entramos na etapa de cumprimento prático do que foi decidido.';
       }
       if (/(alvará|alvara|levantamento|mle|sisbajud|bloqueio|penhora|execução)/.test(combined)) {
-        return 'Estamos na fase prática de recebimento e garantia dos valores determinados pela Justiça (Execução / Alvará). A Dra. Nathalia Lisboa está acompanhando a liberação e avisará você assim que o valor estiver disponível.';
+        return 'Fase de pagamento e liberação de valores (Execução / Alvará). Acompanhamos a expedição e avisaremos você na liberação.';
       }
-      return `O seu processo recebeu uma atualização oficial (${titulo || 'Andamento Processual'}). Em termos simples: o escritório Nathalia Lisboa Advocacia já conferiu essa movimentação na etapa de "${etapa || 'Andamento em Curso'}" e o seu caso segue avançando regularmente.`;
+      return `Atualização oficial registrada no processo. O escritório Nathalia Lisboa Advocacia já conferiu este ato na etapa de "${etapa || 'Em Curso'}" e o caso avança normalmente.`;
     }
 
     // -------------------------------------------------------------------------
@@ -2849,6 +2854,38 @@
     // VIEW D: INTEGRAÇÃO COM A API PÚBLICA DO DATAJUD (CNJ) — 100% AUTOMÁTICA
     // -------------------------------------------------------------------------
     
+    
+    function cleanCapaClasse(c) {
+      if (!c) return 'Procedimento Comum Cível';
+      return String(c).replace(/\s*\(Cód\.\s*TPU\/CNJ\s*(\d+)\)/i, ' (Cód. $1)').trim();
+    }
+    function cleanCapaAssunto(a) {
+      if (!a) return 'Direito Cível / Obrigações';
+      const parts = String(a).split('/').map(p => p.replace(/\(\d+\)/g, '').trim()).filter(Boolean);
+      return parts.slice(0, 2).join(' / ') || a;
+    }
+    function cleanCapaSistema(s) {
+      if (!s) return 'PJe';
+      if (/tjsp|saj/i.test(s)) return 'e-SAJ (TJSP)';
+      if (/eproc/i.test(s)) return 'Eproc';
+      return 'PJe Nacional';
+    }
+    function cleanCapaGrau(g) {
+      if (!g) return '1º Grau';
+      if (/1/i.test(g)) return '1º Grau (G1)';
+      if (/2/i.test(g)) return '2º Grau (G2)';
+      return g;
+    }
+    function cleanCapaSigilo(s) {
+      if (!s) return 'Público';
+      if (/segredo/i.test(s) || /1/i.test(s)) return 'Segredo de Justiça';
+      return 'Público';
+    }
+    function cleanCapaPrazo(p) {
+      if (!p) return 'Manifestação';
+      return String(p).replace(/Manifestação Processual \/ Preparação para Audiência Oficial/i, 'Manifestação / Audiência').trim();
+    }
+
     function getEventHighlightClass(titulo) {
       const t = String(titulo || '').toUpperCase();
       if (t.includes('RENÚNCIA') || t.includes('RENUNCIA') || t.includes('SENTENÇA') || t.includes('SENTENCA') || t.includes('EXTINÇÃO')) {
@@ -2966,10 +3003,10 @@
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="bg-[#F8F5EF] dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-[#C8A25A]/30 dark:border-slate-700">
-                  <th class="py-3 px-3 w-16 text-center">Evento</th>
-                  <th class="py-3 px-3 w-36 whitespace-nowrap">Data / Hora</th>
-                  <th class="py-3 px-4 min-w-[340px]">Descrição Oficial dos Autos (Eproc / PJe)</th>
-                  <th class="py-3 px-4 w-48 text-center whitespace-nowrap">Ações & Tradução</th>
+                  <th class="py-3 px-3 w-14 text-center">Evento</th>
+                  <th class="py-3 px-3 w-32 whitespace-nowrap">Data / Hora</th>
+                  <th class="py-3 px-4 min-w-[320px]">Movimentação dos Autos (Eproc / PJe)</th>
+                  <th class="py-3 px-3 w-36 text-center whitespace-nowrap">Ações</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-stone-200 dark:divide-slate-800">
@@ -2982,61 +3019,51 @@
                   return `
                     <tr class="hover:bg-stone-50/80 dark:hover:bg-slate-800/50 transition-colors align-top">
                       <!-- 1. Evento -->
-                      <td class="py-3.5 px-3 text-center border-r border-stone-100 dark:border-slate-800/80">
+                      <td class="py-3 px-3 text-center border-r border-stone-100 dark:border-slate-800/80">
                         <div class="font-mono text-xs font-black text-slate-900 dark:text-white">${evNum}</div>
                         <div class="text-[9px] font-mono text-slate-400 mt-0.5">${item.codigo_cnj ? `Cód. ${item.codigo_cnj}` : 'Autos'}</div>
                       </td>
 
                       <!-- 2. Data / Hora -->
-                      <td class="py-3.5 px-3 whitespace-nowrap border-r border-stone-100 dark:border-slate-800/80">
+                      <td class="py-3 px-3 whitespace-nowrap border-r border-stone-100 dark:border-slate-800/80">
                         <div class="font-mono font-bold text-slate-900 dark:text-white text-xs">${dt.date}</div>
-                        <div class="font-mono text-[11px] text-slate-500 mt-0.5">${dt.time}</div>
-                        <span class="mt-1.5 inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-stone-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                        <div class="font-mono text-[10px] text-slate-500 mt-0.5">${dt.time}</div>
+                        <span class="mt-1 inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-stone-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                           ${esc(item.etapa_pipeline || 'Em Curso')}
                         </span>
                       </td>
 
-                      <!-- 3. Descrição Oficial dos Autos (Estilo Eproc) -->
-                      <td class="py-3.5 px-4 space-y-2 border-r border-stone-100 dark:border-slate-800/80">
-                        <div>
+                      <!-- 3. Movimentação dos Autos (Estilo Eproc / PJe) -->
+                      <td class="py-3 px-4 space-y-1.5 border-r border-stone-100 dark:border-slate-800/80">
+                        <div class="flex flex-wrap items-center gap-2">
                           <span class="${getEventHighlightClass(item.titulo_movimento)}">
                             ${esc(item.titulo_movimento)}
                           </span>
+                          ${item.prazo_sugerido ? `
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-900">
+                              <i data-lucide="clock" class="w-3 h-3"></i> ${esc(item.prazo_sugerido)}
+                            </span>
+                          ` : ''}
                         </div>
 
-                        ${item.orgao_julgador ? `
-                          <div class="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
-                            <i data-lucide="landmark" class="w-3 h-3 text-[#5C1618] dark:text-[#E5C888] shrink-0"></i>
-                            <span>${esc(item.orgao_julgador)}</span>
-                          </div>
-                        ` : ''}
-
-                        ${item.complementos_cnj ? `
-                          <div class="text-[10px] text-slate-500 font-mono bg-stone-50 dark:bg-slate-800/70 p-1.5 rounded border border-stone-200/60 dark:border-slate-700">
-                            ${esc(item.complementos_cnj)}
-                          </div>
-                        ` : ''}
-
                         ${item.descricao_tecnica ? `
-                          <div class="text-[11px] text-slate-700 dark:text-slate-300 font-sans leading-relaxed bg-stone-50/60 dark:bg-slate-800/40 p-2 rounded-lg border border-stone-200/50 dark:border-slate-700/60">
-                            <strong class="text-[10px] uppercase text-slate-400 block mb-0.5">Certidão dos Autos:</strong>
+                          <div class="text-[11px] text-slate-600 dark:text-slate-300 font-sans leading-relaxed">
                             ${esc(item.descricao_tecnica)}
                           </div>
                         ` : ''}
 
-                        ${item.prazo_sugerido ? `
-                          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900 text-[10px] font-bold">
-                            <i data-lucide="clock" class="w-3 h-3"></i>
-                            <span>Prazo / Providência: ${esc(item.prazo_sugerido)}</span>
+                        ${item.complementos_cnj && item.complementos_cnj !== item.descricao_tecnica ? `
+                          <div class="text-[10px] text-slate-400 font-mono">
+                            ${esc(item.complementos_cnj)}
                           </div>
                         ` : ''}
                       </td>
 
                       <!-- 4. Ações & Botão Ver Tradução -->
-                      <td class="py-3.5 px-3 text-center whitespace-nowrap">
-                        <div class="flex flex-col items-center gap-2">
+                      <td class="py-3 px-3 text-center whitespace-nowrap">
+                        <div class="flex flex-col items-center gap-1.5">
                           <button type="button" onclick="toggleTraducaoRow('${rowId}')"
-                            class="px-3 py-1.5 rounded-xl bg-[#FAF3E3] hover:bg-[#F5E9CE] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] border border-[#C8A25A]/45 text-xs font-bold flex items-center gap-1.5 shadow-2xs hover:scale-102 transition">
+                            class="px-2.5 py-1 rounded-xl bg-[#FAF3E3] hover:bg-[#F5E9CE] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] border border-[#C8A25A]/45 text-xs font-bold flex items-center gap-1 shadow-2xs hover:scale-102 transition">
                             <i data-lucide="message-square-text" class="w-3.5 h-3.5 text-[#C8A25A]"></i>
                             Ver Tradução
                           </button>
@@ -3061,20 +3088,20 @@
 
                     <!-- Linha Expansível da Tradução ao Cliente (Aparece ao clicar em 'Ver Tradução') -->
                     <tr id="trad-row-${rowId}" class="hidden bg-[#FDFBF7] dark:bg-slate-900/95 border-b border-[#C8A25A]/35">
-                      <td colspan="4" class="p-4 sm:p-5">
+                      <td colspan="4" class="p-3 sm:p-4">
                         <input type="hidden" id="trad-titulo-${rowId}" value="${esc(item.titulo_movimento)}">
                         <input type="hidden" id="trad-desctec-${rowId}" value="${esc(item.descricao_tecnica)}">
 
-                        <div class="p-4 rounded-2xl bg-[#FAF3E3] dark:bg-slate-800 border border-[#C8A25A]/45 space-y-3 shadow-xs">
-                          <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#C8A25A]/30">
+                        <div class="p-3.5 rounded-2xl bg-[#FAF3E3] dark:bg-slate-800 border border-[#C8A25A]/45 space-y-2.5 shadow-xs">
+                          <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#C8A25A]/30">
                             <div class="flex items-center gap-2">
-                              <span class="w-7 h-7 rounded-lg bg-[#5C1618] text-[#E5C888] flex items-center justify-center text-xs font-bold">
+                              <span class="w-6 h-6 rounded-lg bg-[#5C1618] text-[#E5C888] flex items-center justify-center text-xs font-bold">
                                 ${evNum}
                               </span>
                               <div>
                                 <h6 class="text-xs font-extrabold text-[#5C1618] dark:text-[#E5C888] flex items-center gap-1.5">
                                   <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#C8A25A]"></i>
-                                  Esclarecimento ao Cliente (Linguagem Acessível)
+                                  Tradução ao Cliente (Linguagem Clara)
                                 </h6>
                                 <span class="text-[10px] text-slate-500">${esc(item.titulo_movimento)}</span>
                               </div>
@@ -3094,19 +3121,19 @@
                             <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">
                               O que isto quer dizer? (Explicação em Linguagem Simples)
                             </label>
-                            <textarea id="trad-texto-${rowId}" rows="3"
-                              class="w-full p-3 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5C1618] leading-relaxed">${esc(item.explicacao_leiga || 'O que isto quer dizer? Movimentação de rotina no processo realizada pelo cartório.')}</textarea>
+                            <textarea id="trad-texto-${rowId}" rows="2"
+                              class="w-full p-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5C1618] leading-relaxed">${esc(item.explicacao_leiga || 'Movimentação processual registrada nos autos pelo cartório.')}</textarea>
                           </div>
 
                           <div>
-                            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">O que acontece a seguir</label>
+                            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Próximo Passo</label>
                             <input type="text" id="trad-proximo-${rowId}" value="${esc(item.proximo_passo_leigo || '')}"
-                              placeholder="Ex: O juiz analisará os pedidos e proferirá o despacho."
-                              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5C1618]">
+                              placeholder="Ex: O juiz analisará o processo para assinar o despacho."
+                              class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5C1618]">
                           </div>
 
                           <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#C8A25A]/20">
-                            <span class="text-[11px] text-slate-500">Qualquer ajuste aqui é sincronizado diretamente com o Portal do Cliente</span>
+                            <span class="text-[11px] text-slate-500">Reflete imediatamente na Área do Cliente</span>
                             <div class="flex items-center gap-2">
                               <button type="button" onclick="toggleTraducaoRow('${rowId}')" class="px-3 py-1.5 rounded-xl border border-stone-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800">
                                 Fechar
@@ -3282,84 +3309,87 @@
         const baseSteps = [
           {
             codigo_cnj: 51,
-            titulo_movimento: 'Conclusos os Autos para Despacho / Decisão Interlocutória',
-            orgao_julgador: `Gabinete do(a) Juiz(a) Titular — ${capa.orgao_julgador}`,
-            complementos_cnj: `Tipo de conclusão: Para Despacho/Decisão (Cód. 51) | Autos Digitais conclusos ao Magistrado | Tribunal: ${parsed.tribunalSigla}`,
-            descricao_tecnica: `Autos eletrônicos de nº ${cnjDisplay} conclusos ao(à) MM. Juiz(a) de Direito da ${capa.orgao_julgador} para apreciação dos requerimentos formulados pelas partes, análise de provas e saneamento do feito.`,
-            prazo_sugerido: 'Monitorar publicação do despacho no DJe (Previsão: 5 a 10 dias úteis)',
+            titulo_movimento: 'Conclusos para despacho',
+            orgao_julgador: capa.orgao_julgador,
+            complementos_cnj: 'Cód. 51 • Conclusão p/ Despacho',
+            descricao_tecnica: 'Autos encaminhados ao gabinete do juiz para análise dos pedidos e andamento.',
+            prazo_sugerido: 'Aguardar publicação no DJe (5 a 10 dias úteis)',
             data_hora: new Date().toISOString(),
-            etapa_pipeline: 'Audiência',
-            proximo_passo_leigo: 'O juiz está com o seu processo em mãos para assinar o próximo despacho ou decisão sobre os pedidos feitos pela Dra. Nathalia Lisboa.'
+            etapa_pipeline: 'Procedimento em tramitação',
+            explicacao_leiga: 'O processo está com o juiz para análise do pedido e despacho. Nenhuma ação necessária da sua parte no momento.',
+            proximo_passo_leigo: 'Aguardar o despacho do juiz nos autos.'
           },
           {
             codigo_cnj: 85,
-            titulo_movimento: 'Juntada de Petição de Réplica / Manifestação às Preliminares',
-            orgao_julgador: `Protocolo Eletrônico Integrado — ${capa.sistema_processual}`,
-            complementos_cnj: `Tipo de petição: Réplica / Manifestação (Cód. 85) | Assinatura Digital ICP-Brasil: Dra. Nathalia Lisboa | Tempestividade certificada`,
-            descricao_tecnica: `Certifico a juntada automática de petição intercorrente de réplica à contestação apresentada pela patrona da parte autora, Dra. Nathalia Lisboa, impugnando especificamente os fatos impeditivos arguidos pela parte contrária e reiterando as provas documentais.`,
-            prazo_sugerido: 'Peticionamento cumprido com sucesso — aguardar conclusão ao juiz',
+            titulo_movimento: 'Juntada de Petição (Réplica)',
+            orgao_julgador: capa.sistema_processual,
+            complementos_cnj: 'Cód. 85 • Réplica da Autora',
+            descricao_tecnica: 'Petição de réplica protocolada pela Dra. Nathalia Lisboa rebatendo a defesa da parte contrária.',
+            prazo_sugerido: 'Peticionamento cumprido • Aguardar conclusão',
             data_hora: new Date(Date.now() - 86400000 * 3).toISOString(),
-            etapa_pipeline: 'Audiência',
-            explicacao_leiga: 'A Dra. Nathalia Lisboa protocolou uma resposta oficial firme rebatendo os argumentos da outra parte e reforçando todas as provas a seu favor.',
-            proximo_passo_leigo: 'Com a resposta da sua advogada anexada, o cartório envia o processo diretamente para a mesa do juiz.'
+            etapa_pipeline: 'Procedimento em tramitação',
+            explicacao_leiga: 'A Dra. Nathalia Lisboa protocolou a resposta oficial rebatendo os argumentos da outra parte e reforçando as provas.',
+            proximo_passo_leigo: 'Com a resposta anexada, o processo segue para a mesa do juiz.'
           },
           {
             codigo_cnj: 970,
-            titulo_movimento: 'Designada Audiência de Conciliação / Mediação Oficial',
-            orgao_julgador: `CEJUSC / Centro Judiciário de Solução de Conflitos — ${parsed.tribunalSigla}`,
-            complementos_cnj: `Tipo de audiência: Conciliação/Mediação (Cód. 970) | Modalidade: Videoconferência Oficial | Intimação expedida no DJe`,
-            descricao_tecnica: `Designada sessão oficial de conciliação e mediação nos autos de nº ${cnjDisplay}, ficando as partes intimadas na pessoa de seus respectivos advogados constituídos via Diário da Justiça Eletrônico.`,
-            prazo_sugerido: 'Alinhar estratégia e orientação prévia com o cliente 48h antes da audiência',
+            titulo_movimento: 'Audiência de Conciliação Designada',
+            orgao_julgador: 'CEJUSC / Conciliação',
+            complementos_cnj: 'Cód. 970 • Videoconferência',
+            descricao_tecnica: 'Audiência de conciliação designada pelo juízo com intimação das partes.',
+            prazo_sugerido: 'Alinhamento prévio com cliente 48h antes',
             data_hora: new Date(Date.now() - 86400000 * 9).toISOString(),
             etapa_pipeline: 'Audiência',
-            proximo_passo_leigo: 'A Dra. Nathalia Lisboa entrará em contato com você antes da data marcada para explicar como funciona a reunião e avaliar se há proposta de acordo vantajosa.'
+            explicacao_leiga: 'Audiência de conciliação agendada. A Dra. Nathalia Lisboa preparará você com antecedência para participar com total segurança.',
+            proximo_passo_leigo: 'A Dra. Nathalia Lisboa entrará em contato para alinhar os detalhes da reunião.'
           },
           {
             codigo_cnj: 848,
-            titulo_movimento: 'Juntada de Contestação / Defesa da Parte Requerida',
-            orgao_julgador: `Secretaria Judicial / Cartório — ${capa.orgao_julgador}`,
-            complementos_cnj: `Documento juntado: Contestação (Cód. 848) | Abertura de vista automática para Réplica (Prazo: 15 dias úteis — Art. 350 CPC)`,
-            descricao_tecnica: `Juntada de peça de contestação e documentos correlatos apresentados pela parte requerida dentro do prazo legal, abrindo-se vista à parte autora para manifestação em réplica no prazo de 15 (quinze) dias úteis.`,
-            prazo_sugerido: 'Elaborar e protocolar Réplica à Contestação (Prazo fatal: 15 dias úteis)',
+            titulo_movimento: 'Contestação Apresentada',
+            orgao_julgador: capa.orgao_julgador,
+            complementos_cnj: 'Cód. 848 • Defesa da Ré',
+            descricao_tecnica: 'Contestação e documentos apresentados pela ré, abrindo prazo para manifestação da autora.',
+            prazo_sugerido: 'Prazo de 15 dias úteis para réplica',
             data_hora: new Date(Date.now() - 86400000 * 16).toISOString(),
-            etapa_pipeline: 'Audiência',
-            explicacao_leiga: 'A outra parte apresentou a defesa dela no processo. Isso é uma etapa obrigatória e normal, onde eles apresentam a versão deles para o juiz.',
-            proximo_passo_leigo: 'A Dra. Nathalia Lisboa analisa cada linha da defesa deles para rebater os argumentos através da Réplica.'
+            etapa_pipeline: 'Procedimento em tramitação',
+            explicacao_leiga: 'A parte contrária apresentou defesa. A Dra. Nathalia Lisboa já está preparando a resposta oficial.',
+            proximo_passo_leigo: 'Análise dos argumentos da ré para protocolo da réplica.'
           },
           {
             codigo_cnj: 122,
-            titulo_movimento: 'Juntada de Mandado / Carta de Citação e Intimação Positiva',
-            orgao_julgador: `Central de Mandados / AR Digital — ${parsed.tribunalSigla}`,
-            complementos_cnj: `Resultado da diligência: Citação Positiva (Cód. 122) | Início do prazo legal de defesa (Art. 231 do CPC)`,
-            descricao_tecnica: `Certidão de juntada aos autos digitais do comprovante positivo de citação e intimação válida da parte contrária (${proc.parte_contraria || 'Parte Requerida'}), dando ciência inequívoca dos termos da ação judicial.`,
-            prazo_sugerido: 'Acompanhar decurso do prazo de 15 dias úteis da parte contrária',
+            titulo_movimento: 'Citação Positiva da Parte Ré',
+            orgao_julgador: 'Central de Mandados',
+            complementos_cnj: 'Cód. 122 • Ciência inequívoca',
+            descricao_tecnica: 'Comprovante positivo de citação e intimação da parte contrária juntado aos autos digitais.',
+            prazo_sugerido: 'Acompanhar prazo de defesa (15 dias úteis)',
             data_hora: new Date(Date.now() - 86400000 * 25).toISOString(),
-            etapa_pipeline: 'Contrato Fechado',
-            proximo_passo_leigo: 'Agora que a outra parte recebeu a notificação oficial do juiz, começa a contar o prazo obrigatório para ela se manifestar no processo.'
+            etapa_pipeline: 'Procedimento em tramitação',
+            explicacao_leiga: 'A outra parte foi notificada oficialmente pela Justiça para apresentar defesa.',
+            proximo_passo_leigo: 'Contagem do prazo legal para manifestação da outra parte.'
           },
           {
             codigo_cnj: 11010,
-            titulo_movimento: 'Proferido Despacho Inicial: Recebida a Inicial e Ordenada a Citação',
-            orgao_julgador: `Gabinete do(a) Juiz(a) de Direito — ${capa.orgao_julgador}`,
-            complementos_cnj: `Espécie de ato: Despacho de Mero Expediente / Recebimento da Inicial (Cód. 11010) | Ordem de expedição de citação`,
-            descricao_tecnica: `Vistos. Presentes os pressupostos processuais e os requisitos legais do art. 319 do Código de Processo Civil, recebo a petição inicial e determino a imediata citação e intimação da parte requerida para integrar a relação jurídico-processual.`,
-            prazo_sugerido: 'Conferir expedição da carta/mandado de citação pelo cartório',
+            titulo_movimento: 'Decisão Inicial / Citação Ordenada',
+            orgao_julgador: capa.orgao_julgador,
+            complementos_cnj: 'Cód. 11010 • Inicial Recebida',
+            descricao_tecnica: 'Petição inicial recebida pelo juiz, determinando a citação imediata da parte ré.',
+            prazo_sugerido: 'Acompanhar expedição do mandado pelo cartório',
             data_hora: new Date(Date.now() - 86400000 * 35).toISOString(),
-            etapa_pipeline: 'Contrato Fechado',
-            explicacao_leiga: 'Excelente notícia! O juiz analisou o pedido inicial feito pela Dra. Nathalia Lisboa, aprovou o início da ação e ordenou que a outra parte seja chamada oficialmente.',
-            proximo_passo_leigo: 'O cartório do fórum expede a carta ou mandado oficial para notificar a parte contrária.'
+            etapa_pipeline: 'Ajuizamento da demanda',
+            explicacao_leiga: 'O juiz aprovou o pedido inicial feito pela Dra. Nathalia Lisboa e ordenou a notificação da outra parte.',
+            proximo_passo_leigo: 'Expedição do mandado oficial para notificar a parte ré.'
           },
           {
             codigo_cnj: 26,
-            titulo_movimento: 'Distribuição Automática por Sorteio Eletrônico (Autuação Inicial)',
-            orgao_julgador: `Distribuidor Judicial Eletrônico — ${parsed.tribunalSigla}`,
-            complementos_cnj: `Tipo de distribuição: Sorteio Automático (Cód. 26) | Classe: ${capa.classe_processual} | Sistema: ${capa.sistema_processual}`,
-            descricao_tecnica: `Processo judicial distribuído eletronicamente por sorteio para a ${capa.orgao_julgador}, autuado sob o nº único CNJ ${cnjDisplay}, instruído com petição inicial, procuração ad judicia e documentos comprobatórios.`,
-            prazo_sugerido: 'Aguardar primeiro despacho do(a) magistrado(a)',
+            titulo_movimento: 'Distribuição da Petição Inicial',
+            orgao_julgador: 'Distribuidor Judicial',
+            complementos_cnj: 'Cód. 26 • Distribuição Inicial',
+            descricao_tecnica: `Processo distribuído e autuado sob o nº CNJ ${cnjDisplay} com petição inicial e documentos.`,
+            prazo_sugerido: 'Aguardar primeira análise judicial',
             data_hora: new Date(Date.now() - 86400000 * 45).toISOString(),
-            etapa_pipeline: 'Contrato Fechado',
-            explicacao_leiga: 'O seu processo foi oficialmente aberto e protocolado na Justiça pela Dra. Nathalia Lisboa! Ele recebeu o número oficial do CNJ e foi sorteado para o juiz responsável.',
-            proximo_passo_leigo: 'O processo segue para a primeira análise do juiz da Vara sorteada.'
+            etapa_pipeline: 'Ajuizamento da demanda',
+            explicacao_leiga: 'Seu processo foi distribuído e protocolado oficialmente na Justiça com número do CNJ.',
+            proximo_passo_leigo: 'O processo aguarda a primeira decisão do juiz.'
           }
         ];
 
@@ -3383,68 +3413,68 @@
 
       container.innerHTML = `
         <!-- PAINEL 1: CAPA RICA DO PROCESSO EXTRAÍDA DO DATAJUD -->
-        <div class="p-5 rounded-3xl bg-gradient-to-br from-[#FDF8EE] via-white to-[#FAF3E3] dark:from-slate-800 dark:to-slate-900 border-2 border-[#C8A25A] shadow-sm space-y-4">
-          <div class="flex flex-wrap items-start justify-between gap-3 pb-3 border-b border-[#C8A25A]/30">
+        <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#FDF8EE] via-white to-[#FAF3E3] dark:from-slate-800 dark:to-slate-900 border border-[#C8A25A]/60 shadow-xs space-y-3.5">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#C8A25A]/30">
             <div>
               <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#5C1618] text-[#E5C888] text-[10px] font-extrabold uppercase tracking-wider">
                 <i data-lucide="landmark" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> ${esc(sourceLabel)}
               </div>
-              <h4 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white mt-1.5">
-                Raio-X Completo do Processo CNJ ${esc(parsed.formatted || cnj)}
+              <h4 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white mt-1">
+                Processo CNJ ${esc(parsed.formatted || cnj)}
               </h4>
               <p class="text-xs text-slate-600 dark:text-slate-300">
-                Cliente Vinculado: <strong>${esc(cli.nome || 'Processo Vinculado')}</strong> • ${movs.length} etapas cronológicas detalhadas (do protocolo inicial ao último despacho)
+                Cliente: <strong>${esc(cli.nome || 'Vinculado')}</strong> • ${movs.length} movimentações
               </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <span class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-extrabold flex items-center gap-2 shadow-sm">
+              <span class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs">
                 <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-                Sincronizado Automaticamente com Pipeline, CRM, Kanban e Portal
+                Sincronizado
               </span>
             </div>
           </div>
 
-          <!-- Metadados Oficiais da Capa Processual (TPU/CNJ) -->
+          <!-- Metadados Principais da Capa Processual -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
             <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
-              <div class="text-[10px] font-bold uppercase text-slate-400">Classe Processual (TPU/CNJ)</div>
-              <div class="font-extrabold text-slate-900 dark:text-white mt-0.5">${esc(capa.classe_processual)}</div>
+              <div class="text-[10px] font-bold uppercase text-slate-400">Classe</div>
+              <div class="font-extrabold text-slate-900 dark:text-white mt-0.5 truncate" title="${esc(capa.classe_processual)}">${esc(cleanCapaClasse(capa.classe_processual))}</div>
             </div>
             <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
-              <div class="text-[10px] font-bold uppercase text-slate-400">Assuntos Tabelados CNJ</div>
-              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5">${esc(capa.assuntos_cnj)}</div>
+              <div class="text-[10px] font-bold uppercase text-slate-400">Assunto</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5 truncate" title="${esc(capa.assuntos_cnj)}">${esc(cleanCapaAssunto(capa.assuntos_cnj))}</div>
             </div>
             <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
-              <div class="text-[10px] font-bold uppercase text-slate-400">Órgão Julgador / Vara</div>
-              <div class="font-bold text-[#5C1618] dark:text-[#E5C888] mt-0.5">${esc(capa.orgao_julgador)}</div>
+              <div class="text-[10px] font-bold uppercase text-slate-400">Vara / Órgão</div>
+              <div class="font-bold text-[#5C1618] dark:text-[#E5C888] mt-0.5 truncate" title="${esc(capa.orgao_julgador)}">${esc(capa.orgao_julgador)}</div>
             </div>
             <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
-              <div class="text-[10px] font-bold uppercase text-slate-400">Sistema Eletrônico & Grau</div>
-              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5">${esc(capa.sistema_processual)} • ${esc(capa.grau_jurisdicao)}</div>
+              <div class="text-[10px] font-bold uppercase text-slate-400">Sistema & Instância</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5">${esc(cleanCapaSistema(capa.sistema_processual))} • ${esc(cleanCapaGrau(capa.grau_jurisdicao))}</div>
             </div>
             <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
-              <div class="text-[10px] font-bold uppercase text-slate-400">Data de Ajuizamento & Sigilo</div>
-              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.data_ajuizamento)} • ${esc(capa.nivel_sigilo)}</div>
+              <div class="text-[10px] font-bold uppercase text-slate-400">Ajuizamento & Sigilo</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.data_ajuizamento)} • ${esc(cleanCapaSigilo(capa.nivel_sigilo))}</div>
             </div>
             <div class="p-3 rounded-xl bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
-              <div class="text-[10px] font-bold uppercase text-rose-600">Próximo Prazo / Ação Detectada</div>
-              <div class="font-extrabold text-rose-800 dark:text-rose-300 mt-0.5"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.proximo_prazo_sugerido)} — ${esc(capa.descricao_prazo_sugerido)}</div>
+              <div class="text-[10px] font-bold uppercase text-rose-600">Próximo Prazo</div>
+              <div class="font-extrabold text-rose-800 dark:text-rose-300 mt-0.5"><i data-lucide="calendar" class="w-3 h-3 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.proximo_prazo_sugerido)} • ${esc(cleanCapaPrazo(capa.descricao_prazo_sugerido))}</div>
             </div>
           </div>
         </div>
 
-        <!-- PAINEL 2: TABELA DE EVENTOS PROCESSUAIS (ESTILO EPROC / PJE MODERNO + TRADUÇÃO AO CLIENTE) -->
+        <!-- PAINEL 2: TABELA DE EVENTOS PROCESSUAIS (ESTILO EPROC / PJE MODERNO) -->
         <div class="space-y-3 pt-2">
           <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-stone-200 dark:border-slate-800">
             <div>
               <h5 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <i data-lucide="table-2" class="w-4 h-4 text-[#5C1618] dark:text-[#E5C888]"></i>
-                Tabela de Eventos Processuais (Eproc / PJe) — ${movs.length} Movimentações Sincronizadas
+                Movimentações Processuais (Eproc / PJe) • ${movs.length} eventos
               </h5>
-              <p class="text-[11px] text-slate-500">Histórico cronológico oficial com tradução simultânea para o Portal do Cliente</p>
+              <p class="text-[11px] text-slate-500">Histórico oficial dos autos com tradução simplificada ao cliente</p>
             </div>
             <span class="text-[10px] font-mono font-bold text-slate-500 bg-stone-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-              Ordem: Evento ${movs.length} até Evento 1
+              Ordem: Evento ${movs.length} ao 1
             </span>
           </div>
 
