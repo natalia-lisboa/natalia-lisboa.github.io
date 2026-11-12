@@ -2876,12 +2876,90 @@
       };
     }
 
+    function toggleTraducaoRow(rowId) {
+      const el = document.getElementById('trad-row-' + rowId);
+      if (!el) return;
+      const wasHidden = el.classList.contains('hidden');
+      el.classList.toggle('hidden');
+      if (wasHidden) {
+        refreshIcons();
+        const textarea = document.getElementById('trad-texto-' + rowId);
+        if (textarea) textarea.focus();
+      }
+    }
+
+    async function saveTraducaoInline(andamentoId, rowId, idx) {
+      const textEl = document.getElementById('trad-texto-' + rowId);
+      const proxEl = document.getElementById('trad-proximo-' + rowId);
+      const visEl = document.getElementById('trad-visivel-' + rowId);
+      if (!textEl) return;
+
+      const explicacao = textEl.value.trim();
+      const proximo = proxEl ? proxEl.value.trim() : '';
+      const visivel = visEl ? visEl.checked : true;
+
+      // 1. Se o andamento já tem ID persistido no banco
+      if (andamentoId) {
+        const existing = (APP.admin.andamentos || []).find(a => a.id === andamentoId);
+        if (existing) {
+          const updated = {
+            ...existing,
+            explicacao_leiga: explicacao,
+            proximo_passo_leigo: proximo,
+            visivel_cliente: visivel
+          };
+          const { error } = await sb.rpc('legal_save_record', {
+            p_token: APP.token,
+            p_table: 'legal_andamentos',
+            p_record: updated
+          });
+          if (error) return showToast('Erro ao salvar tradução: ' + error.message, 'error');
+          await loadAdminBundle();
+          showToast('Tradução salva com sucesso e sincronizada com o Portal do Cliente!');
+          if (document.getElementById('view-pipeline') && !document.getElementById('view-pipeline').classList.contains('hidden')) {
+            renderPipelineView();
+          }
+          return;
+        }
+      }
+
+      // 2. Se for na visualização do DataJud com processo ativo
+      const proc = APP.admin.processos.find(p => p.id === APP.selectedProcessoId) || APP.admin.processos[0];
+      if (proc) {
+        const { error } = await sb.rpc('legal_save_record', {
+          p_token: APP.token,
+          p_table: 'legal_andamentos',
+          p_record: {
+            processo_id: proc.id,
+            cliente_id: proc.cliente_id,
+            etapa_pipeline: proc.fase_pipeline,
+            titulo_movimento: (document.getElementById('trad-titulo-' + rowId) || {}).value || 'Movimentação Processual',
+            descricao_tecnica: (document.getElementById('trad-desctec-' + rowId) || {}).value || '',
+            explicacao_leiga: explicacao,
+            proximo_passo_leigo: proximo,
+            visivel_cliente: visivel,
+            origem: 'DataJud CNJ'
+          }
+        });
+        if (!error) {
+          await loadAdminBundle();
+          showToast('Tradução salva e registrada nos andamentos do cliente!');
+          return;
+        }
+      }
+
+      showToast('Tradução atualizada com sucesso!');
+      toggleTraducaoRow(rowId);
+    }
+
     function renderEprocEventsTable(items, options = {}) {
       if (!items || items.length === 0) {
         return `<div class="text-xs text-slate-400 py-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800">Nenhum evento processual registrado ainda.</div>`;
       }
 
       const total = items.length;
+      const prefix = options.isPipeline ? 'pipe' : 'dj';
+
       return `
         <div class="overflow-hidden rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
           <div class="overflow-x-auto">
@@ -2890,11 +2968,8 @@
                 <tr class="bg-[#F8F5EF] dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-[#C8A25A]/30 dark:border-slate-700">
                   <th class="py-3 px-3 w-16 text-center">Evento</th>
                   <th class="py-3 px-3 w-36 whitespace-nowrap">Data / Hora</th>
-                  <th class="py-3 px-4 min-w-[320px]">Descrição Oficial dos Autos (Eproc / PJe)</th>
-                  <th class="py-3 px-4 min-w-[340px] bg-[#FAF3E3]/60 dark:bg-amber-950/20 text-[#5C1618] dark:text-[#E5C888] border-l border-[#C8A25A]/25">
-                    <span class="flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#C8A25A]"></i> Tradução para o Cliente (Portal)</span>
-                  </th>
-                  <th class="py-3 px-3 w-28 text-center whitespace-nowrap">Status</th>
+                  <th class="py-3 px-4 min-w-[340px]">Descrição Oficial dos Autos (Eproc / PJe)</th>
+                  <th class="py-3 px-4 w-48 text-center whitespace-nowrap">Ações & Tradução</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-stone-200 dark:divide-slate-800">
@@ -2902,6 +2977,7 @@
                   const evNum = item.passo_numero || (total - idx);
                   const dt = formatEventDateParts(item.data_hora);
                   const isVisible = item.visivel_cliente !== false;
+                  const rowId = `${prefix}_${item.id || idx}`;
 
                   return `
                     <tr class="hover:bg-stone-50/80 dark:hover:bg-slate-800/50 transition-colors align-top">
@@ -2956,48 +3032,90 @@
                         ` : ''}
                       </td>
 
-                      <!-- 4. Área do Cliente (Tradução Humanizada & Próximos Passos) -->
-                      <td class="py-3.5 px-4 bg-[#FDF9EE]/60 dark:bg-amber-950/10 border-l border-[#C8A25A]/25">
-                        <div class="p-3 rounded-xl bg-[#FAF3E3] dark:bg-slate-800/90 border border-[#C8A25A]/40 space-y-2 shadow-2xs">
-                          <div class="flex items-center justify-between gap-1 text-[11px] font-extrabold text-[#5C1618] dark:text-[#E5C888]">
-                            <span class="flex items-center gap-1.5">
-                              <i data-lucide="message-square-text" class="w-3.5 h-3.5 text-[#C8A25A]"></i>
-                              Esclarecimento ao Cliente (Linguagem Acessível):
-                            </span>
-                            <span class="text-[9px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 px-1.5 py-0.5 rounded">
-                              ${isVisible ? 'Portal Ativo' : 'Oculto'}
-                            </span>
-                          </div>
-
-                          <p class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
-                            ${esc(item.explicacao_leiga || 'O que isto quer dizer? Movimentação de rotina no processo realizada pelo cartório.')}
-                          </p>
-
-                          ${item.proximo_passo_leigo ? `
-                            <div class="pt-1.5 border-t border-[#C8A25A]/30 text-[11px] text-[#5C1618] dark:text-[#E5C888]">
-                              <i data-lucide="compass" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i>
-                              <strong>O que acontece a seguir:</strong> ${esc(item.proximo_passo_leigo)}
-                            </div>
-                          ` : ''}
-                        </div>
-                      </td>
-
-                      <!-- 5. Status & Ações -->
+                      <!-- 4. Ações & Botão Ver Tradução -->
                       <td class="py-3.5 px-3 text-center whitespace-nowrap">
-                        <div class="flex flex-col items-center gap-1.5">
+                        <div class="flex flex-col items-center gap-2">
+                          <button type="button" onclick="toggleTraducaoRow('${rowId}')"
+                            class="px-3 py-1.5 rounded-xl bg-[#FAF3E3] hover:bg-[#F5E9CE] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] border border-[#C8A25A]/45 text-xs font-bold flex items-center gap-1.5 shadow-2xs hover:scale-102 transition">
+                            <i data-lucide="message-square-text" class="w-3.5 h-3.5 text-[#C8A25A]"></i>
+                            Ver Tradução
+                          </button>
+
                           <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isVisible ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-stone-200 text-slate-600'}">
                             ${isVisible ? '✓ No Portal' : 'Oculto'}
                           </span>
+
                           ${options.isPipeline && item.id ? `
-                            <div class="flex items-center gap-1 mt-1">
-                              <button type="button" onclick="openAndamentoModal('${item.id}')" class="px-2 py-1 rounded text-[10px] font-bold border border-stone-300 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800">
+                            <div class="flex items-center gap-1 mt-0.5">
+                              <button type="button" onclick="openAndamentoModal('${item.id}')" class="px-2 py-0.5 rounded text-[10px] font-bold border border-stone-300 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800">
                                 Editar
                               </button>
-                              <button type="button" onclick="deleteRecordById('legal_andamentos', '${item.id}')" class="p-1 text-rose-600 hover:bg-rose-50 rounded">
+                              <button type="button" onclick="deleteRecordById('legal_andamentos', '${item.id}')" class="p-1 text-rose-600 hover:bg-rose-50 rounded" title="Excluir">
                                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                               </button>
                             </div>
                           ` : ''}
+                        </div>
+                      </td>
+                    </tr>
+
+                    <!-- Linha Expansível da Tradução ao Cliente (Aparece ao clicar em 'Ver Tradução') -->
+                    <tr id="trad-row-${rowId}" class="hidden bg-[#FDFBF7] dark:bg-slate-900/95 border-b border-[#C8A25A]/35">
+                      <td colspan="4" class="p-4 sm:p-5">
+                        <input type="hidden" id="trad-titulo-${rowId}" value="${esc(item.titulo_movimento)}">
+                        <input type="hidden" id="trad-desctec-${rowId}" value="${esc(item.descricao_tecnica)}">
+
+                        <div class="p-4 rounded-2xl bg-[#FAF3E3] dark:bg-slate-800 border border-[#C8A25A]/45 space-y-3 shadow-xs">
+                          <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#C8A25A]/30">
+                            <div class="flex items-center gap-2">
+                              <span class="w-7 h-7 rounded-lg bg-[#5C1618] text-[#E5C888] flex items-center justify-center text-xs font-bold">
+                                ${evNum}
+                              </span>
+                              <div>
+                                <h6 class="text-xs font-extrabold text-[#5C1618] dark:text-[#E5C888] flex items-center gap-1.5">
+                                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#C8A25A]"></i>
+                                  Esclarecimento ao Cliente (Linguagem Acessível)
+                                </h6>
+                                <span class="text-[10px] text-slate-500">${esc(item.titulo_movimento)}</span>
+                              </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer">
+                                <input type="checkbox" id="trad-visivel-${rowId}" ${isVisible ? 'checked' : ''} class="w-4 h-4 accent-[#5C1618]">
+                                Visível no Portal do Cliente
+                              </label>
+                              <button type="button" onclick="toggleTraducaoRow('${rowId}')" class="p-1 rounded-lg hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-500" title="Fechar">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">
+                              O que isto quer dizer? (Explicação em Linguagem Simples)
+                            </label>
+                            <textarea id="trad-texto-${rowId}" rows="3"
+                              class="w-full p-3 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5C1618] leading-relaxed">${esc(item.explicacao_leiga || 'O que isto quer dizer? Movimentação de rotina no processo realizada pelo cartório.')}</textarea>
+                          </div>
+
+                          <div>
+                            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">O que acontece a seguir</label>
+                            <input type="text" id="trad-proximo-${rowId}" value="${esc(item.proximo_passo_leigo || '')}"
+                              placeholder="Ex: O juiz analisará os pedidos e proferirá o despacho."
+                              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5C1618]">
+                          </div>
+
+                          <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#C8A25A]/20">
+                            <span class="text-[11px] text-slate-500">Qualquer ajuste aqui é sincronizado diretamente com o Portal do Cliente</span>
+                            <div class="flex items-center gap-2">
+                              <button type="button" onclick="toggleTraducaoRow('${rowId}')" class="px-3 py-1.5 rounded-xl border border-stone-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800">
+                                Fechar
+                              </button>
+                              <button type="button" onclick="saveTraducaoInline('${item.id || ''}', '${rowId}', ${idx})" class="px-4 py-1.5 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                                <i data-lucide="check" class="w-3.5 h-3.5"></i> Salvar
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </td>
                     </tr>
