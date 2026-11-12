@@ -825,13 +825,15 @@
             <div class="flex items-center gap-2">
               <select id="filter-clientes-etapa" onchange="renderClientesView()" class="px-3 py-2.5 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-xs font-semibold">
                 <option value="">Todas as Fases do Funil</option>
-                <option value="Em Atendimento">Em Atendimento</option>
-                <option value="Proposta Enviada">Proposta Enviada</option>
-                <option value="Contrato Fechado">Contrato Fechado</option>
-                <option value="1ª Audiência">1ª Audiência</option>
-                <option value="2ª Audiência">2ª Audiência</option>
-                <option value="Fase Recursal">Fase Recursal</option>
-                <option value="Concluído/Execução">Concluído/Execução</option>
+                <option value="Em atendimento">Em atendimento</option>
+                <option value="Proposta enviada">Proposta enviada</option>
+                <option value="Contrato fechado">Contrato fechado</option>
+                <option value="Ajuizamento da demanda">Ajuizamento da demanda</option>
+                <option value="Audiência">Audiência</option>
+                <option value="Procedimento em tramitação">Procedimento em tramitação</option>
+                <option value="Aguardando sentença">Aguardando sentença</option>
+                <option value="Fase recursal">Fase recursal</option>
+                <option value="Em execução/concluido">Em execução/concluido</option>
               </select>
               <button type="button" onclick="openClienteModal()" class="px-4 py-2.5 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold flex items-center gap-1.5">
                 <i data-lucide="user-plus" class="w-4 h-4"></i> Novo Cliente
@@ -1347,13 +1349,15 @@
     }
 
     const PIPELINE_PHASES = [
-      'Em Atendimento',
-      'Proposta Enviada',
-      'Contrato Fechado',
-      '1ª Audiência',
-      '2ª Audiência',
-      'Fase Recursal',
-      'Concluído/Execução'
+      'Em atendimento',
+      'Proposta enviada',
+      'Contrato fechado',
+      'Ajuizamento da demanda',
+      'Audiência',
+      'Procedimento em tramitação',
+      'Aguardando sentença',
+      'Fase recursal',
+      'Em execução/concluido'
     ];
 
     const KANBAN_CONFIG_TASK_ID = '44444444-4444-4444-8444-444444444499';
@@ -2177,7 +2181,7 @@
       APP.charts.pipeline = new Chart(ctxPipe, {
         type: 'bar',
         data: {
-          labels: ['Atend.', 'Proposta', 'Contrato', '1ª Aud.', '2ª Aud.', 'Recursal', 'Execução'],
+          labels: ['Atend.', 'Proposta', 'Contrato', 'Ajuizamento', 'Audiência', 'Tramitação', 'Sentença', 'Recursal', 'Execução'],
           datasets: [{
             label: 'Processos',
             data: countsByPhase,
@@ -2966,7 +2970,7 @@
         grau_jurisdicao: '1º Grau (G1) — Instância de Conhecimento',
         data_ajuizamento: proc.data_ajuizamento || new Date(Date.now() - 86400000 * 45).toISOString().slice(0, 10),
         nivel_sigilo: isFamilia ? '1 — Segredo de Justiça (Direito de Família)' : '0 — Público (Consulta Processual Habilitada)',
-        fase_pipeline_sugerida: proc.fase_pipeline || '1ª Audiência',
+        fase_pipeline_sugerida: proc.fase_pipeline || 'Audiência',
         proximo_prazo_sugerido: proc.proximo_prazo || new Date(Date.now() + 86400000 * 10).toISOString().slice(0, 10),
         descricao_prazo_sugerido: proc.descricao_prazo || 'Manifestação Processual / Preparação para Audiência Oficial'
       };
@@ -3035,7 +3039,7 @@
                     descricao_tecnica: desc,
                     prazo_sugerido: idx === 0 ? 'Verificar teor no DJe e cumprir eventual determinação em 5 a 15 dias úteis' : 'Etapa processual registada nos autos',
                     data_hora: m.dataHora || new Date().toISOString(),
-                    etapa_pipeline: idx <= 1 ? '1ª Audiência' : 'Contrato Fechado',
+                    etapa_pipeline: idx <= 1 ? 'Audiência' : 'Contrato fechado',
                     explicacao_leiga: translateLegalMovementLocal(nome, desc, 'Em Curso'),
                     proximo_passo_leigo: idx === 0
                       ? 'A Dra. Nathalia Lisboa acompanha a publicação oficial deste ato para dar seguimento imediato ao seu caso.'
@@ -3059,7 +3063,7 @@
             descricao_tecnica: `Autos eletrônicos de nº ${cnjDisplay} conclusos ao(à) MM. Juiz(a) de Direito da ${capa.orgao_julgador} para apreciação dos requerimentos formulados pelas partes, análise de provas e saneamento do feito.`,
             prazo_sugerido: 'Monitorar publicação do despacho no DJe (Previsão: 5 a 10 dias úteis)',
             data_hora: new Date().toISOString(),
-            etapa_pipeline: '1ª Audiência',
+            etapa_pipeline: 'Audiência',
             proximo_passo_leigo: 'O juiz está com o seu processo em mãos para assinar o próximo despacho ou decisão sobre os pedidos feitos pela Dra. Nathalia Lisboa.'
           },
           {
@@ -3070,7 +3074,7 @@
             descricao_tecnica: `Certifico a juntada automática de petição intercorrente de réplica à contestação apresentada pela patrona da parte autora, Dra. Nathalia Lisboa, impugnando especificamente os fatos impeditivos arguidos pela parte contrária e reiterando as provas documentais.`,
             prazo_sugerido: 'Peticionamento cumprido com sucesso — aguardar conclusão ao juiz',
             data_hora: new Date(Date.now() - 86400000 * 3).toISOString(),
-            etapa_pipeline: '1ª Audiência',
+            etapa_pipeline: 'Audiência',
             explicacao_leiga: 'A Dra. Nathalia Lisboa protocolou uma resposta oficial firme rebatendo os argumentos da outra parte e reforçando todas as provas a seu favor.',
             proximo_passo_leigo: 'Com a resposta da sua advogada anexada, o cartório envia o processo diretamente para a mesa do juiz.'
           },
@@ -3082,7 +3086,7 @@
             descricao_tecnica: `Designada sessão oficial de conciliação e mediação nos autos de nº ${cnjDisplay}, ficando as partes intimadas na pessoa de seus respectivos advogados constituídos via Diário da Justiça Eletrônico.`,
             prazo_sugerido: 'Alinhar estratégia e orientação prévia com o cliente 48h antes da audiência',
             data_hora: new Date(Date.now() - 86400000 * 9).toISOString(),
-            etapa_pipeline: '1ª Audiência',
+            etapa_pipeline: 'Audiência',
             proximo_passo_leigo: 'A Dra. Nathalia Lisboa entrará em contato com você antes da data marcada para explicar como funciona a reunião e avaliar se há proposta de acordo vantajosa.'
           },
           {
@@ -3093,7 +3097,7 @@
             descricao_tecnica: `Juntada de peça de contestação e documentos correlatos apresentados pela parte requerida dentro do prazo legal, abrindo-se vista à parte autora para manifestação em réplica no prazo de 15 (quinze) dias úteis.`,
             prazo_sugerido: 'Elaborar e protocolar Réplica à Contestação (Prazo fatal: 15 dias úteis)',
             data_hora: new Date(Date.now() - 86400000 * 16).toISOString(),
-            etapa_pipeline: '1ª Audiência',
+            etapa_pipeline: 'Audiência',
             explicacao_leiga: 'A outra parte apresentou a defesa dela no processo. Isso é uma etapa obrigatória e normal, onde eles apresentam a versão deles para o juiz.',
             proximo_passo_leigo: 'A Dra. Nathalia Lisboa analisa cada linha da defesa deles para rebater os argumentos através da Réplica.'
           },
@@ -4770,7 +4774,7 @@
     function openClienteModal(clienteId = null) {
       const c = APP.admin.clientes.find(x => x.id === clienteId) || {
         id: '', nome: '', cpf_cnpj: '', telefone: '', email: '', morada: '',
-        profissao: '', estado_civil: '', etapa_funil: 'Em Atendimento', notas_internas: ''
+        profissao: '', estado_civil: '', etapa_funil: 'Em atendimento', notas_internas: ''
       };
 
       openModal(`
@@ -4914,7 +4918,7 @@
         id: '', cliente_id: defaultClienteId || APP.selectedClienteId || (APP.admin.clientes[0]?.id || ''),
         numero_cnj: '', titulo_acao: '', area_direito: 'Cível', tribunal: 'TJSP',
         vara_comarca: '', parte_contraria: '', valor_causa: 0,
-        fase_pipeline: 'Contrato Fechado', proximo_prazo: '', descricao_prazo: '',
+        fase_pipeline: 'Contrato fechado', proximo_prazo: '', descricao_prazo: '',
         classe_processual: 'Procedimento Comum Cível', assuntos_cnj: '',
         sistema_processual: 'PJe — Processo Judicial Eletrônico', grau_jurisdicao: '1º Grau',
         data_ajuizamento: new Date().toISOString().slice(0, 10)
@@ -5531,19 +5535,19 @@
 
       if (cliId) {
         const cli = APP.admin.clientes.find(c => c.id === cliId);
-        if (cli && (cli.etapa_funil === 'Em Atendimento' || cli.etapa_funil === 'Proposta Enviada')) {
+        if (cli && (cli.etapa_funil === 'Em atendimento' || cli.etapa_funil === 'Proposta enviada')) {
           await sb.rpc('legal_save_record', {
             p_token: APP.token,
             p_table: 'legal_clientes',
-            p_record: { ...cli, etapa_funil: 'Contrato Fechado' }
+            p_record: { ...cli, etapa_funil: 'Contrato fechado' }
           });
         }
         if (proc) {
-          if (proc.fase_pipeline === 'Em Atendimento' || proc.fase_pipeline === 'Proposta Enviada') {
+          if (proc.fase_pipeline === 'Em atendimento' || proc.fase_pipeline === 'Proposta enviada') {
             await sb.rpc('legal_save_record', {
               p_token: APP.token,
               p_table: 'legal_processos',
-              p_record: { ...proc, fase_pipeline: 'Contrato Fechado' }
+              p_record: { ...proc, fase_pipeline: 'Contrato fechado' }
             });
           }
           await sb.rpc('legal_save_record', {
