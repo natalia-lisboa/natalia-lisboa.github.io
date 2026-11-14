@@ -1721,7 +1721,7 @@
       if (/(alvará|alvara|levantamento|mle|sisbajud|bloqueio|penhora|execução)/.test(combined)) {
         return 'Fase de pagamento e liberação de valores (Execução / Alvará). Acompanhamos a expedição e avisaremos você na liberação.';
       }
-      return `Atualização oficial registrada no processo. O escritório Nathalia Lisboa Advocacia já conferiu este ato na etapa de "${etapa || 'Em Curso'}" e o caso avança normalmente.`;
+      return `O tribunal registrou uma nova movimentação no processo: "${titulo || 'Andamento Processual'}". A Dra. Nathalia Lisboa acompanha e avisará você caso seja necessária qualquer providência da sua parte.`;
     }
 
     // -------------------------------------------------------------------------
@@ -2755,16 +2755,16 @@
         <div class="p-3 rounded-xl bg-stone-50 dark:bg-slate-800/60 border border-stone-200/70 dark:border-slate-800">
           <div class="text-[10px] font-bold uppercase text-slate-400">Número CNJ & Tribunal</div>
           <div class="text-xs font-mono font-bold text-slate-900 dark:text-white mt-0.5">${esc(proc.numero_cnj || 'Extrajudicial')} (${esc(proc.tribunal)})</div>
-          <div class="text-[10px] text-[#5C1618] dark:text-[#E5C888] font-semibold mt-0.5 truncate">${esc(proc.sistema_processual || 'PJe — Processo Judicial Eletrônico')} • ${esc(proc.grau_jurisdicao || '1º Grau')}</div>
+          <div class="text-[10px] text-[#5C1618] dark:text-[#E5C888] font-semibold mt-0.5 truncate">${esc(cleanCapaSistema(proc.sistema_processual))} • ${esc(cleanCapaGrau(proc.grau_jurisdicao))}</div>
         </div>
         <div class="p-3 rounded-xl bg-stone-50 dark:bg-slate-800/60 border border-stone-200/70 dark:border-slate-800">
           <div class="text-[10px] font-bold uppercase text-slate-400">Classe Processual & Órgão Julgador</div>
-          <div class="text-xs font-bold text-slate-800 dark:text-white mt-0.5 truncate">${esc(proc.classe_processual || 'Procedimento Comum Cível')}</div>
+          <div class="text-xs font-bold text-slate-800 dark:text-white mt-0.5 truncate">${esc(cleanCapaClasse(proc.classe_processual))}</div>
           <div class="text-[10px] text-slate-500 truncate mt-0.5">${esc(proc.vara_comarca || '—')}</div>
         </div>
         <div class="p-3 rounded-xl bg-stone-50 dark:bg-slate-800/60 border border-stone-200/70 dark:border-slate-800">
           <div class="text-[10px] font-bold uppercase text-slate-400">Assuntos CNJ, Parte Contrária & Valor</div>
-          <div class="text-xs font-bold text-slate-800 dark:text-white mt-0.5 truncate">${esc(proc.assuntos_cnj || proc.area_direito || 'Direito Civil')}</div>
+          <div class="text-xs font-bold text-slate-800 dark:text-white mt-0.5 truncate">${esc(proc.assuntos_cnj || proc.titulo_acao || proc.area_direito || '—')}</div>
           <div class="text-[10px] text-slate-500 truncate mt-0.5">Contra: ${esc(proc.parte_contraria || '—')} • ${fmtMoney(proc.valor_causa)}</div>
         </div>
         <div class="p-3 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40">
@@ -2856,34 +2856,31 @@
     
     
     function cleanCapaClasse(c) {
-      if (!c) return 'Procedimento Comum Cível';
-      return String(c).replace(/\s*\(Cód\.\s*TPU\/CNJ\s*(\d+)\)/i, ' (Cód. $1)').trim();
+      const v = String(c || '').trim();
+      return v ? v.replace(/\s*\(Cód\.\s*(?:TPU\/)?CNJ\s*(\d+)\)/i, ' (Cód. $1)') : '—';
     }
     function cleanCapaAssunto(a) {
-      if (!a) return 'Direito Cível / Obrigações';
-      const parts = String(a).split('/').map(p => p.replace(/\(\d+\)/g, '').trim()).filter(Boolean);
-      return parts.slice(0, 2).join(' / ') || a;
+      const v = String(a || '').trim();
+      if (!v) return '—';
+      const parts = v.split('/').map(p => p.replace(/\(\d+\)/g, '').trim()).filter(Boolean);
+      return parts.slice(0, 2).join(' / ') || v;
     }
     function cleanCapaSistema(s) {
-      if (!s) return 'PJe';
-      if (/tjsp|saj/i.test(s)) return 'e-SAJ (TJSP)';
-      if (/eproc/i.test(s)) return 'Eproc';
-      return 'PJe Nacional';
+      return String(s || '').trim() || '—';
     }
     function cleanCapaGrau(g) {
-      if (!g) return '1º Grau';
-      if (/1/i.test(g)) return '1º Grau (G1)';
-      if (/2/i.test(g)) return '2º Grau (G2)';
-      return g;
+      const v = String(g || '').trim();
+      if (!v) return '—';
+      if (/^g1$/i.test(v)) return '1º Grau (G1)';
+      if (/^g2$/i.test(v)) return '2º Grau (G2)';
+      if (/^je$/i.test(v)) return 'Juizado Especial';
+      return v;
     }
     function cleanCapaSigilo(s) {
-      if (!s) return 'Público';
-      if (/segredo/i.test(s) || /1/i.test(s)) return 'Segredo de Justiça';
-      return 'Público';
+      return String(s || '').trim() || '—';
     }
     function cleanCapaPrazo(p) {
-      if (!p) return 'Manifestação';
-      return String(p).replace(/Manifestação Processual \/ Preparação para Audiência Oficial/i, 'Manifestação / Audiência').trim();
+      return String(p || '').trim() || '—';
     }
 
     function getEventHighlightClass(titulo) {
@@ -3029,7 +3026,7 @@
                         <div class="font-mono font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm">${dt.date}</div>
                         <div class="font-mono text-xs text-slate-500 mt-0.5">${dt.time}</div>
                         <span class="mt-1.5 inline-block px-2 py-0.5 rounded text-[11px] sm:text-xs font-bold bg-stone-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                          ${esc(item.etapa_pipeline || 'Em Curso')}
+                          ${esc(item.etapa_pipeline || (item.origem === 'DataJud CNJ' ? 'DataJud CNJ' : 'Em Curso'))}
                         </span>
                       </td>
 
@@ -3188,6 +3185,184 @@
       document.getElementById('dj-detected-url').textContent = parsed.endpointUrl;
     }
 
+    // Normaliza datas do DataJud ("2024-05-20T14:03:11.000Z", "20240520140311" ou "20240520")
+    function parseDataJudDate(v) {
+      if (!v) return null;
+      const s = String(v).trim();
+      let d;
+      if (/^\d{14}$/.test(s)) {
+        d = new Date(`${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}T${s.slice(8, 10)}:${s.slice(10, 12)}:${s.slice(12, 14)}-03:00`);
+      } else if (/^\d{8}$/.test(s)) {
+        d = new Date(`${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}T12:00:00-03:00`);
+      } else {
+        d = new Date(s);
+      }
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function dataJudDateOnly(v) {
+      const s = String(v || '');
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+      if (/^\d{8}/.test(s)) return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
+      return '';
+    }
+
+    function sleepMs(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Consulta o DataJud por caminhos REAIS. Nunca inventa dados: se nenhum responder, devolve falha.
+    //  1) Proxy Cloudflare (/api/datajud)   2) Ponte segura do Supabase (pg_net)   3) Chamada direta (so onde o CNJ liberar CORS)
+    async function fetchDataJudHits(parsed) {
+      const cacheKey = `${parsed.tribunalSigla}|${parsed.digitsOnly}`;
+      APP._djCache = APP._djCache || {};
+      const cached = APP._djCache[cacheKey];
+      if (cached && Date.now() - cached.ts < 90000) return cached.result;
+
+      const isGithubPages = /github\.io$/i.test(window.location.hostname);
+      const canEdge = window.location.protocol.startsWith('http') && !isGithubPages;
+      let lastFailure = 'sem resposta';
+
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        if (canEdge) {
+          try {
+            const r = await fetch('/api/datajud', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ court: parsed.tribunalSigla.toLowerCase(), numeroProcesso: parsed.digitsOnly })
+            });
+            if (r.ok) {
+              const j = await r.json();
+              const result = { ok: true, hits: (j && j.hits && j.hits.hits) || [] };
+              APP._djCache[cacheKey] = { ts: Date.now(), result };
+              return result;
+            }
+            lastFailure = `HTTP ${r.status}`;
+          } catch (_) {}
+        }
+
+        if (APP.token) {
+          try {
+            const { data: st, error } = await sb.rpc('legal_datajud_start', {
+              p_token: APP.token,
+              p_sigla: parsed.tribunalSigla.toLowerCase(),
+              p_numero: parsed.digitsOnly
+            });
+            if (!error && st && st.ok && st.request_id) {
+              for (let i = 0; i < 14; i++) {
+                await sleepMs(1500);
+                const { data: res, error: err2 } = await sb.rpc('legal_datajud_result', {
+                  p_token: APP.token,
+                  p_request_id: st.request_id
+                });
+                if (err2 || !res || res.ok === false) break;
+                if (res.pending) continue;
+                if (res.status >= 200 && res.status < 300 && Array.isArray(res.hits)) {
+                  const result = { ok: true, hits: res.hits };
+                  APP._djCache[cacheKey] = { ts: Date.now(), result };
+                  return result;
+                }
+                lastFailure = res.status ? `HTTP ${res.status}` : 'tempo esgotado';
+                break;
+              }
+            }
+          } catch (_) {}
+        }
+
+        try {
+          const r = await fetch(parsed.endpointUrl, {
+            method: 'POST',
+            headers: { Authorization: `APIKey ${DATAJUD_PUBLIC_API_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: { match: { numeroProcesso: parsed.digitsOnly } } })
+          });
+          if (r.ok) {
+            const j = await r.json();
+            const result = { ok: true, hits: (j && j.hits && j.hits.hits) || [] };
+            APP._djCache[cacheKey] = { ts: Date.now(), result };
+            return result;
+          }
+          lastFailure = `HTTP ${r.status}`;
+        } catch (_) {}
+
+        if (attempt < 2) await sleepMs(2500);
+      }
+      return { ok: false, reason: lastFailure };
+    }
+
+    // Converte a resposta oficial do DataJud em capa + movimentacoes. Funcao pura: so usa o que o tribunal enviou.
+    function buildDataJudResult(parsed, hitsRaw, baseCapa) {
+      const capa = { ...baseCapa };
+      const sources = (hitsRaw || []).map(h => h && h._source).filter(Boolean);
+      if (!sources.length) return { capa, movs: [], hasOfficial: false };
+
+      const stamp = s => (parseDataJudDate(s.dataHoraUltimaAtualizacao) || new Date(0)).getTime();
+      const main = [...sources].sort((a, b) => stamp(b) - stamp(a))[0];
+
+      if (main.classe && main.classe.nome) {
+        capa.classe_processual = main.classe.codigo ? `${main.classe.nome} (Cód. ${main.classe.codigo})` : main.classe.nome;
+      }
+      const assuntos = [].concat(...(main.assuntos || []).map(a => (Array.isArray(a) ? a : [a])))
+        .map(a => (a && a.nome ? (a.codigo ? `${a.nome} (${a.codigo})` : a.nome) : ''))
+        .filter(Boolean);
+      if (assuntos.length) capa.assuntos_cnj = assuntos.join(' / ');
+      if (main.orgaoJulgador && main.orgaoJulgador.nome) capa.orgao_julgador = main.orgaoJulgador.nome;
+      if (main.sistema && main.sistema.nome) capa.sistema_processual = main.sistema.nome;
+      if (main.grau) capa.grau_jurisdicao = cleanCapaGrau(main.grau);
+      const ajuizamento = dataJudDateOnly(main.dataAjuizamento);
+      if (ajuizamento) capa.data_ajuizamento = ajuizamento;
+      if (main.nivelSigilo !== undefined && main.nivelSigilo !== null) {
+        capa.nivel_sigilo = Number(main.nivelSigilo) === 0 ? 'Público' : `Sigilo nível ${main.nivelSigilo}`;
+      }
+
+      const all = [];
+      sources.forEach(srcItem => {
+        (srcItem.movimentos || []).forEach(m => {
+          const d = parseDataJudDate(m.dataHora);
+          if (d) all.push({ m, d, srcItem });
+        });
+      });
+      all.sort((a, b) => b.d - a.d);
+
+      const seen = new Set();
+      const recent = [];
+      for (const it of all) {
+        const k = `${it.m.codigo}|${it.d.getTime()}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        recent.push(it);
+        if (recent.length >= 15) break;
+      }
+
+      const movs = recent.map((it, idx) => {
+        const m = it.m;
+        const nome = m.nome || `Movimento CNJ ${m.codigo || ''}`.trim();
+        const comp = (m.complementosTabelados || []).map(c => {
+          const label = c.descricao || '';
+          const val = c.nome || (c.valor !== undefined && c.valor !== null ? String(c.valor) : '');
+          return label && val ? `${label}: ${val}` : (label || val);
+        }).filter(Boolean).join(' | ');
+        const orgao = (m.orgaoJulgador && m.orgaoJulgador.nomeOrgao) || (it.srcItem.orgaoJulgador && it.srcItem.orgaoJulgador.nome) || capa.orgao_julgador || '';
+        const desc = comp || 'Movimento oficial registrado pelo tribunal.';
+        return {
+          passo_numero: recent.length - idx,
+          total_passos: recent.length,
+          codigo_cnj: m.codigo || null,
+          titulo_movimento: nome,
+          orgao_julgador: orgao,
+          complementos_cnj: '',
+          descricao_tecnica: desc,
+          prazo_sugerido: '',
+          data_hora: it.d.toISOString(),
+          etapa_pipeline: null,
+          explicacao_leiga: translateLegalMovementLocal(nome, desc, ''),
+          proximo_passo_leigo: '',
+          origem: 'DataJud CNJ'
+        };
+      });
+
+      return { capa, movs, hasOfficial: true };
+    }
+
     async function consultarDataJudCNJ(silentToast = false) {
       const cnj = document.getElementById('datajud-cnj-input').value.trim();
       const parsed = parseCNJNumber(cnj);
@@ -3196,223 +3371,99 @@
       const cli = APP.admin.clientes.find(c => c.id === proc.cliente_id) || {};
       const container = document.getElementById('datajud-results-container');
       const btn = document.getElementById('btn-consultar-datajud');
+      const myReq = (APP._djSeq = (APP._djSeq || 0) + 1);
 
       if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sincronizando CNJ...`;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Consultando o CNJ...`;
       }
       refreshIcons();
 
-      const isTrabalhista = parsed.tribunalSigla.startsWith('TRT') || (proc.area_direito || '').toLowerCase().includes('trabalh');
-      const isFamilia = (proc.area_direito || '').toLowerCase().includes('fam') || (proc.titulo_acao || '').toLowerCase().includes('alimento');
-
-      let capa = {
-        classe_processual: isTrabalhista
-          ? 'Ação Trabalhista — Rito Ordinário (Cód. TPU/CNJ 985)'
-          : isFamilia
-          ? 'Procedimento de Família / Alimentos e Guarda (Cód. TPU/CNJ 69)'
-          : 'Procedimento Comum Cível (Cód. TPU/CNJ 7)',
-        assuntos_cnj: isTrabalhista
-          ? 'Verbas Rescisórias (13949) / Horas Extras / FGTS + Multa 40% / Danos Morais'
-          : isFamilia
-          ? 'Fixação / Revisão de Alimentos (5779) / Regulamentação de Guarda e Convivência'
-          : 'Indenização por Dano Moral (10433) / Responsabilidade Civil (10431) / Obrigações Contratuais',
-        orgao_julgador: proc.vara_comarca || `Vara Judicial Competente do ${parsed.tribunalSigla}`,
-        sistema_processual: parsed.tribunalSigla === 'TJSP' ? 'e-SAJ Digital (TJSP) / PJe' : 'PJe — Processo Judicial Eletrônico Nacional',
-        grau_jurisdicao: '1º Grau (G1) — Instância de Conhecimento',
-        data_ajuizamento: proc.data_ajuizamento || new Date(Date.now() - 86400000 * 45).toISOString().slice(0, 10),
-        nivel_sigilo: isFamilia ? '1 — Segredo de Justiça (Direito de Família)' : '0 — Público (Consulta Processual Habilitada)',
-        fase_pipeline_sugerida: proc.fase_pipeline || 'Audiência',
-        proximo_prazo_sugerido: proc.proximo_prazo || new Date(Date.now() + 86400000 * 10).toISOString().slice(0, 10),
-        descricao_prazo_sugerido: proc.descricao_prazo || 'Manifestação Processual / Preparação para Audiência Oficial'
+      // Capa inicial: SOMENTE o que ja esta cadastrado no processo. Nada inventado.
+      const baseCapa = {
+        classe_processual: proc.classe_processual || '',
+        assuntos_cnj: proc.assuntos_cnj || proc.titulo_acao || '',
+        orgao_julgador: proc.vara_comarca || '',
+        sistema_processual: proc.sistema_processual || '',
+        grau_jurisdicao: proc.grau_jurisdicao || '',
+        data_ajuizamento: proc.data_ajuizamento || '',
+        nivel_sigilo: '',
+        proximo_prazo_sugerido: proc.proximo_prazo || '',
+        descricao_prazo_sugerido: proc.descricao_prazo || ''
       };
 
+      let capa = baseCapa;
       let movs = [];
-      let sourceLabel = `Extrator Passo a Passo Resiliente CNJ (${parsed.tribunalSigla})`;
+      let status = 'cnj_invalido';
+      let failReason = '';
+      let sourceLabel = `Consulta DataJud (${parsed.tribunalSigla})`;
 
-      try {
-        if (parsed.valid) {
-          let resp = null;
-          // 1. Tenta primeiro o Proxy Seguro de Borda Cloudflare (/api/datajud com caches.default)
-          if (window.location.protocol.startsWith('http')) {
-            try {
-              const edgeResp = await fetch('/api/datajud', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  court: parsed.tribunalSigla.toLowerCase(),
-                  numeroProcesso: parsed.digitsOnly
-                })
-              });
-              if (edgeResp.ok) {
-                resp = edgeResp;
-              }
-            } catch (_) {}
-          }
-          // 2. Fallback automático para endpoint direto CNJ caso esteja no GitHub Pages ou arquivo local
-          if (!resp) {
-            resp = await fetch(parsed.endpointUrl, {
-              method: 'POST',
-              headers: {
-                Authorization: `APIKey ${DATAJUD_PUBLIC_API_KEY}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ query: { match: { numeroProcesso: parsed.digitsOnly } } })
-            });
-          }
-          if (resp.ok) {
-            const json = await resp.json();
-            const hit = json?.hits?.hits?.[0]?._source;
-            if (hit) {
-              sourceLabel = `API Oficial DataJud CNJ (${parsed.tribunalSigla})`;
-              if (hit.classe?.nome) capa.classe_processual = `${hit.classe.nome} (Cód. CNJ ${hit.classe.codigo || ''})`;
-              if (Array.isArray(hit.assuntos) && hit.assuntos.length > 0) {
-                capa.assuntos_cnj = hit.assuntos.map(a => `${a.nome || ''} (${a.codigo || ''})`).join(' / ');
-              }
-              if (hit.orgaoJulgador?.nome) capa.orgao_julgador = hit.orgaoJulgador.nome;
-              if (hit.sistema?.nome) capa.sistema_processual = hit.sistema.nome;
-              if (hit.grau) capa.grau_jurisdicao = hit.grau;
-              if (hit.dataAjuizamento) capa.data_ajuizamento = String(hit.dataAjuizamento).slice(0, 10);
-
-              if (Array.isArray(hit.movimentos) && hit.movimentos.length > 0) {
-                const rawMovs = hit.movimentos.slice(-8).reverse();
-                movs = rawMovs.map((m, idx) => {
-                  const nome = m.nome || 'Movimento Oficial CNJ';
-                  const comp = (m.complementosTabelados || []).map(c => `${c.descricao || c.nome || ''}: ${c.nome || c.valor || ''}`).filter(Boolean).join(' | ');
-                  const orgao = m.orgaoJulgador?.nomeOrgao || capa.orgao_julgador;
-                  const desc = `Movimento oficial extraído do DataJud (${parsed.tribunalSigla}). Órgão: ${orgao}. ${comp ? 'Complementos: ' + comp : ''}`.trim();
-                  return {
-                    passo_numero: rawMovs.length - idx,
-                    total_passos: rawMovs.length,
-                    codigo_cnj: m.codigo || 999,
-                    titulo_movimento: nome,
-                    orgao_julgador: orgao,
-                    complementos_cnj: comp || 'Movimentação tabelada segundo a Tabela Processual Unificada (TPU/CNJ)',
-                    descricao_tecnica: desc,
-                    prazo_sugerido: idx === 0 ? 'Verificar teor no DJe e cumprir eventual determinação em 5 a 15 dias úteis' : 'Etapa processual registada nos autos',
-                    data_hora: m.dataHora || new Date().toISOString(),
-                    etapa_pipeline: idx <= 1 ? 'Audiência' : 'Contrato fechado',
-                    explicacao_leiga: translateLegalMovementLocal(nome, desc, 'Em Curso'),
-                    proximo_passo_leigo: idx === 0
-                      ? 'A Dra. Nathalia Lisboa acompanha a publicação oficial deste ato para dar seguimento imediato ao seu caso.'
-                      : 'Etapa concluída dentro do histórico cronológico do processo.'
-                  };
-                });
-              }
-            }
+      if (parsed.valid) {
+        const result = await fetchDataJudHits(parsed);
+        if (myReq !== APP._djSeq) return;
+        if (!result.ok) {
+          status = 'falha_consulta';
+          failReason = result.reason || '';
+        } else {
+          const built = buildDataJudResult(parsed, result.hits, baseCapa);
+          capa = built.capa;
+          movs = built.movs;
+          if (built.hasOfficial) sourceLabel = `API Oficial DataJud CNJ (${parsed.tribunalSigla})`;
+          status = movs.length ? 'real' : 'sem_movimentacao';
+          if (proc.id && built.hasOfficial) {
+            await autoSyncDataJudToEcosystem(proc, parsed, capa, movs);
+            if (myReq !== APP._djSeq) return;
           }
         }
-      } catch (_) {}
-
-      if (movs.length === 0) {
-        const cnjDisplay = parsed.formatted || cnj || '0000000-00.2026.8.26.0100';
-        const baseSteps = [
-          {
-            codigo_cnj: 51,
-            titulo_movimento: 'Conclusos para despacho',
-            orgao_julgador: capa.orgao_julgador,
-            complementos_cnj: 'Cód. 51 • Conclusão p/ Despacho',
-            descricao_tecnica: 'Autos encaminhados ao gabinete do juiz para análise dos pedidos e andamento.',
-            prazo_sugerido: 'Aguardar publicação no DJe (5 a 10 dias úteis)',
-            data_hora: new Date().toISOString(),
-            etapa_pipeline: 'Procedimento em tramitação',
-            explicacao_leiga: 'O processo está com o juiz para análise do pedido e despacho. Nenhuma ação necessária da sua parte no momento.',
-            proximo_passo_leigo: 'Aguardar o despacho do juiz nos autos.'
-          },
-          {
-            codigo_cnj: 85,
-            titulo_movimento: 'Juntada de Petição (Réplica)',
-            orgao_julgador: capa.sistema_processual,
-            complementos_cnj: 'Cód. 85 • Réplica da Autora',
-            descricao_tecnica: 'Petição de réplica protocolada pela Dra. Nathalia Lisboa rebatendo a defesa da parte contrária.',
-            prazo_sugerido: 'Peticionamento cumprido • Aguardar conclusão',
-            data_hora: new Date(Date.now() - 86400000 * 3).toISOString(),
-            etapa_pipeline: 'Procedimento em tramitação',
-            explicacao_leiga: 'A Dra. Nathalia Lisboa protocolou a resposta oficial rebatendo os argumentos da outra parte e reforçando as provas.',
-            proximo_passo_leigo: 'Com a resposta anexada, o processo segue para a mesa do juiz.'
-          },
-          {
-            codigo_cnj: 970,
-            titulo_movimento: 'Audiência de Conciliação Designada',
-            orgao_julgador: 'CEJUSC / Conciliação',
-            complementos_cnj: 'Cód. 970 • Videoconferência',
-            descricao_tecnica: 'Audiência de conciliação designada pelo juízo com intimação das partes.',
-            prazo_sugerido: 'Alinhamento prévio com cliente 48h antes',
-            data_hora: new Date(Date.now() - 86400000 * 9).toISOString(),
-            etapa_pipeline: 'Audiência',
-            explicacao_leiga: 'Audiência de conciliação agendada. A Dra. Nathalia Lisboa preparará você com antecedência para participar com total segurança.',
-            proximo_passo_leigo: 'A Dra. Nathalia Lisboa entrará em contato para alinhar os detalhes da reunião.'
-          },
-          {
-            codigo_cnj: 848,
-            titulo_movimento: 'Contestação Apresentada',
-            orgao_julgador: capa.orgao_julgador,
-            complementos_cnj: 'Cód. 848 • Defesa da Ré',
-            descricao_tecnica: 'Contestação e documentos apresentados pela ré, abrindo prazo para manifestação da autora.',
-            prazo_sugerido: 'Prazo de 15 dias úteis para réplica',
-            data_hora: new Date(Date.now() - 86400000 * 16).toISOString(),
-            etapa_pipeline: 'Procedimento em tramitação',
-            explicacao_leiga: 'A parte contrária apresentou defesa. A Dra. Nathalia Lisboa já está preparando a resposta oficial.',
-            proximo_passo_leigo: 'Análise dos argumentos da ré para protocolo da réplica.'
-          },
-          {
-            codigo_cnj: 122,
-            titulo_movimento: 'Citação Positiva da Parte Ré',
-            orgao_julgador: 'Central de Mandados',
-            complementos_cnj: 'Cód. 122 • Ciência inequívoca',
-            descricao_tecnica: 'Comprovante positivo de citação e intimação da parte contrária juntado aos autos digitais.',
-            prazo_sugerido: 'Acompanhar prazo de defesa (15 dias úteis)',
-            data_hora: new Date(Date.now() - 86400000 * 25).toISOString(),
-            etapa_pipeline: 'Procedimento em tramitação',
-            explicacao_leiga: 'A outra parte foi notificada oficialmente pela Justiça para apresentar defesa.',
-            proximo_passo_leigo: 'Contagem do prazo legal para manifestação da outra parte.'
-          },
-          {
-            codigo_cnj: 11010,
-            titulo_movimento: 'Decisão Inicial / Citação Ordenada',
-            orgao_julgador: capa.orgao_julgador,
-            complementos_cnj: 'Cód. 11010 • Inicial Recebida',
-            descricao_tecnica: 'Petição inicial recebida pelo juiz, determinando a citação imediata da parte ré.',
-            prazo_sugerido: 'Acompanhar expedição do mandado pelo cartório',
-            data_hora: new Date(Date.now() - 86400000 * 35).toISOString(),
-            etapa_pipeline: 'Ajuizamento da demanda',
-            explicacao_leiga: 'O juiz aprovou o pedido inicial feito pela Dra. Nathalia Lisboa e ordenou a notificação da outra parte.',
-            proximo_passo_leigo: 'Expedição do mandado oficial para notificar a parte ré.'
-          },
-          {
-            codigo_cnj: 26,
-            titulo_movimento: 'Distribuição da Petição Inicial',
-            orgao_julgador: 'Distribuidor Judicial',
-            complementos_cnj: 'Cód. 26 • Distribuição Inicial',
-            descricao_tecnica: `Processo distribuído e autuado sob o nº CNJ ${cnjDisplay} com petição inicial e documentos.`,
-            prazo_sugerido: 'Aguardar primeira análise judicial',
-            data_hora: new Date(Date.now() - 86400000 * 45).toISOString(),
-            etapa_pipeline: 'Ajuizamento da demanda',
-            explicacao_leiga: 'Seu processo foi distribuído e protocolado oficialmente na Justiça com número do CNJ.',
-            proximo_passo_leigo: 'O processo aguarda a primeira decisão do juiz.'
-          }
-        ];
-
-        movs = baseSteps.map((m, idx) => ({
-          ...m,
-          passo_numero: baseSteps.length - idx,
-          total_passos: baseSteps.length,
-          explicacao_leiga: m.explicacao_leiga || translateLegalMovementLocal(m.titulo_movimento, m.descricao_tecnica, m.etapa_pipeline)
-        }));
       }
 
-      APP.datajudLastResult = { parsed, capa, movs };
+      APP.datajudLastResult = { parsed, capa, movs, status };
 
-      // SINCRONIZAÇÃO 100% AUTOMÁTICA EM BACKGROUND COM TODAS AS ABAS!
+      if (!silentToast) {
+        if (status === 'real') showToast('DataJud consultado: dados oficiais do tribunal sincronizados.');
+        else if (status === 'sem_movimentacao') showToast('O CNJ não tem movimentações públicas para este número. Nada foi alterado.');
+        else if (status === 'falha_consulta') showToast('DataJud indisponível agora. Nada foi alterado; tente novamente em instantes.', 'error');
+        else showToast('Informe um número CNJ válido (20 dígitos).', 'error');
+      }
+
+      // Linha do tempo exibida: andamentos gravados do processo (inclui os oficiais ja sincronizados)
+      let rows = movs;
       if (proc.id) {
-        await autoSyncDataJudToEcosystem(proc, parsed, capa, movs);
-        if (!silentToast) {
-          showToast('DataJud consultado e sincronizado automaticamente com Pipeline, CRM, Kanban e Portal do Cliente!');
-        }
+        const stored = APP.admin.andamentos
+          .filter(a => a.processo_id === proc.id)
+          .sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
+        if (stored.length) rows = stored;
       }
+
+      const notices = {
+        real: '',
+        sem_movimentacao: `
+          <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 text-sm text-amber-900 dark:text-amber-200">
+            <div class="font-extrabold flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> Nenhuma movimentação pública encontrada no DataJud</div>
+            <p class="mt-1 leading-relaxed">O CNJ não retornou movimentações para este número (comum em processos recentes, em segredo de justiça ou ainda não indexados). Nada foi inventado nem alterado: abaixo aparecem apenas os andamentos já registrados no sistema.</p>
+          </div>`,
+        falha_consulta: `
+          <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-300 dark:border-rose-800 text-sm text-rose-900 dark:text-rose-200">
+            <div class="font-extrabold flex items-center gap-2"><i data-lucide="alert-triangle" class="w-4 h-4"></i> DataJud indisponível no momento</div>
+            <p class="mt-1 leading-relaxed">A API pública do CNJ não respondeu${failReason ? ` (${esc(failReason)})` : ''}. Isso acontece quando o servidor do CNJ está sobrecarregado. Nenhum dado foi alterado. Aguarde alguns minutos e clique em "Consultar DataJud".</p>
+          </div>`,
+        cnj_invalido: `
+          <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 text-sm text-amber-900 dark:text-amber-200">
+            <div class="font-extrabold flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> Número CNJ não informado ou inválido</div>
+            <p class="mt-1 leading-relaxed">Confira os 20 dígitos do número único do processo. Os andamentos já registrados continuam abaixo.</p>
+          </div>`
+      };
+
+      const badge = status === 'real'
+        ? `<span class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Sincronizado com o tribunal</span>`
+        : status === 'falha_consulta'
+          ? `<span class="px-3.5 py-2 rounded-xl bg-rose-600 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Consulta indisponível</span>`
+          : `<span class="px-3.5 py-2 rounded-xl bg-amber-500 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs"><i data-lucide="info" class="w-4 h-4"></i> Sem dados públicos</span>`;
 
       container.innerHTML = `
-        <!-- PAINEL 1: CAPA RICA DO PROCESSO EXTRAÍDA DO DATAJUD -->
+        ${notices[status] || ''}
+
+        <!-- PAINEL 1: CAPA DO PROCESSO (somente dados reais) -->
         <div class="p-5 rounded-2xl bg-gradient-to-br from-[#FDF8EE] via-white to-[#FAF3E3] dark:from-slate-800 dark:to-slate-900 border border-[#C8A25A]/60 shadow-xs space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#C8A25A]/30">
             <div>
@@ -3420,21 +3471,15 @@
                 <i data-lucide="landmark" class="w-4 h-4 inline -mt-0.5 mr-1"></i> ${esc(sourceLabel)}
               </div>
               <h4 class="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-1.5">
-                Processo CNJ ${esc(parsed.formatted || cnj)}
+                Processo CNJ ${esc(parsed.formatted || cnj || '—')}
               </h4>
               <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                Cliente: <strong>${esc(cli.nome || 'Vinculado')}</strong> • ${movs.length} movimentações sincronizadas
+                Cliente: <strong>${esc(cli.nome || 'Não vinculado')}</strong> • ${esc(proc.titulo_acao || 'Ação não informada')}
               </p>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs">
-                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-                Sincronizado
-              </span>
-            </div>
+            <div class="flex flex-wrap items-center gap-2">${badge}</div>
           </div>
 
-          <!-- Metadados Principais da Capa Processual -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
             <div class="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
               <div class="text-xs font-bold uppercase text-slate-400">Classe</div>
@@ -3446,7 +3491,7 @@
             </div>
             <div class="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
               <div class="text-xs font-bold uppercase text-slate-400">Vara / Órgão</div>
-              <div class="font-extrabold text-[#5C1618] dark:text-[#E5C888] mt-0.5 truncate text-sm sm:text-base" title="${esc(capa.orgao_julgador)}">${esc(capa.orgao_julgador)}</div>
+              <div class="font-extrabold text-[#5C1618] dark:text-[#E5C888] mt-0.5 truncate text-sm sm:text-base" title="${esc(capa.orgao_julgador)}">${esc(capa.orgao_julgador || '—')}</div>
             </div>
             <div class="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
               <div class="text-xs font-bold uppercase text-slate-400">Sistema & Instância</div>
@@ -3454,31 +3499,28 @@
             </div>
             <div class="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-700">
               <div class="text-xs font-bold uppercase text-slate-400">Ajuizamento & Sigilo</div>
-              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5 text-xs sm:text-sm"><i data-lucide="calendar" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.data_ajuizamento)} • ${esc(cleanCapaSigilo(capa.nivel_sigilo))}</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 mt-0.5 text-xs sm:text-sm">${capa.data_ajuizamento ? fmtDate(capa.data_ajuizamento) : '—'} • ${esc(cleanCapaSigilo(capa.nivel_sigilo))}</div>
             </div>
             <div class="p-3.5 rounded-xl bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
               <div class="text-xs font-bold uppercase text-rose-600">Próximo Prazo</div>
-              <div class="font-black text-rose-800 dark:text-rose-300 mt-0.5 text-xs sm:text-sm"><i data-lucide="calendar" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> ${fmtDate(capa.proximo_prazo_sugerido)} • ${esc(cleanCapaPrazo(capa.descricao_prazo_sugerido))}</div>
+              <div class="font-black text-rose-800 dark:text-rose-300 mt-0.5 text-xs sm:text-sm">${capa.proximo_prazo_sugerido ? fmtDate(capa.proximo_prazo_sugerido) : '—'} • ${esc(cleanCapaPrazo(capa.descricao_prazo_sugerido))}</div>
             </div>
           </div>
         </div>
 
-        <!-- PAINEL 2: TABELA DE EVENTOS PROCESSUAIS (ESTILO EPROC / PJE MODERNO) -->
+        <!-- PAINEL 2: LINHA DO TEMPO DO PROCESSO -->
         <div class="space-y-3 pt-2">
           <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-stone-200 dark:border-slate-800">
             <div>
               <h5 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <i data-lucide="table-2" class="w-4 h-4 text-[#5C1618] dark:text-[#E5C888]"></i>
-                Movimentações Processuais (Eproc / PJe) • ${movs.length} eventos
+                Movimentações do Processo • ${rows.length} ${rows.length === 1 ? 'evento' : 'eventos'}
               </h5>
-              <p class="text-xs text-slate-500">Histórico oficial dos autos com tradução simplificada ao cliente</p>
+              <p class="text-xs text-slate-500">${status === 'real' ? 'Histórico oficial do tribunal com tradução simplificada ao cliente' : 'Andamentos registrados no sistema (sem dados novos do tribunal)'}</p>
             </div>
-            <span class="text-xs font-mono font-bold text-slate-500 bg-stone-100 dark:bg-slate-800 px-3 py-1 rounded-lg">
-              Ordem: Evento ${movs.length} ao 1
-            </span>
           </div>
 
-          ${renderEprocEventsTable(movs, { isPipeline: false })}
+          ${renderEprocEventsTable(rows, { isPipeline: false })}
         </div>
       `;
 
@@ -3489,94 +3531,93 @@
       refreshIcons();
     }
 
+    // Sincroniza com o banco SOMENTE dados reais do tribunal. Retorna true se algo foi gravado.
     async function autoSyncDataJudToEcosystem(proc, parsed, capa, movs) {
-      if (!proc || !proc.id) return;
+      if (!proc || !proc.id) return false;
       let changed = false;
 
-      // 1. Atualiza a Capa do Processo automaticamente se faltar metadado
-      if (!proc.classe_processual || !proc.assuntos_cnj || !proc.sistema_processual) {
-        await sb.rpc('legal_save_record', {
+      // 1. Capa: preenche apenas campos VAZIOS com dados oficiais (nunca sobrescreve o que a advogada digitou)
+      const patch = {};
+      if (!proc.classe_processual && capa.classe_processual) patch.classe_processual = capa.classe_processual;
+      if (!proc.assuntos_cnj && capa.assuntos_cnj && capa.assuntos_cnj !== proc.titulo_acao) patch.assuntos_cnj = capa.assuntos_cnj;
+      if (!proc.sistema_processual && capa.sistema_processual) patch.sistema_processual = capa.sistema_processual;
+      if (!proc.grau_jurisdicao && capa.grau_jurisdicao) patch.grau_jurisdicao = capa.grau_jurisdicao;
+      if (!proc.data_ajuizamento && capa.data_ajuizamento) patch.data_ajuizamento = capa.data_ajuizamento;
+      if (!proc.vara_comarca && capa.orgao_julgador) patch.vara_comarca = capa.orgao_julgador;
+      if (parsed.valid && parsed.tribunalSigla && proc.tribunal !== parsed.tribunalSigla) patch.tribunal = parsed.tribunalSigla;
+      if (Object.keys(patch).length) {
+        const { error } = await sb.rpc('legal_save_record', {
           p_token: APP.token,
           p_table: 'legal_processos',
-          p_record: {
-            ...proc,
-            numero_cnj: parsed.formatted || proc.numero_cnj,
-            tribunal: parsed.tribunalSigla || proc.tribunal,
-            vara_comarca: capa.orgao_julgador || proc.vara_comarca,
-            classe_processual: capa.classe_processual,
-            assuntos_cnj: capa.assuntos_cnj,
-            sistema_processual: capa.sistema_processual,
-            grau_jurisdicao: capa.grau_jurisdicao,
-            data_ajuizamento: capa.data_ajuizamento,
-            proximo_prazo: capa.proximo_prazo_sugerido || proc.proximo_prazo,
-            descricao_prazo: capa.descricao_prazo_sugerido || proc.descricao_prazo
-          }
+          p_record: { ...proc, ...patch, ultima_sinc_datajud: new Date().toISOString() }
         });
-        changed = true;
+        if (!error) changed = true;
       }
 
-      // 2. Insere automaticamente os passos cronológicos que ainda não estiverem na Timeline do Processo
-      const existingTitles = new Set(
-        APP.admin.andamentos.filter(a => a.processo_id === proc.id).map(a => a.titulo_movimento)
+      // 2. Andamentos oficiais ainda nao gravados (chave: titulo + data/hora exata)
+      const keyOf = (titulo, dataHora) => `${String(titulo || '').trim().toLowerCase()}|${new Date(dataHora).getTime()}`;
+      const existing = new Set(
+        APP.admin.andamentos.filter(a => a.processo_id === proc.id).map(a => keyOf(a.titulo_movimento, a.data_hora))
       );
       for (let i = movs.length - 1; i >= 0; i--) {
         const m = movs[i];
-        if (!existingTitles.has(m.titulo_movimento)) {
-          await sb.rpc('legal_save_record', {
-            p_token: APP.token,
-            p_table: 'legal_andamentos',
-            p_record: {
-              processo_id: proc.id,
-              cliente_id: proc.cliente_id,
-              data_hora: m.data_hora,
-              etapa_pipeline: m.etapa_pipeline || proc.fase_pipeline,
-              codigo_cnj: m.codigo_cnj,
-              titulo_movimento: m.titulo_movimento,
-              orgao_julgador: m.orgao_julgador || '',
-              complementos_cnj: m.complementos_cnj || '',
-              descricao_tecnica: m.descricao_tecnica,
-              prazo_sugerido: m.prazo_sugerido || '',
-              explicacao_leiga: m.explicacao_leiga,
-              proximo_passo_leigo: m.proximo_passo_leigo || '',
-              origem: 'DataJud CNJ',
-              visivel_cliente: true
-            }
-          });
+        const k = keyOf(m.titulo_movimento, m.data_hora);
+        if (existing.has(k)) continue;
+        const { error } = await sb.rpc('legal_save_record', {
+          p_token: APP.token,
+          p_table: 'legal_andamentos',
+          p_record: {
+            processo_id: proc.id,
+            cliente_id: proc.cliente_id,
+            data_hora: m.data_hora,
+            etapa_pipeline: null,
+            codigo_cnj: m.codigo_cnj,
+            titulo_movimento: m.titulo_movimento,
+            orgao_julgador: m.orgao_julgador || '',
+            complementos_cnj: '',
+            descricao_tecnica: m.descricao_tecnica,
+            prazo_sugerido: '',
+            explicacao_leiga: m.explicacao_leiga,
+            proximo_passo_leigo: '',
+            origem: 'DataJud CNJ',
+            visivel_cliente: true
+          }
+        });
+        if (!error) {
+          existing.add(k);
           changed = true;
         }
       }
 
-      // 3. Cria automaticamente o Cartão de Prazo no Kanban se ainda não existir
+      // 3. Cartao no Kanban apenas a partir da movimentacao oficial MAIS RECENTE
       const topMov = movs[0];
       if (topMov) {
         const kanbanTitle = `[DataJud ${parsed.tribunalSigla}] ${topMov.titulo_movimento}`;
         const hasTask = APP.admin.tarefas_kanban.some(t => t.processo_id === proc.id && t.titulo === kanbanTitle);
         if (!hasTask) {
-          await sb.rpc('legal_save_record', {
+          const { error } = await sb.rpc('legal_save_record', {
             p_token: APP.token,
             p_table: 'legal_tarefas_kanban',
             p_record: {
               titulo: kanbanTitle,
-              descricao: `${topMov.prazo_sugerido || 'Acompanhar andamento'}\nProcesso: ${parsed.formatted || proc.numero_cnj}`,
+              descricao: `Movimentação oficial de ${fmtDate(String(topMov.data_hora).slice(0, 10))}. Processo: ${parsed.formatted || proc.numero_cnj}`,
               coluna: 'Pendente de Audiência/Prazo',
-              prioridade: 'Alta',
-              data_vencimento: capa.proximo_prazo_sugerido,
+              prioridade: 'Média',
+              data_vencimento: proc.proximo_prazo || null,
               cliente_id: proc.cliente_id,
               processo_id: proc.id,
               etiquetas: ['DataJud CNJ', parsed.tribunalSigla],
-              checklist: [
-                { texto: 'Conferir publicação integral nos autos digitais', feito: true },
-                { texto: topMov.prazo_sugerido || 'Cumprir determinação judicial', feito: false }
-              ]
+              checklist: [{ texto: 'Conferir o teor da movimentação nos autos digitais', feito: false }]
             }
           });
-          changed = true;
+          if (!error) changed = true;
         }
       }
 
       if (changed) {
         await loadAdminBundle();
       }
+      return changed;
     }
 
     // -------------------------------------------------------------------------
@@ -4751,7 +4792,7 @@
               <div class="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-stone-200 dark:border-slate-800">
                 <div>
                   <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-[#5C1618]/10 text-[#5C1618] dark:bg-[#C8A25A]/20 dark:text-[#E5C888]">
-                    ${esc(p.area_direito)} • ${esc(p.tribunal)} • ${esc(p.grau_jurisdicao || '1º Grau')}
+                    ${esc(p.area_direito)} • ${esc(p.tribunal)}${p.grau_jurisdicao ? ' • ' + esc(cleanCapaGrau(p.grau_jurisdicao)) : ''}
                   </span>
                   <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white mt-2">${esc(p.titulo_acao)}</h2>
                   <p class="text-xs text-slate-500 font-mono mt-0.5">Número Oficial CNJ: <strong>${esc(p.numero_cnj || 'Em autuação')}</strong> • ${esc(p.vara_comarca || '')}</p>
@@ -5117,8 +5158,8 @@
         numero_cnj: '', titulo_acao: '', area_direito: 'Cível', tribunal: 'TJSP',
         vara_comarca: '', parte_contraria: '', valor_causa: 0,
         fase_pipeline: 'Contrato fechado', proximo_prazo: '', descricao_prazo: '',
-        classe_processual: 'Procedimento Comum Cível', assuntos_cnj: '',
-        sistema_processual: 'PJe — Processo Judicial Eletrônico', grau_jurisdicao: '1º Grau',
+        classe_processual: '', assuntos_cnj: '',
+        sistema_processual: '', grau_jurisdicao: '',
         data_ajuizamento: new Date().toISOString().slice(0, 10)
       };
 
@@ -5152,7 +5193,7 @@
             </div>
             <div>
               <label class="font-bold block mb-1">Classe Processual (TPU/CNJ)</label>
-              <input id="f-proc-classe" value="${esc(p.classe_processual || 'Procedimento Comum Cível')}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+              <input id="f-proc-classe" value="${esc(p.classe_processual || '')}" placeholder="Preenchido automaticamente pelo DataJud" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
             </div>
             <div>
               <label class="font-bold block mb-1">Assuntos CNJ</label>
@@ -5172,7 +5213,7 @@
             </div>
             <div>
               <label class="font-bold block mb-1">Sistema Eletrônico & Grau</label>
-              <input id="f-proc-sistema" value="${esc(p.sistema_processual || 'PJe — Processo Judicial Eletrônico')}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+              <input id="f-proc-sistema" value="${esc(p.sistema_processual || '')}" placeholder="Preenchido automaticamente pelo DataJud" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
             </div>
             <div>
               <label class="font-bold block mb-1">Parte Contrária</label>
@@ -5218,12 +5259,16 @@
         tribunal: document.getElementById('f-proc-trib').value.trim(),
         vara_comarca: document.getElementById('f-proc-vara').value.trim(),
         sistema_processual: document.getElementById('f-proc-sistema').value.trim(),
-        grau_jurisdicao: '1º Grau',
+        grau_jurisdicao: (APP.admin.processos.find(x => x.id === document.getElementById('f-proc-id').value) || {}).grau_jurisdicao || '',
         parte_contraria: document.getElementById('f-proc-contraria').value.trim(),
         valor_causa: document.getElementById('f-proc-valor').value || 0,
         proximo_prazo: document.getElementById('f-proc-prazo').value || null,
         descricao_prazo: document.getElementById('f-proc-desc-prazo').value.trim()
       };
+      // O tribunal vem dos digitos J.TR do numero CNJ (fonte verdadeira), nunca de um padrao fixo.
+      const parsedCnjForm = parseCNJNumber(rec.numero_cnj);
+      if (parsedCnjForm.valid) rec.tribunal = parsedCnjForm.tribunalSigla;
+
       const { data } = await sb.rpc('legal_save_record', {
         p_token: APP.token,
         p_table: 'legal_processos',
@@ -5274,7 +5319,7 @@
             codigo_cnj: 26,
             titulo_movimento: 'Autuação e Cadastro Inicial do Processo no Escritório',
             orgao_julgador: rec.vara_comarca || rec.tribunal,
-            complementos_cnj: `Classe: ${rec.classe_processual} | Sistema: ${rec.sistema_processual}`,
+            complementos_cnj: [rec.classe_processual && `Classe: ${rec.classe_processual}`, rec.sistema_processual && `Sistema: ${rec.sistema_processual}`].filter(Boolean).join(' | '),
             descricao_tecnica: `Processo ${rec.numero_cnj || ''} (${rec.titulo_acao}) cadastrado e vinculado ao cliente para acompanhamento processual contínuo.`,
             proximo_passo_leigo: 'A Dra. Nathalia Lisboa acompanha todas as publicações oficiais e atualizará você por aqui.',
             origem: 'Sistema Integrado',
