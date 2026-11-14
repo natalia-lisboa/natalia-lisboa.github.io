@@ -760,9 +760,9 @@
               <div class="flex items-center justify-between pb-3 mb-4 border-b border-stone-100 dark:border-slate-800">
                 <div>
                   <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200">Processos por Etapa do Funil</h3>
-                  <p class="text-[11px] text-slate-400 mt-0.5">Distribuição nas 7 fases jurídicas</p>
+                  <p class="text-[11px] text-slate-400 mt-0.5">Clique em qualquer coluna para listar e abrir os clientes</p>
                 </div>
-                <span class="px-2.5 py-1 rounded-full bg-[#FAF3E3] dark:bg-slate-800 border border-[#C8A25A]/35 text-[10px] text-[#5C1618] dark:text-[#E5C888] font-extrabold uppercase tracking-wider">7 Fases</span>
+                <span class="px-2.5 py-1 rounded-full bg-[#FAF3E3] dark:bg-slate-800 border border-[#C8A25A]/35 text-[10px] text-[#5C1618] dark:text-[#E5C888] font-extrabold uppercase tracking-wider">9 Fases</span>
               </div>
               <div class="h-60 relative">
                 <canvas id="chart-pipeline"></canvas>
@@ -2209,21 +2209,166 @@
         data: {
           labels: ['Atend.', 'Proposta', 'Contrato', 'Ajuizamento', 'Audiência', 'Tramitação', 'Sentença', 'Recursal', 'Execução'],
           datasets: [{
-            label: 'Processos',
+            label: 'Processos (Clique para abrir)',
             data: countsByPhase,
             backgroundColor: '#5C1618',
+            hoverBackgroundColor: '#C8A25A',
             borderRadius: 8
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          onHover: (evt) => {
+            if (evt && evt.native && evt.native.target) {
+              evt.native.target.style.cursor = 'pointer';
+            }
+          },
+          onClick: (evt, activeEls, chart) => {
+            let idx = (activeEls && activeEls.length > 0) ? activeEls[0].index : -1;
+            if ((idx === undefined || idx < 0) && chart && chart.scales && chart.scales.x && evt) {
+              const xVal = chart.scales.x.getValueForPixel(evt.x);
+              if (typeof xVal === 'number' && !isNaN(xVal)) {
+                const rounded = Math.round(xVal);
+                if (rounded >= 0 && rounded < PIPELINE_PHASES.length) idx = rounded;
+              }
+            }
+            if (idx >= 0 && idx < PIPELINE_PHASES.length) {
+              openPipelineStageDrilldown(idx);
+            }
+          },
           plugins: { legend: { display: false } },
           scales: {
             y: { beginAtZero: true, ticks: { stepSize: 1 } }
           }
         }
       });
+    }
+
+    function openClientFromDrilldown(cliId, procId = '') {
+      closeModal();
+      const sInput = document.getElementById('search-clientes');
+      if (sInput) sInput.value = '';
+      const fSelect = document.getElementById('filter-clientes-etapa');
+      if (fSelect) fSelect.value = '';
+      if (cliId) APP.selectedClienteId = cliId;
+      if (procId) APP.selectedProcessoId = procId;
+      switchAdminView('clientes');
+      setTimeout(() => {
+        const pane = document.getElementById('cliente-detalhe-pane');
+        if (pane && pane.scrollIntoView) pane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    }
+
+    function openPipelineStageDrilldown(phaseIdx) {
+      const phaseName = PIPELINE_PHASES[phaseIdx] || PIPELINE_PHASES[0];
+      const procsInStage = (APP.admin.processos || []).filter(p => p.fase_pipeline === phaseName);
+      const procCliIds = new Set(procsInStage.map(p => p.cliente_id));
+      const extraClientes = (APP.admin.clientes || []).filter(c => c.etapa_funil === phaseName && !procCliIds.has(c.id));
+
+      const items = [
+        ...procsInStage.map(p => {
+          const cli = (APP.admin.clientes || []).find(c => c.id === p.cliente_id) || {};
+          return {
+            cliId: cli.id || p.cliente_id || '',
+            procId: p.id,
+            clienteNome: cli.nome || 'Cliente Vinculado',
+            telefone: cli.telefone || '',
+            cpf: cli.cpf_cnpj || '',
+            tituloAcao: p.titulo_acao || 'Processo Judicial',
+            numeroCnj: p.numero_cnj || 'Em autuação',
+            vara: p.vara_comarca || p.tribunal || 'TJRJ',
+            parteContraria: p.parte_contraria || ''
+          };
+        }),
+        ...extraClientes.map(c => ({
+          cliId: c.id,
+          procId: '',
+          clienteNome: c.nome,
+          telefone: c.telefone || '',
+          cpf: c.cpf_cnpj || '',
+          tituloAcao: 'Atendimento / Consultivo',
+          numeroCnj: 'Sem processo vinculado',
+          vara: c.etapa_funil || phaseName,
+          parteContraria: ''
+        }))
+      ];
+
+      const tabsHtml = PIPELINE_PHASES.map((ph, i) => {
+        const cnt = (APP.admin.processos || []).filter(p => p.fase_pipeline === ph).length;
+        const active = i === phaseIdx;
+        return `
+          <button type="button" onclick="openPipelineStageDrilldown(${i})"
+            class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition whitespace-nowrap ${
+              active
+                ? 'bg-[#5C1618] text-[#E5C888] border border-[#C8A25A] shadow-2xs'
+                : 'bg-stone-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#C8A25A]'
+            }">
+            ${esc(ph)} (${cnt})
+          </button>
+        `;
+      }).join('');
+
+      const listHtml = items.length === 0
+        ? `<div class="p-8 text-center text-sm text-slate-400 bg-stone-50 dark:bg-slate-800/40 rounded-2xl border border-stone-200 dark:border-slate-800">Nenhum processo ou cliente nesta etapa no momento.</div>`
+        : items.map((it, idx) => `
+            <div onclick="openClientFromDrilldown('${it.cliId}', '${it.procId}')"
+              class="cursor-pointer group p-4 rounded-2xl border border-stone-200 dark:border-slate-800 hover:border-[#C8A25A] bg-white dark:bg-slate-900 hover:bg-[#FDF8EE]/60 dark:hover:bg-slate-800/80 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 transition shadow-2xs">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-[#5C1618]/10 dark:bg-[#C8A25A]/20 text-[#5C1618] dark:text-[#E5C888] font-mono text-xs font-extrabold flex items-center justify-center shrink-0">
+                    ${idx + 1}
+                  </span>
+                  <span class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white group-hover:text-[#5C1618] dark:group-hover:text-[#E5C888] truncate transition">
+                    ${esc(it.clienteNome)}
+                  </span>
+                </div>
+                <div class="text-xs font-bold text-[#5C1618] dark:text-[#E5C888] mt-1 truncate">
+                  ${esc(it.tituloAcao)}${it.parteContraria ? ` • Contra: ${esc(it.parteContraria)}` : ''}
+                </div>
+                <div class="text-[11px] sm:text-xs text-slate-500 font-mono mt-0.5 truncate">
+                  CNJ: ${esc(it.numeroCnj)} • ${esc(it.vara)}
+                </div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                ${it.procId ? `
+                  <button type="button" onclick="event.stopPropagation(); closeModal(); APP.selectedProcessoId='${it.procId}'; switchAdminView('datajud');"
+                    class="px-3 py-2 rounded-xl border border-stone-300 dark:border-slate-700 hover:border-[#C8A25A] text-xs font-bold text-slate-700 dark:text-slate-200 transition">
+                    Andamentos
+                  </button>
+                ` : ''}
+                <span class="px-3.5 py-2 rounded-xl bg-[#5C1618] group-hover:bg-[#3E0E10] text-[#E5C888] text-xs font-extrabold flex items-center gap-1.5 shadow-2xs transition">
+                  Ver Cliente →
+                </span>
+              </div>
+            </div>
+          `).join('');
+
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex items-start justify-between gap-3 pb-3 border-b border-stone-200 dark:border-slate-800">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-full bg-[#FAF3E3] dark:bg-slate-800 border border-[#C8A25A]/40 text-[10px] font-extrabold uppercase tracking-wider text-[#5C1618] dark:text-[#E5C888]">
+                Etapa ${phaseIdx + 1} de ${PIPELINE_PHASES.length} do Funil
+              </span>
+              <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white mt-1">
+                ${esc(phaseName)} (${items.length})
+              </h3>
+              <p class="text-xs text-slate-500">Clique em qualquer nome abaixo para abrir a ficha completa do cliente</p>
+            </div>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-800 text-slate-500">✕</button>
+          </div>
+
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1.5">
+            ${tabsHtml}
+          </div>
+
+          <div class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
+            ${listHtml}
+          </div>
+        </div>
+      `);
+      refreshIcons();
     }
 
     function openKpiDrilldown(type) {
