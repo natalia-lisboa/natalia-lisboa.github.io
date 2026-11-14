@@ -1955,6 +1955,27 @@
         APP.selectedProcessoId = APP.admin.processos[0].id;
       }
       updateSidebarBadges();
+      triggerBackgroundDataJudHarvest();
+    }
+
+    async function triggerBackgroundDataJudHarvest() {
+      if (!APP.token || APP._bgHarvestRunning) return;
+      const now = Date.now();
+      if (APP._lastBgHarvestTs && now - APP._lastBgHarvestTs < 120000) return;
+      APP._bgHarvestRunning = true;
+      APP._lastBgHarvestTs = now;
+      try {
+        const { data } = await sb.rpc('legal_sync_background_datajud', { p_token: APP.token });
+        if (data && data.harvested > 0) {
+          const { data: b } = await sb.rpc('legal_get_admin_bundle', { p_token: APP.token });
+          if (b && b.ok) {
+            APP.admin.andamentos = b.andamentos || APP.admin.andamentos;
+            if (APP.currentView === 'datajud') renderDataJudView();
+            else if (APP.currentView === 'pipeline') renderPipelineView();
+          }
+        }
+      } catch (_) {}
+      APP._bgHarvestRunning = false;
     }
 
     function updateSidebarBadges() {
@@ -3505,6 +3526,10 @@
           showToast('Informe um número CNJ válido (20 dígitos).', 'error');
         } else {
           showToast('Processo sincronizado com os dados e movimentações oficiais!');
+          setTimeout(() => {
+            APP._lastBgHarvestTs = 0;
+            triggerBackgroundDataJudHarvest();
+          }, 22000);
         }
       }
 
@@ -3564,11 +3589,17 @@
                 <i data-lucide="table-2" class="w-4 h-4 text-[#5C1618] dark:text-[#E5C888]"></i>
                 Movimentações do Processo • ${rows.length} ${rows.length === 1 ? 'evento' : 'eventos'}
               </h5>
-              <p class="text-xs text-slate-500">Clique em "Ver Tradução" para abrir ou editar a explicação ao cliente</p>
+              <p class="text-xs text-slate-500">Sincronização automática CNJ ativa • Clique em "Ver Tradução" para editar a explicação ao cliente</p>
             </div>
+            ${proc.id ? `
+              <button type="button" onclick="APP.selectedProcessoId='${proc.id}'; openAndamentoModal(null);"
+                class="px-3.5 py-2 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-[#E5C888] text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-2xs transition">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> + Novo Andamento
+              </button>
+            ` : ''}
           </div>
 
-          ${renderEprocEventsTable(rows, { isPipeline: false })}
+          ${renderEprocEventsTable(rows, { isPipeline: true, procId: proc.id })}
         </div>
       `;
 
@@ -5550,7 +5581,7 @@
 
       closeModal();
       await loadAdminBundle();
-      renderPipelineView();
+      renderCurrentAdminView();
       showToast('Andamento registado e sincronizado com Pipeline, CRM e Kanban!');
     }
 
