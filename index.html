@@ -887,13 +887,9 @@
             <!-- Aba de Casos do Cliente no Pipeline (Autor e Reu ao lado do nome) -->
             <div id="pipeline-cliente-casos-bar" class="p-3.5 rounded-2xl bg-[#FAF8F5] dark:bg-slate-800/70 border border-[#C8A25A]/45 space-y-2"></div>
 
-            <!-- Barra Visual das 7 Etapas (Clique para avançar ou mudar fase) -->
-            <div>
-              <div class="flex items-center justify-between text-xs mb-2">
-                <span class="font-bold text-slate-600 dark:text-slate-300">Fase do Relacionamento & Processo (Clique numa etapa para atualizar):</span>
-                <span id="pipeline-current-stage-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#5C1618] text-[#E5C888]">-</span>
-              </div>
-              <div id="pipeline-steps-bar" class="nl-pipeline-track"></div>
+            <div class="hidden">
+              <span id="pipeline-current-stage-badge">-</span>
+              <div id="pipeline-steps-bar"></div>
             </div>
 
             <!-- Resumo do Processo Selecionado -->
