@@ -866,9 +866,10 @@
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/80 dark:border-slate-800 p-5 shadow-xs space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div class="flex-1 min-w-[260px]">
-                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Selecione o Processo / Caso Jurídico</label>
-                <select id="pipeline-processo-select" onchange="onSelectPipelineProcesso(this.value)"
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">1. Selecione o Cliente (Sem Duplicatas)</label>
+                <select id="pipeline-cliente-select" onchange="onSelectPipelineCliente(this.value)"
                   class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white"></select>
+                <select id="pipeline-processo-select" onchange="onSelectPipelineProcesso(this.value)" class="hidden"></select>
               </div>
               <div class="flex flex-wrap items-center gap-2">
                 <button type="button" onclick="openAndamentoModal()" class="px-4 py-2.5 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm">
@@ -882,6 +883,9 @@
                 </button>
               </div>
             </div>
+
+            <!-- Aba de Casos do Cliente no Pipeline (Autor e Reu ao lado do nome) -->
+            <div id="pipeline-cliente-casos-bar" class="p-3.5 rounded-2xl bg-[#FAF8F5] dark:bg-slate-800/70 border border-[#C8A25A]/45 space-y-2"></div>
 
             <!-- Barra Visual das 7 Etapas (Clique para avançar ou mudar fase) -->
             <div>
@@ -931,14 +935,14 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-              <div class="md:col-span-4">
-                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Vincular Processo</label>
-                <select id="datajud-processo-select" onchange="onDataJudSelectProcesso(this.value)"
-                  class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-sm font-bold"></select>
-              </div>
               <div class="md:col-span-5">
-                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Número CNJ</label>
-                <input id="datajud-cnj-input" type="text" oninput="onDataJudCnjInput(this.value)" placeholder="0000000-00.0000.8.26.0000"
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">1. Selecionar Cliente (Sem Duplicatas)</label>
+                <select id="datajud-cliente-select" onchange="onDataJudSelectCliente(this.value)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white"></select>
+              </div>
+              <div class="md:col-span-4">
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Número CNJ do Caso Selecionado</label>
+                <input id="datajud-cnj-input" type="text" oninput="onDataJudCnjInput(this.value)" placeholder="0000000-00.0000.8.19.0001"
                   class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-sm font-mono font-bold">
               </div>
               <div class="md:col-span-3">
@@ -948,6 +952,10 @@
                 </button>
               </div>
             </div>
+
+            <!-- Aba / Painel de Casos da Pessoa Selecionada (com Autor e Reu ao lado do nome) -->
+            <div id="datajud-cliente-casos-bar" class="p-4 rounded-2xl bg-[#FAF8F5] dark:bg-slate-800/70 border border-[#C8A25A]/45 space-y-2.5"></div>
+            <select id="datajud-processo-select" onchange="onDataJudSelectProcesso(this.value)" class="hidden"></select>
 
             <div id="datajud-endpoint-info" class="text-sm bg-stone-50 dark:bg-slate-800/70 rounded-xl p-3 border border-stone-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
@@ -2972,25 +2980,137 @@
     // -------------------------------------------------------------------------
     // VIEW C: PIPELINE DE 7 FASES & ANDAMENTOS COM TRADUTOR IA
     // -------------------------------------------------------------------------
+    // Identifica Autor e Reu reais do processo para exibir lado a lado
+    function getAutorEReuForProcesso(proc, cli) {
+      const cliNome = (cli && cli.nome) ? cli.nome : 'Cliente';
+      const contraria = (proc && proc.parte_contraria && String(proc.parte_contraria).trim())
+        ? String(proc.parte_contraria).trim()
+        : 'Parte Contrária a definir';
+      const tUp = String((proc && proc.titulo_acao) || '').toUpperCase();
+      const isClientePoloPassivo =
+        tUp.includes('EXECUÇÃO DE TÍTULO') ||
+        tUp.includes('EXECUCAO DE TITULO') ||
+        tUp.includes('EXECUÇÃO FISCAL') ||
+        tUp.includes('EXECUCAO FISCAL') ||
+        tUp.includes('AÇÃO PENAL') ||
+        tUp.includes('ACAO PENAL');
+      return isClientePoloPassivo
+        ? { autor: contraria, reu: cliNome }
+        : { autor: cliNome, reu: contraria };
+    }
+
+    // Lista unica de clientes com processos (1 unica vez por pessoa, em ordem alfabetica)
+    function getUniqueClientesWithProcessos() {
+      const map = new Map();
+      (APP.admin.processos || []).forEach(p => {
+        const cli = (APP.admin.clientes || []).find(c => c.id === p.cliente_id) || { id: p.cliente_id || p.id, nome: 'Cliente' };
+        const key = cli.id || p.id;
+        if (!map.has(key)) {
+          map.set(key, { cli, procs: [] });
+        }
+        map.get(key).procs.push(p);
+      });
+      return Array.from(map.values()).sort((a, b) =>
+        String(a.cli.nome || '').localeCompare(String(b.cli.nome || ''), 'pt-BR')
+      );
+    }
+
+    function renderClienteCasosBarHtml(cli, cliProcs, selectedProcId, onSelectFnName) {
+      if (!cliProcs || cliProcs.length === 0) return '';
+      return `
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="text-xs sm:text-sm font-extrabold text-[#5C1618] dark:text-[#E5C888] flex items-center gap-1.5">
+            <i data-lucide="folder-git-2" class="w-4 h-4 text-[#C8A25A]"></i>
+            Casos de <strong>${esc(cli.nome || 'Cliente')}</strong> (${cliProcs.length} ${cliProcs.length === 1 ? 'processo' : 'processos'}) — Clique no caso para abrir:
+          </div>
+        </div>
+        <div class="grid grid-cols-1 ${cliProcs.length > 1 ? 'md:grid-cols-2' : ''} gap-2.5">
+          ${cliProcs.map((p, idx) => {
+            const active = p.id === selectedProcId;
+            const { autor, reu } = getAutorEReuForProcesso(p, cli);
+            return `
+              <button type="button" onclick="${onSelectFnName}('${p.id}')"
+                class="w-full text-left p-3.5 rounded-xl border transition flex flex-col justify-between gap-1.5 ${
+                  active
+                    ? 'bg-[#5C1618] text-white border-[#C8A25A] shadow-md ring-2 ring-[#C8A25A]/40'
+                    : 'bg-white dark:bg-slate-900 border-stone-200 dark:border-slate-700 hover:border-[#C8A25A]'
+                }">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="px-2 py-0.5 rounded text-[11px] font-extrabold uppercase tracking-wider ${
+                    active ? 'bg-[#C8A25A] text-[#28080A]' : 'bg-[#FAF3E3] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888]'
+                  }">
+                    Caso ${idx + 1} • ${esc(p.titulo_acao || 'Processo')}
+                  </span>
+                  <span class="font-mono text-xs font-bold ${active ? 'text-[#E5C888]' : 'text-slate-500'}">
+                    CNJ: ${esc(p.numero_cnj || 'Sem CNJ')}
+                  </span>
+                </div>
+
+                <div class="text-xs sm:text-sm font-bold leading-snug mt-0.5 ${active ? 'text-white' : 'text-slate-900 dark:text-white'}">
+                  <span class="${active ? 'text-[#E5C888]' : 'text-emerald-700 dark:text-emerald-400'}">Autor:</span> ${esc(autor)}
+                  <span class="mx-1.5 opacity-60">×</span>
+                  <span class="${active ? 'text-rose-200' : 'text-rose-700 dark:text-rose-400'}">Réu:</span> ${esc(reu)}
+                </div>
+
+                <div class="text-[11px] ${active ? 'text-rose-100/80' : 'text-slate-500'} truncate">
+                  ${esc(p.vara_comarca || p.tribunal || 'TJRJ')} • Fase: ${esc(p.fase_pipeline || 'Em curso')}
+                </div>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function onSelectPipelineCliente(cliId) {
+      APP.selectedClienteId = cliId;
+      const cliProcs = (APP.admin.processos || []).filter(p => p.cliente_id === cliId);
+      if (cliProcs.length > 0) {
+        APP.selectedProcessoId = cliProcs[0].id;
+      }
+      renderPipelineView();
+    }
+
     function renderPipelineView() {
       const select = document.getElementById('pipeline-processo-select');
+      const cliSelect = document.getElementById('pipeline-cliente-select');
+      const casosBar = document.getElementById('pipeline-cliente-casos-bar');
       if (APP.admin.processos.length === 0) {
-        select.innerHTML = `<option value="">Nenhum processo cadastrado</option>`;
+        if (select) select.innerHTML = `<option value="">Nenhum processo cadastrado</option>`;
+        if (cliSelect) cliSelect.innerHTML = `<option value="">Nenhum cliente com processo</option>`;
+        if (casosBar) casosBar.innerHTML = '';
         return;
       }
       if (!APP.admin.processos.some(p => p.id === APP.selectedProcessoId)) {
         APP.selectedProcessoId = APP.admin.processos[0].id;
       }
 
-      select.innerHTML = APP.admin.processos.map(p => {
-        const cli = APP.admin.clientes.find(c => c.id === p.cliente_id) || {};
-        return `<option value="${p.id}" ${p.id === APP.selectedProcessoId ? 'selected' : ''}>
-          ${esc(cli.nome || 'Cliente')} — ${esc(p.numero_cnj || 'Sem CNJ')} (${esc(p.titulo_acao)})
-        </option>`;
-      }).join('');
-
       const proc = APP.admin.processos.find(p => p.id === APP.selectedProcessoId);
       const cli = APP.admin.clientes.find(c => c.id === proc.cliente_id) || {};
+      APP.selectedClienteId = cli.id || proc.cliente_id;
+
+      const groupedClientes = getUniqueClientesWithProcessos();
+      if (cliSelect) {
+        cliSelect.innerHTML = groupedClientes.map(g => `
+          <option value="${g.cli.id}" ${g.cli.id === APP.selectedClienteId ? 'selected' : ''}>
+            ${esc(g.cli.nome)} (${g.procs.length} ${g.procs.length === 1 ? 'processo' : 'processos'})
+          </option>
+        `).join('');
+      }
+
+      const cliProcs = APP.admin.processos.filter(p => p.cliente_id === proc.cliente_id);
+      if (casosBar) {
+        casosBar.innerHTML = renderClienteCasosBarHtml(cli, cliProcs, proc.id, 'onSelectPipelineProcesso');
+      }
+
+      if (select) {
+        select.innerHTML = APP.admin.processos.map(p => {
+          const c = APP.admin.clientes.find(x => x.id === p.cliente_id) || {};
+          return `<option value="${p.id}" ${p.id === APP.selectedProcessoId ? 'selected' : ''}>
+            ${esc(c.nome || 'Cliente')} — ${esc(p.numero_cnj || 'Sem CNJ')} (${esc(p.titulo_acao)})
+          </option>`;
+        }).join('');
+      }
       const procTarefas = APP.admin.tarefas_kanban.filter(t => t.processo_id === proc.id || t.cliente_id === proc.cliente_id);
       const procFin = APP.admin.financeiro.filter(f => f.cliente_id === proc.cliente_id && f.tipo === 'Receita');
       const procDuvidas = APP.admin.duvidas.filter(d => d.processo_id === proc.id);
@@ -3409,16 +3529,47 @@
       `;
     }
 
+    function onDataJudSelectCliente(cliId) {
+      APP.selectedClienteId = cliId;
+      const cliProcs = (APP.admin.processos || []).filter(p => p.cliente_id === cliId);
+      if (cliProcs.length > 0) {
+        APP.selectedProcessoId = cliProcs[0].id;
+      }
+      renderDataJudView();
+    }
+
     function renderDataJudView() {
       const sel = document.getElementById('datajud-processo-select');
-      sel.innerHTML = APP.admin.processos.map(p => {
-        const cli = APP.admin.clientes.find(c => c.id === p.cliente_id) || {};
-        return `<option value="${p.id}" ${p.id === APP.selectedProcessoId ? 'selected' : ''}>
-          ${esc(cli.nome || 'Cliente')} — ${esc(p.numero_cnj)} (${esc(p.titulo_acao)})
-        </option>`;
-      }).join('');
+      const cliSelect = document.getElementById('datajud-cliente-select');
+      const casosBar = document.getElementById('datajud-cliente-casos-bar');
 
       const proc = APP.admin.processos.find(p => p.id === APP.selectedProcessoId) || APP.admin.processos[0];
+      const cli = proc ? (APP.admin.clientes.find(c => c.id === proc.cliente_id) || {}) : {};
+      if (cli && cli.id) APP.selectedClienteId = cli.id;
+
+      const groupedClientes = getUniqueClientesWithProcessos();
+      if (cliSelect) {
+        cliSelect.innerHTML = groupedClientes.map(g => `
+          <option value="${g.cli.id}" ${g.cli.id === APP.selectedClienteId ? 'selected' : ''}>
+            ${esc(g.cli.nome)} (${g.procs.length} ${g.procs.length === 1 ? 'processo' : 'processos'})
+          </option>
+        `).join('');
+      }
+
+      const cliProcs = proc ? APP.admin.processos.filter(p => p.cliente_id === proc.cliente_id) : [];
+      if (casosBar) {
+        casosBar.innerHTML = renderClienteCasosBarHtml(cli, cliProcs, proc ? proc.id : '', 'onDataJudSelectProcesso');
+      }
+
+      if (sel) {
+        sel.innerHTML = APP.admin.processos.map(p => {
+          const c = APP.admin.clientes.find(x => x.id === p.cliente_id) || {};
+          return `<option value="${p.id}" ${proc && p.id === proc.id ? 'selected' : ''}>
+            ${esc(c.nome || 'Cliente')} — ${esc(p.numero_cnj)} (${esc(p.titulo_acao)})
+          </option>`;
+        }).join('');
+      }
+
       if (proc) {
         document.getElementById('datajud-cnj-input').value = proc.numero_cnj || '';
         onDataJudCnjInput(proc.numero_cnj || '');
@@ -3430,9 +3581,8 @@
       APP.selectedProcessoId = procId;
       const proc = APP.admin.processos.find(p => p.id === procId);
       if (proc) {
-        document.getElementById('datajud-cnj-input').value = proc.numero_cnj || '';
-        onDataJudCnjInput(proc.numero_cnj || '');
-        consultarDataJudCNJ(true);
+        APP.selectedClienteId = proc.cliente_id;
+        renderDataJudView();
       }
     }
 
