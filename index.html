@@ -506,6 +506,9 @@
             <button type="button" onclick="switchAdminView('datajud'); toggleMobileMenu();" data-nav="datajud" class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition">
               <i data-lucide="landmark" class="w-4 h-4"></i> Acompanhamento do Processo
             </button>
+            <button type="button" onclick="switchAdminView('pecas'); toggleMobileMenu();" data-nav="pecas" class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition">
+              <i data-lucide="file-text" class="w-4 h-4"></i> Banco de Peças
+            </button>
             <button type="button" onclick="switchAdminView('kanban'); toggleMobileMenu();" data-nav="kanban" class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition">
               <i data-lucide="kanban" class="w-4 h-4"></i> Painel de Atividades
             </button>
@@ -584,6 +587,11 @@
         <button type="button" onclick="switchAdminView('datajud')" data-nav="datajud" class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition">
           <span class="flex items-center gap-3"><i data-lucide="landmark" class="w-4 h-4"></i> Acompanhamento do Processo</span>
           <span class="px-1.5 py-0.5 text-[9px] rounded bg-[#C8A25A]/25 text-[#E5C888] font-bold">CNJ</span>
+        </button>
+
+        <button type="button" onclick="switchAdminView('pecas')" data-nav="pecas" class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition">
+          <span class="flex items-center gap-3"><i data-lucide="file-text" class="w-4 h-4"></i> Banco de Peças</span>
+          <span id="badge-pecas-nav" class="text-[11px] opacity-75">0</span>
         </button>
 
         <div class="pt-3 px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-[#E5C888]/60">Operação & Finanças</div>
@@ -1081,6 +1089,83 @@
         </section>
 
         <!-- ===================================================================
+             VIEW H: BANCO DE PEÇAS & MODELOS DE DOCUMENTOS (UPLOAD / DOWNLOAD)
+             =================================================================== -->
+        <section id="view-pecas" class="admin-view hidden animate-view space-y-6">
+          <!-- Cabeçalho + Botões de Upload e Criação -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-[#C8A25A]/40 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-5">
+            <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-stone-200 dark:border-slate-800">
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF3E3] dark:bg-slate-800 border border-[#C8A25A]/40 text-[11px] font-extrabold uppercase tracking-wider text-[#5C1618] dark:text-[#E5C888]">
+                  <i data-lucide="file-text" class="w-3.5 h-3.5 text-[#C8A25A]"></i> Acervo Jurídico do Escritório
+                </span>
+                <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white mt-2">
+                  Banco de Peças & Documentos Pré-Prontos
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                  Faça upload dos seus modelos (.docx, .doc, .pdf), preencha automaticamente com os dados do cliente e faça download em 1 clique.
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2.5">
+                <label class="cursor-pointer px-4 py-2.5 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-[#E5C888] text-xs sm:text-sm font-extrabold flex items-center gap-2 shadow-sm border border-[#C8A25A]/40 transition">
+                  <i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload de Peça (.docx / .pdf)
+                  <input type="file" multiple accept=".doc,.docx,.pdf,.odt,.rtf,.txt" class="hidden" onchange="handlePecaFileUploadDirect(event)">
+                </label>
+                <button type="button" onclick="openPecaModeloModal(null)"
+                  class="px-4 py-2.5 rounded-xl bg-[#FAF3E3] hover:bg-[#F5E9CE] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] border border-[#C8A25A]/60 text-xs sm:text-sm font-extrabold flex items-center gap-2 shadow-2xs transition">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> + Criar / Cadastrar Modelo
+                </button>
+              </div>
+            </div>
+
+            <!-- Barra Inteligente: Selecionar Cliente para Preencher / Copiar Dados -->
+            <div class="p-4 rounded-2xl bg-gradient-to-br from-[#FDF8EE] via-white to-[#FAF3E3] dark:from-slate-800 dark:to-slate-900 border border-[#C8A25A]/50 space-y-3">
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-end">
+                <div class="lg:col-span-5">
+                  <label class="block text-xs font-extrabold uppercase tracking-wider text-[#5C1618] dark:text-[#E5C888] mb-1.5">
+                    1. Escolha o Cliente para Preencher a Peça:
+                  </label>
+                  <select id="pecas-cliente-select" onchange="onChangePecasCliente(this.value)"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                  </select>
+                </div>
+                <div class="lg:col-span-4">
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Buscar Peça pelo Nome ou Assunto:
+                  </label>
+                  <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input id="search-pecas" type="text" oninput="renderPecasView()" placeholder="Ex: Procuração, Cirurgia, Superendividamento..."
+                      class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm">
+                  </div>
+                </div>
+                <div class="lg:col-span-3">
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Filtrar Categoria:
+                  </label>
+                  <select id="filter-pecas-categoria" onchange="renderPecasView()"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm font-semibold">
+                    <option value="">Todas as Categorias</option>
+                    <option value="Procuração & Kit Inicial">Procuração & Kit Inicial</option>
+                    <option value="Contratos de Honorários">Contratos de Honorários</option>
+                    <option value="Petições Iniciais">Petições Iniciais</option>
+                    <option value="Recursos & Embargos">Recursos & Embargos</option>
+                    <option value="Execução & Cumprimento">Execução & Cumprimento</option>
+                    <option value="Outros Modelos">Outros Modelos</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Painel de Qualificação Pronta do Cliente Selecionado (Para colar no Word em 1 clique) -->
+              <div id="pecas-cliente-qualificacao-box" class="pt-2 border-t border-[#C8A25A]/30"></div>
+            </div>
+          </div>
+
+          <!-- Grade de Peças e Documentos Pré-Prontos -->
+          <div id="pecas-modelos-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <!-- ===================================================================
              VIEW G: GESTÃO DE ACESSOS DO CLIENTE (RBAC & SEGURANÇA)
              =================================================================== -->
         <section id="view-acessos" class="admin-view hidden animate-view space-y-6">
@@ -1468,6 +1553,7 @@
         processos: [],
         andamentos: [],
         anexos: [],
+        pecas_modelos: [],
         duvidas: [],
         tarefas_kanban: [],
         financeiro: [],
@@ -1945,6 +2031,7 @@
           return { ...t, coluna: colName };
         });
 
+      APP.admin.pecas_modelos = data.pecas_modelos || [];
       APP.admin.financeiro = data.financeiro || [];
       APP.admin.users = data.users || [];
 
@@ -1994,6 +2081,8 @@
       if (bCli) bCli.textContent = APP.admin.clientes.length;
       const bKan = document.getElementById('badge-kanban-nav');
       if (bKan) bKan.textContent = APP.admin.tarefas_kanban.filter(t => t.coluna !== 'Concluído').length;
+      const bPecas = document.getElementById('badge-pecas-nav');
+      if (bPecas) bPecas.textContent = (APP.admin.pecas_modelos || []).length;
     }
 
     function switchAdminView(viewName) {
@@ -2015,6 +2104,7 @@
         clientes: ['Meus Clientes', 'Gestão completa da carteira de clientes, WhatsApp direto e documentos'],
         pipeline: ['Pipeline & Andamentos Processuais', 'Acompanhamento cronológico de fases e esclarecimentos claros ao cliente'],
         datajud: ['Acompanhamento do Processo', 'Consulta oficial por número CNJ e histórico de movimentações dos Tribunais'],
+        pecas: ['Banco de Peças & Documentos Pré-Prontos', 'Faça upload e download dos seus modelos (.docx, .pdf) e preencha automaticamente com os dados do cliente'],
         kanban: ['Painel de Atividades', 'Gestão visual de tarefas, prazos processuais e checklists do escritório'],
         financeiro: ['Módulo Financeiro & Honorários Parcelados', 'Fluxo de caixa completo (Contas a Receber / Pagar) e carnês de parcelamento por cliente'],
         acessos: ['Gestão de Acessos RBAC (Portal do Cliente)', 'Crie utilizadores, redefina palavras-passe Bcrypt, suspenda ou simule a visão do cliente']
@@ -2037,6 +2127,7 @@
       else if (APP.currentView === 'clientes') renderClientesView();
       else if (APP.currentView === 'pipeline') renderPipelineView();
       else if (APP.currentView === 'datajud') renderDataJudView();
+      else if (APP.currentView === 'pecas') renderPecasView();
       else if (APP.currentView === 'kanban') renderKanbanBoard();
       else if (APP.currentView === 'financeiro') renderFinanceiroView();
       else if (APP.currentView === 'acessos') renderAcessosView();
@@ -6316,6 +6407,11 @@
       if (table === 'legal_anexos') {
         const anx = ((APP.admin && APP.admin.anexos) || []).find(x => x.id === id);
         if (anx && anx.storage_path) { try { await storageClient().remove([anx.storage_path]); } catch (e) { /* segue com a exclusão do registro */ } }
+      } else if (table === 'legal_pecas_modelos') {
+        const pm = ((APP.admin && APP.admin.pecas_modelos) || []).find(x => x.id === id);
+        if (pm && pm.storage_path && pm.storage_path !== 'external_drive') {
+          try { await storageClient().remove([pm.storage_path.replace(/^vault:[^:]+:/, '')]); } catch (e) {}
+        }
       }
       await sb.rpc('legal_delete_record', {
         p_token: APP.token,
@@ -6325,6 +6421,606 @@
       await loadAdminBundle();
       renderCurrentAdminView();
       showToast('Registro removido.');
+    }
+
+
+    // -------------------------------------------------------------------------
+    // VIEW H: BANCO DE PEÇAS & DOCUMENTOS PRÉ-PRONTOS (UPLOAD / DOWNLOAD / WORD)
+    // -------------------------------------------------------------------------
+    function getSelectedPecasCliente() {
+      const selEl = document.getElementById('pecas-cliente-select');
+      const cid = (selEl && selEl.value) || APP.selectedClienteId || (APP.admin.clientes[0] && APP.admin.clientes[0].id) || '';
+      const cli = (APP.admin.clientes || []).find(c => c.id === cid) || {};
+      const proc = (APP.admin.processos || []).find(p => p.cliente_id === cli.id) || {};
+      return { cli, proc };
+    }
+
+    function buildClienteQualificacaoText(cli, proc) {
+      const nome = (cli && cli.nome) ? cli.nome.toUpperCase() : '[NOME DO CLIENTE]';
+      const estCivil = (cli && cli.estado_civil) ? cli.estado_civil : 'estado civil não informado';
+      const prof = (cli && cli.profissao) ? cli.profissao : 'profissão não informada';
+      const cpf = (cli && cli.cpf_cnpj) ? cli.cpf_cnpj : '[CPF/CNPJ]';
+      const end = (cli && cli.morada) ? cli.morada : '[ENDEREÇO COMPLETO]';
+      const email = (cli && cli.email) ? cli.email : '[E-MAIL]';
+      const tel = (cli && cli.telefone) ? cli.telefone : '[TELEFONE]';
+      return `${nome}, brasileiro(a), ${estCivil}, ${prof}, inscrito(a) no CPF/CNPJ sob o nº ${cpf}, residente e domiciliado(a) em ${end}, endereço eletrônico ${email}, telefone/WhatsApp ${tel}`;
+    }
+
+    function applyClienteVariablesToText(templateText, cli, proc) {
+      const hoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+      const map = {
+        '{{NOME_CLIENTE}}': (cli && cli.nome) || '________________________________________',
+        '{{CPF_CLIENTE}}': (cli && cli.cpf_cnpj) || '___.___.___-__',
+        '{{ESTADO_CIVIL}}': (cli && cli.estado_civil) || '______________',
+        '{{PROFISSAO}}': (cli && cli.profissao) || '______________',
+        '{{ENDERECO_CLIENTE}}': (cli && cli.morada) || '________________________________________________',
+        '{{EMAIL_CLIENTE}}': (cli && cli.email) || '________________________',
+        '{{TELEFONE_CLIENTE}}': (cli && cli.telefone) || '(21) _____-____',
+        '{{NUMERO_CNJ}}': (proc && proc.numero_cnj) || '_________________________',
+        '{{VARA_COMARCA}}': (proc && proc.vara_comarca) || 'VARA CÍVEL DA COMARCA DO RIO DE JANEIRO/RJ',
+        '{{PARTE_CONTRARIA}}': (proc && proc.parte_contraria) || '________________________________________',
+        '{{TITULO_ACAO}}': (proc && proc.titulo_acao) || 'AÇÃO JUDICIAL',
+        '{{DATA_HOJE}}': hoje
+      };
+      let out = String(templateText || '');
+      for (const [k, v] of Object.entries(map)) {
+        out = out.split(k).join(v);
+      }
+      return out;
+    }
+
+    function copyTextToClipboard(txt, labelMsg = 'Copiado para a área de transferência!') {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(() => showToast(labelMsg)).catch(() => fallbackCopyText(txt, labelMsg));
+      } else {
+        fallbackCopyText(txt, labelMsg);
+      }
+    }
+
+    function fallbackCopyText(txt, labelMsg) {
+      const ta = document.createElement('textarea');
+      ta.value = txt;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); showToast(labelMsg); } catch (_) {}
+      document.body.removeChild(ta);
+    }
+
+    function onChangePecasCliente(cliId) {
+      if (cliId) APP.selectedClienteId = cliId;
+      renderPecasView();
+    }
+
+    function renderPecasView() {
+      const sel = document.getElementById('pecas-cliente-select');
+      const qualBox = document.getElementById('pecas-cliente-qualificacao-box');
+      const grid = document.getElementById('pecas-modelos-grid');
+      if (!grid) return;
+
+      const clientes = APP.admin.clientes || [];
+      if (sel) {
+        if (!APP.selectedClienteId && clientes.length > 0) {
+          APP.selectedClienteId = clientes[0].id;
+        }
+        sel.innerHTML = `<option value="">-- Sem cliente selecionado (Manter campos em branco) --</option>` +
+          clientes.map(c => {
+            const p = (APP.admin.processos || []).find(x => x.cliente_id === c.id);
+            return `<option value="${c.id}" ${c.id === APP.selectedClienteId ? 'selected' : ''}>
+              ${esc(c.nome)} ${p ? `— ${esc(p.titulo_acao)} (${esc(p.numero_cnj || 'Sem CNJ')})` : ''}
+            </option>`;
+          }).join('');
+      }
+
+      const { cli, proc } = getSelectedPecasCliente();
+      if (qualBox) {
+        if (cli && cli.id) {
+          const qualCompleta = buildClienteQualificacaoText(cli, proc);
+          qualBox.innerHTML = `
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="text-xs font-extrabold text-[#5C1618] dark:text-[#E5C888] flex items-center gap-1.5">
+                <i data-lucide="user-check" class="w-4 h-4 text-[#C8A25A]"></i>
+                Dados de <strong>${esc(cli.nome)}</strong> prontos para colar na sua peça do Word:
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button type="button" onclick="copySelectedClienteField('qualificacao')"
+                  class="px-3 py-1.5 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-[#E5C888] text-xs font-extrabold flex items-center gap-1.5 shadow-2xs transition">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar Qualificação Completa
+                </button>
+                <button type="button" onclick="copySelectedClienteField('nome')"
+                  class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-stone-300 dark:border-slate-700 text-[11px] font-bold hover:border-[#C8A25A]">
+                  Nome
+                </button>
+                <button type="button" onclick="copySelectedClienteField('cpf')"
+                  class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-stone-300 dark:border-slate-700 text-[11px] font-bold hover:border-[#C8A25A]">
+                  CPF: ${esc(cli.cpf_cnpj || '—')}
+                </button>
+                <button type="button" onclick="copySelectedClienteField('endereco')"
+                  class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-stone-300 dark:border-slate-700 text-[11px] font-bold hover:border-[#C8A25A]">
+                  Endereço
+                </button>
+                ${proc && proc.numero_cnj ? `
+                  <button type="button" onclick="copySelectedClienteField('cnj')"
+                    class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-stone-300 dark:border-slate-700 text-[11px] font-bold font-mono hover:border-[#C8A25A]">
+                    CNJ: ${esc(proc.numero_cnj)}
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            <div class="mt-2 p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-stone-200/90 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 font-serif leading-relaxed select-all">
+              ${esc(qualCompleta)}
+            </div>
+          `;
+        } else {
+          qualBox.innerHTML = `<div class="text-xs text-slate-500">Selecione um cliente acima para gerar a qualificação automática ou baixar as peças já preenchidas.</div>`;
+        }
+      }
+
+      const q = (document.getElementById('search-pecas')?.value || '').toLowerCase().trim();
+      const catFilter = document.getElementById('filter-pecas-categoria')?.value || '';
+      const list = (APP.admin.pecas_modelos || []).filter(p => {
+        const matchQ = !q || [p.titulo, p.categoria, p.area_direito, p.descricao, p.nome_arquivo].join(' ').toLowerCase().includes(q);
+        const matchCat = !catFilter || p.categoria === catFilter;
+        return matchQ && matchCat;
+      });
+
+      if (list.length === 0) {
+        grid.innerHTML = `
+          <div class="md:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-10 text-center border border-stone-200 dark:border-slate-800 space-y-3">
+            <div class="text-sm font-bold text-slate-700 dark:text-slate-200">Nenhuma peça encontrada para este filtro.</div>
+            <p class="text-xs text-slate-500">Clique em "Upload de Peça (.docx / .pdf)" no topo para enviar seus documentos pré-prontos do computador.</p>
+          </div>
+        `;
+        refreshIcons();
+        return;
+      }
+
+      grid.innerHTML = list.map(p => {
+        const hasUploadedFile = Boolean(p.storage_path || p.file_url);
+        const hasTemplateText = Boolean(p.conteudo_modelo && String(p.conteudo_modelo).trim());
+        const extBadge = p.nome_arquivo
+          ? String(p.nome_arquivo).split('.').pop().toUpperCase()
+          : (hasTemplateText ? 'DOC / WORD' : 'ARQUIVO');
+        const sizeLabel = p.tamanho_bytes > 0 ? ` • ${Math.max(1, Math.round(p.tamanho_bytes / 1024))} KB` : '';
+
+        return `
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/90 dark:border-slate-800 hover:border-[#C8A25A] p-5 shadow-xs flex flex-col justify-between gap-4 transition">
+            <div class="space-y-2.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#FAF3E3] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] border border-[#C8A25A]/40">
+                    ${esc(p.categoria || 'Peça Jurídica')}
+                  </span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-stone-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    ${esc(p.area_direito || 'Geral')}
+                  </span>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-extrabold ${hasUploadedFile ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-[#5C1618]/10 text-[#5C1618] dark:text-[#E5C888]'}">
+                  ${hasUploadedFile ? `ARQUIVO ${esc(extBadge)}${sizeLabel}` : `MODELO ${esc(extBadge)}`}
+                </span>
+              </div>
+
+              <div>
+                <h3 class="text-base font-black text-slate-900 dark:text-white leading-snug">
+                  ${esc(p.titulo)}
+                </h3>
+                ${p.descricao ? `<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">${esc(p.descricao)}</p>` : ''}
+              </div>
+
+              ${p.nome_arquivo ? `
+                <div class="p-2.5 rounded-xl bg-stone-50 dark:bg-slate-800/70 border border-stone-200/70 dark:border-slate-700 flex items-center justify-between gap-2 text-xs">
+                  <span class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate">
+                    <i data-lucide="paperclip" class="w-3.5 h-3.5 inline -mt-0.5 mr-1 text-[#C8A25A]"></i>${esc(p.nome_arquivo)}
+                  </span>
+                  <span class="text-[11px] text-slate-400 shrink-0">${fmtDate(p.updated_at || p.created_at)}</span>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="pt-3 border-t border-stone-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-2">
+                ${hasUploadedFile ? `
+                  <button type="button" onclick="downloadPecaArquivo('${p.id}')"
+                    class="px-3.5 py-2 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-extrabold flex items-center gap-1.5 shadow-2xs transition">
+                    <i data-lucide="download" class="w-3.5 h-3.5 text-[#E5C888]"></i> Baixar Arquivo (${esc(extBadge)})
+                  </button>
+                ` : ''}
+
+                ${hasTemplateText ? `
+                  <button type="button" onclick="downloadPecaWordPreenchida('${p.id}')"
+                    class="px-3.5 py-2 rounded-xl ${hasUploadedFile ? 'bg-[#FAF3E3] hover:bg-[#F5E9CE] text-[#5C1618] border border-[#C8A25A]/50' : 'bg-[#5C1618] hover:bg-[#3E0E10] text-white'} text-xs font-extrabold flex items-center gap-1.5 shadow-2xs transition">
+                    <i data-lucide="file-down" class="w-3.5 h-3.5"></i> Baixar no Word (.doc) Preenchido
+                  </button>
+                ` : ''}
+
+                <label class="cursor-pointer px-3 py-2 rounded-xl border border-stone-300 dark:border-slate-700 hover:border-[#C8A25A] bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition" title="Enviar ou substituir o arquivo (.docx, .pdf) desta peça">
+                  <i data-lucide="upload" class="w-3.5 h-3.5 text-[#5C1618] dark:text-[#E5C888]"></i> ${hasUploadedFile ? 'Trocar Arquivo' : 'Enviar Arquivo'}
+                  <input type="file" accept=".doc,.docx,.pdf,.odt,.rtf,.txt" class="hidden" onchange="handleAttachFileToExistingPeca(event, '${p.id}')">
+                </label>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="openPecaModeloModal('${p.id}')"
+                  class="px-3 py-2 rounded-xl border border-stone-200 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200">
+                  Ver / Editar
+                </button>
+                <button type="button" onclick="deleteRecordById('legal_pecas_modelos', '${p.id}')"
+                  class="p-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30" title="Excluir Peça">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      refreshIcons();
+    }
+
+    function copySelectedClienteField(field) {
+      const { cli, proc } = getSelectedPecasCliente();
+      if (!cli || !cli.id) return showToast('Selecione um cliente primeiro.', 'error');
+      if (field === 'qualificacao') {
+        copyTextToClipboard(buildClienteQualificacaoText(cli, proc), 'Qualificação completa copiada! Basta colar (Ctrl+V) no Word.');
+      } else if (field === 'nome') {
+        copyTextToClipboard(cli.nome || '', 'Nome do cliente copiado!');
+      } else if (field === 'cpf') {
+        copyTextToClipboard(cli.cpf_cnpj || '', 'CPF/CNPJ copiado!');
+      } else if (field === 'endereco') {
+        copyTextToClipboard(cli.morada || '', 'Endereço copiado!');
+      } else if (field === 'cnj') {
+        copyTextToClipboard((proc && proc.numero_cnj) || '', 'Número CNJ copiado!');
+      }
+    }
+
+    function guessCategoriaFromFilename(fname) {
+      const u = String(fname || '').toUpperCase();
+      if (u.includes('PROCURA') || u.includes('HIPOSSUF') || u.includes('GRATUIDADE') || u.includes('KIT')) return 'Procuração & Kit Inicial';
+      if (u.includes('CONTRATO') || u.includes('HONOR')) return 'Contratos de Honorários';
+      if (u.includes('APELA') || u.includes('RECURSO') || u.includes('AGRAVO') || u.includes('EMBARGO')) return 'Recursos & Embargos';
+      if (u.includes('EXECU') || u.includes('CUMPRIMENTO') || u.includes('PENHORA')) return 'Execução & Cumprimento';
+      return 'Petições Iniciais';
+    }
+
+    // Upload direto de 1 ou varios arquivos (.docx, .pdf, .doc, .odt, .txt) pelo botao do topo
+    async function handlePecaFileUploadDirect(event) {
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+      const targetVault = getActiveUploadVault();
+
+      for (const file of files) {
+        showToast(`Enviando "${file.name}" para o Banco de Peças...`, 'info');
+        try {
+          const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+          const rawPath = `pecas_modelos/${safeName}`;
+          const storedPath = targetVault.id === 'vault_1' ? rawPath : `vault:${targetVault.id}:${rawPath}`;
+
+          const { error: upErr } = await storageClient(targetVault.id).upload(rawPath, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
+          if (upErr) throw upErr;
+
+          const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ').trim();
+          const { error: saveErr } = await sb.rpc('legal_save_record', {
+            p_token: APP.token,
+            p_table: 'legal_pecas_modelos',
+            p_record: {
+              titulo: cleanTitle || file.name,
+              categoria: guessCategoriaFromFilename(file.name),
+              area_direito: 'Cível / Consumidor',
+              descricao: `Documento pré-pronto enviado (${file.name}). Clique em "Baixar Arquivo" para fazer o download e preencher os dados do cliente.`,
+              conteudo_modelo: '',
+              nome_arquivo: file.name,
+              storage_path: storedPath,
+              file_url: '',
+              tamanho_bytes: file.size || 0,
+              mime_type: file.type || 'application/octet-stream'
+            }
+          });
+          if (saveErr) throw saveErr;
+        } catch (err) {
+          showToast('Erro ao enviar arquivo: ' + (err.message || err), 'error');
+        }
+      }
+
+      event.target.value = '';
+      await loadAdminBundle();
+      renderPecasView();
+      showToast(`${files.length === 1 ? 'Peça enviada' : files.length + ' peças enviadas'} com sucesso para o Banco de Peças!`);
+    }
+
+    // Anexar ou substituir o arquivo (.docx, .pdf, .doc) em uma peca ja existente
+    async function handleAttachFileToExistingPeca(event, pecaId) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const p = (APP.admin.pecas_modelos || []).find(x => x.id === pecaId);
+      if (!p) return;
+
+      showToast(`Anexando arquivo "${file.name}" em "${p.titulo}"...`, 'info');
+      try {
+        const targetVault = getActiveUploadVault();
+        const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const rawPath = `pecas_modelos/${safeName}`;
+        const storedPath = targetVault.id === 'vault_1' ? rawPath : `vault:${targetVault.id}:${rawPath}`;
+
+        const { error: upErr } = await storageClient(targetVault.id).upload(rawPath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+        if (upErr) throw upErr;
+
+        const { error: saveErr } = await sb.rpc('legal_save_record', {
+          p_token: APP.token,
+          p_table: 'legal_pecas_modelos',
+          p_record: {
+            ...p,
+            nome_arquivo: file.name,
+            storage_path: storedPath,
+            tamanho_bytes: file.size || 0,
+            mime_type: file.type || 'application/octet-stream'
+          }
+        });
+        if (saveErr) throw saveErr;
+
+        event.target.value = '';
+        await loadAdminBundle();
+        renderPecasView();
+        showToast(`Arquivo "${file.name}" vinculado com sucesso! Agora basta clicar em Baixar Arquivo.`);
+      } catch (err) {
+        showToast('Erro no upload: ' + (err.message || err), 'error');
+      }
+    }
+
+    // Faz o download do arquivo original (.docx, .pdf, .doc) enviado pela advogada
+    async function downloadPecaArquivo(pecaId) {
+      const p = (APP.admin.pecas_modelos || []).find(x => x.id === pecaId);
+      if (!p) return showToast('Peça não encontrada.', 'error');
+
+      if (p.storage_path === 'external_drive' || (p.file_url && /^https:\/\//i.test(p.file_url))) {
+        window.open(p.file_url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      let rawPath = p.storage_path || '';
+      if (!rawPath) {
+        return downloadPecaWordPreenchida(pecaId);
+      }
+
+      let vaultId = 'vault_1';
+      if (rawPath.startsWith('vault:')) {
+        const parts = rawPath.split(':');
+        if (parts.length >= 3) {
+          vaultId = parts[1];
+          rawPath = parts.slice(2).join(':');
+        }
+      }
+
+      const { data, error } = await storageClient(vaultId).createSignedUrl(rawPath, 300, {
+        download: p.nome_arquivo || true
+      });
+      if (error || !data || !data.signedUrl) {
+        return showToast('Não foi possível gerar o link de download do arquivo.', 'error');
+      }
+
+      const a = document.createElement('a');
+      a.href = data.signedUrl;
+      a.download = p.nome_arquivo || 'peca_juridica';
+      a.target = '_blank';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast(`Download de "${p.nome_arquivo || p.titulo}" iniciado!`);
+    }
+
+    // Gera e baixa um arquivo Word (.doc) ja preenchido com os dados do cliente selecionado
+    function downloadPecaWordPreenchida(pecaId) {
+      const p = (APP.admin.pecas_modelos || []).find(x => x.id === pecaId);
+      if (!p) return showToast('Modelo não encontrado.', 'error');
+
+      const { cli, proc } = getSelectedPecasCliente();
+      const filledText = applyClienteVariablesToText(p.conteudo_modelo || p.descricao || p.titulo, cli, proc);
+      const paragraphsHtml = filledText
+        .split(/\r?\n/)
+        .map(line => {
+          const trimmed = line.trim();
+          if (!trimmed) return '<p style="margin: 0 0 8pt 0;">&nbsp;</p>';
+          const isHeader = trimmed === trimmed.toUpperCase() && trimmed.length > 5 && !trimmed.startsWith('_');
+          const align = trimmed.startsWith('EXCELENTÍSSIMO') || trimmed.startsWith('PROCURAÇÃO') || trimmed.startsWith('DECLARAÇÃO') || trimmed.startsWith('CONTRATO') || trimmed.startsWith('AÇÃO ')
+            ? 'center'
+            : 'justify';
+          return `<p style="margin: 0 0 8pt 0; text-align: ${align}; line-height: 1.5; font-family: 'Times New Roman', serif; font-size: 12pt; ${isHeader ? 'font-weight: bold;' : ''}">${esc(trimmed)}</p>`;
+        })
+        .join('');
+
+      const wordHtml = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8">
+  <title>${esc(p.titulo)}</title>
+  <style>
+    @page { size: 21cm 29.7cm; margin: 2.5cm 2.5cm 2.5cm 3cm; }
+    body { font-family: 'Times New Roman', serif; font-size: 12pt; color: #000000; }
+  </style>
+</head>
+<body>
+  <div style="text-align: center; border-bottom: 1px solid #8C6B32; padding-bottom: 8pt; margin-bottom: 18pt; font-family: 'Times New Roman', serif;">
+    <strong style="font-size: 13pt; color: #5C1618;">NATHALIA LISBOA — ADVOCACIA &amp; ASSISTÊNCIA JURÍDICA</strong><br>
+    <span style="font-size: 10pt; color: #444444;">OAB/RJ 219.544 • Tel/WhatsApp: (21) 98180-1373 • Rio de Janeiro/RJ</span>
+  </div>
+  ${paragraphsHtml}
+</body>
+</html>`;
+
+      const blob = new Blob(['\ufeff', wordHtml], { type: 'application/msword;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const cliSlug = cli && cli.nome ? '_' + cli.nome.split(' ').slice(0, 2).join('_').replace(/[^a-zA-Z0-9_]/g, '') : '';
+      const baseName = (p.titulo || 'Peca_Juridica').replace(/[^a-zA-Z0-9À-ÿ _-]/g, '').replace(/\s+/g, '_');
+      const fileName = `${baseName}${cliSlug}.doc`;
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      showToast(`Peça "${fileName}" baixada com os dados de ${cli && cli.nome ? cli.nome : 'modelo'}!`);
+    }
+
+    function openPecaModeloModal(pecaId = null) {
+      const p = (APP.admin.pecas_modelos || []).find(x => x.id === pecaId) || {
+        id: '',
+        titulo: '',
+        categoria: 'Petições Iniciais',
+        area_direito: 'Cível / Consumidor',
+        descricao: '',
+        conteudo_modelo: '',
+        nome_arquivo: '',
+        file_url: ''
+      };
+      const { cli, proc } = getSelectedPecasCliente();
+
+      openModal(`
+        <form onsubmit="savePecaModeloForm(event)" class="space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-slate-800">
+            <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+              ${p.id ? 'Visualizar / Editar Peça do Acervo' : 'Cadastrar Nova Peça / Modelo no Banco de Peças'}
+            </h3>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-800">✕</button>
+          </div>
+
+          <input type="hidden" id="f-peca-id" value="${esc(p.id)}">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="sm:col-span-2">
+              <label class="font-bold block mb-1">Título da Peça / Documento *</label>
+              <input id="f-peca-titulo" required value="${esc(p.titulo)}" placeholder="Ex: Petição Inicial — Obrigação de Fazer (Plano de Saúde)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-bold">
+            </div>
+
+            <div>
+              <label class="font-bold block mb-1">Categoria *</label>
+              <select id="f-peca-cat" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+                ${['Procuração & Kit Inicial', 'Contratos de Honorários', 'Petições Iniciais', 'Recursos & Embargos', 'Execução & Cumprimento', 'Outros Modelos'].map(cat =>
+                  `<option value="${cat}" ${p.categoria === cat ? 'selected' : ''}>${cat}</option>`
+                ).join('')}
+              </select>
+            </div>
+
+            <div>
+              <label class="font-bold block mb-1">Área do Direito</label>
+              <input id="f-peca-area" value="${esc(p.area_direito || 'Cível / Consumidor')}" placeholder="Ex: Cível / Consumidor / Saúde"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="font-bold block mb-1">Resumo / Observação de Uso</label>
+              <input id="f-peca-desc" value="${esc(p.descricao || '')}" placeholder="Ex: Modelo pré-pronto para ações contra planos de saúde e Estado..."
+                class="w-full px-3.5 py-2 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+            </div>
+
+            <div class="sm:col-span-2 p-3.5 rounded-2xl bg-[#FDF8EE] dark:bg-slate-800 border border-[#C8A25A]/50 space-y-2">
+              <label class="font-extrabold text-[#5C1618] dark:text-[#E5C888] block">
+                Upload do Arquivo Original do Computador (.docx, .doc, .pdf, .odt):
+              </label>
+              <input id="f-peca-file" type="file" accept=".doc,.docx,.pdf,.odt,.rtf,.txt"
+                class="w-full text-xs file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#5C1618] file:text-[#E5C888] hover:file:bg-[#3E0E10]">
+              ${p.nome_arquivo ? `<div class="text-[11px] text-emerald-700 dark:text-emerald-300 font-mono">Arquivo atual vinculado: <strong>${esc(p.nome_arquivo)}</strong></div>` : ''}
+            </div>
+
+            <div class="sm:col-span-2">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <label class="font-bold">Texto-Base / Minuta Editável (Opcional — preenche automaticamente os dados do cliente):</label>
+                ${cli && cli.id ? `
+                  <button type="button" onclick="document.getElementById('f-peca-texto').value = applyClienteVariablesToText(document.getElementById('f-peca-texto').value, getSelectedPecasCliente().cli, getSelectedPecasCliente().proc); showToast('Dados de ${esc(cli.nome)} aplicados no texto!');"
+                    class="px-2.5 py-1 rounded-lg bg-[#5C1618] text-[#E5C888] text-[11px] font-bold">
+                    Preencher Agora com ${esc(cli.nome.split(' ')[0])}
+                  </button>
+                ` : ''}
+              </div>
+              <p class="text-[11px] text-slate-400 mb-1.5">
+                Variáveis automáticas: <code>{{NOME_CLIENTE}}</code>, <code>{{CPF_CLIENTE}}</code>, <code>{{ENDERECO_CLIENTE}}</code>, <code>{{ESTADO_CIVIL}}</code>, <code>{{PROFISSAO}}</code>, <code>{{PARTE_CONTRARIA}}</code>, <code>{{VARA_COMARCA}}</code>, <code>{{DATA_HOJE}}</code>
+              </p>
+              <textarea id="f-peca-texto" rows="9" placeholder="Cole aqui o texto da sua peça ou deixe em branco se preferir apenas baixar o arquivo .docx enviado acima..."
+                class="w-full p-3.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-serif text-xs sm:text-sm leading-relaxed">${esc(p.conteudo_modelo || '')}</textarea>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-stone-200 dark:border-slate-800">
+            <div>
+              ${p.conteudo_modelo ? `
+                <button type="button" onclick="copyTextToClipboard(applyClienteVariablesToText(document.getElementById('f-peca-texto').value, getSelectedPecasCliente().cli, getSelectedPecasCliente().proc), 'Texto preenchido copiado para colar no Word!')"
+                  class="px-3.5 py-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 text-xs font-bold text-slate-700 dark:text-slate-200">
+                  Copiar Texto Preenchido
+                </button>
+              ` : ''}
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border text-xs font-bold">Cancelar</button>
+              <button type="submit" class="px-5 py-2 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold">Salvar no Banco de Peças</button>
+            </div>
+          </div>
+        </form>
+      `);
+      refreshIcons();
+    }
+
+    async function savePecaModeloForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('f-peca-id').value;
+      const existing = (APP.admin.pecas_modelos || []).find(x => x.id === id) || {};
+      const fileInput = document.getElementById('f-peca-file');
+      const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+
+      let nomeArquivo = existing.nome_arquivo || '';
+      let storagePath = existing.storage_path || '';
+      let tamanhoBytes = existing.tamanho_bytes || 0;
+      let mimeType = existing.mime_type || '';
+
+      if (file) {
+        showToast(`Enviando arquivo "${file.name}"...`, 'info');
+        const targetVault = getActiveUploadVault();
+        const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const rawPath = `pecas_modelos/${safeName}`;
+        storagePath = targetVault.id === 'vault_1' ? rawPath : `vault:${targetVault.id}:${rawPath}`;
+
+        const { error: upErr } = await storageClient(targetVault.id).upload(rawPath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+        if (upErr) {
+          return showToast('Erro no upload do arquivo: ' + (upErr.message || upErr), 'error');
+        }
+        nomeArquivo = file.name;
+        tamanhoBytes = file.size || 0;
+        mimeType = file.type || 'application/octet-stream';
+      }
+
+      const rec = {
+        id,
+        titulo: document.getElementById('f-peca-titulo').value.trim(),
+        categoria: document.getElementById('f-peca-cat').value,
+        area_direito: document.getElementById('f-peca-area').value.trim(),
+        descricao: document.getElementById('f-peca-desc').value.trim(),
+        conteudo_modelo: document.getElementById('f-peca-texto').value,
+        nome_arquivo: nomeArquivo,
+        storage_path: storagePath,
+        file_url: existing.file_url || '',
+        tamanho_bytes: tamanhoBytes,
+        mime_type: mimeType
+      };
+
+      const { error } = await sb.rpc('legal_save_record', {
+        p_token: APP.token,
+        p_table: 'legal_pecas_modelos',
+        p_record: rec
+      });
+      if (error) return showToast('Erro ao salvar peça: ' + error.message, 'error');
+
+      closeModal();
+      await loadAdminBundle();
+      renderPecasView();
+      showToast('Peça salva com sucesso no Banco de Peças!');
     }
 
     // Inicialização automática
