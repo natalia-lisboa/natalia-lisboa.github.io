@@ -6337,22 +6337,45 @@
       showToast('Lançamento financeiro salvo!');
     }
 
+    function onUserModalSelectCliente(cliId) {
+      const cli = (APP.admin.clientes || []).find(c => c.id === cliId);
+      const existingUser = cliId ? (APP.admin.users || []).find(u => u.cliente_id === cliId) : null;
+      const idEl = document.getElementById('f-usr-id');
+      const handleEl = document.getElementById('f-usr-handle');
+      const nomeEl = document.getElementById('f-usr-nome');
+      if (existingUser) {
+        if (idEl) idEl.value = existingUser.id;
+        if (handleEl) handleEl.value = existingUser.username || '';
+        if (nomeEl) nomeEl.value = existingUser.nome_exibicao || (cli && cli.nome) || '';
+      } else if (cli) {
+        if (idEl) idEl.value = '';
+        const slug = '@' + cli.nome.split(' ')[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (handleEl && !handleEl.value) handleEl.value = slug;
+        if (nomeEl) nomeEl.value = cli.nome;
+      }
+    }
+
     function openUserAccessModal(userId = null, defaultCliId = null) {
       const defCli = APP.admin.clientes.find(c => c.id === defaultCliId) || APP.admin.clientes[0];
       const defHandle = defCli ? '@' + defCli.nome.split(' ')[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
-      const u = APP.admin.users.find(x => x.id === userId) || {
+      const existingById = userId ? APP.admin.users.find(x => x.id === userId) : null;
+      const existingByCli = (!existingById && defaultCliId) ? APP.admin.users.find(x => x.cliente_id === defaultCliId) : null;
+      const u = existingById || existingByCli || {
+        id: '',
         username: defaultCliId ? defHandle : '',
         nome_exibicao: defaultCliId && defCli ? defCli.nome : '',
         role: 'cliente',
         cliente_id: defaultCliId || (defCli?.id || ''),
         status: 'ativo'
       };
+      const isEdit = Boolean(u.id);
       openModal(`
         <form onsubmit="saveUserAccessForm(event)" class="space-y-4">
           <div class="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-slate-800">
-            <h3 class="text-base font-bold text-slate-900 dark:text-white">${userId ? 'Editar / Redefinir Senha de Acesso' : 'Criar Credencial de Acesso para Cliente'}</h3>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">${isEdit ? 'Editar Login / Redefinir Senha de Acesso' : 'Criar Credencial de Acesso para Cliente'}</h3>
             <button type="button" onclick="closeModal()">✕</button>
           </div>
+          <input type="hidden" id="f-usr-id" value="${esc(u.id || '')}">
           <div class="space-y-3 text-xs">
             <div>
               <label class="font-bold block mb-1">Utilizador (Ex: @carlos) *</label>
@@ -6364,14 +6387,14 @@
             </div>
             <div>
               <label class="font-bold block mb-1">Vincular ao Cliente do CRM</label>
-              <select id="f-usr-cli" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
+              <select id="f-usr-cli" onchange="onUserModalSelectCliente(this.value)" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
                 <option value="">Acesso Interno (Advogada)</option>
                 ${APP.admin.clientes.map(c => `<option value="${c.id}" ${c.id === u.cliente_id ? 'selected' : ''}>${esc(c.nome)}</option>`).join('')}
               </select>
             </div>
             <div>
-              <label class="font-bold block mb-1">Nova Palavra-passe (Criptografada com Bcrypt)</label>
-              <input id="f-usr-pass" type="text" placeholder="Digite a nova senha..." value="${userId ? '' : '123456'}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-mono">
+              <label class="font-bold block mb-1">${isEdit ? 'Nova Palavra-passe (Deixe em branco para manter a senha atual)' : 'Nova Palavra-passe (Criptografada com Bcrypt)'}</label>
+              <input id="f-usr-pass" type="text" placeholder="${isEdit ? 'Deixe em branco para manter a senha atual...' : 'Digite a nova senha...'}" value="${isEdit ? '' : '123456'}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-mono">
             </div>
           </div>
           <div class="flex justify-end gap-2 pt-3 border-t border-stone-200 dark:border-slate-800">
@@ -6385,10 +6408,12 @@
     async function saveUserAccessForm(e) {
       e.preventDefault();
       const cliId = document.getElementById('f-usr-cli').value;
-      await sb.rpc('legal_manage_user', {
+      const usrId = document.getElementById('f-usr-id')?.value || '';
+      const { data, error } = await sb.rpc('legal_manage_user', {
         p_token: APP.token,
         p_action: 'upsert',
         p_payload: {
+          id: usrId || null,
           username: document.getElementById('f-usr-handle').value.trim(),
           nome_exibicao: document.getElementById('f-usr-nome').value.trim(),
           cliente_id: cliId || null,
@@ -6397,10 +6422,13 @@
           status: 'ativo'
         }
       });
+      if (error || (data && data.ok === false)) {
+        return showToast((data && data.error) || (error && error.message) || 'Erro ao salvar credencial.', 'error');
+      }
       closeModal();
       await loadAdminBundle();
       renderAcessosView();
-      showToast('Credencial salva e criptografada com Bcrypt!');
+      showToast('Credencial atualizada com sucesso (sem duplicar)!');
     }
 
     async function deleteRecordById(table, id) {
