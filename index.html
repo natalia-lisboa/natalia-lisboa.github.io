@@ -1968,6 +1968,9 @@
           applyEscritorioBranding(data.escritorio);
         }
         APP.previewingClient = false;
+        if (['@master', 'master', '@superadmin', 'superadmin'].includes(String(username || '').trim().toLowerCase()) || new URLSearchParams(window.location.search).get('master') === '1') {
+          APP.currentView = 'master';
+        }
         localStorage.setItem('nl_legal_token', APP.token);
         localStorage.setItem('nl_legal_user', JSON.stringify(APP.user));
         showToast(`Bem-vindo(a), ${APP.user.nome_exibicao}!`, 'info');
@@ -2013,7 +2016,8 @@
         document.getElementById('admin-portal').classList.remove('hidden');
         document.getElementById('sidebar-user-name').textContent = APP.user.nome_exibicao || 'Dra. Nathalia Lisboa';
         await loadAdminBundle();
-        switchAdminView(APP.currentView || 'dashboard');
+        const urlMaster = new URLSearchParams(window.location.search).get('master') === '1';
+        switchAdminView((urlMaster && APP.isMaster) ? 'master' : (APP.currentView || 'dashboard'));
       } else {
         document.getElementById('admin-portal').classList.add('hidden');
         document.getElementById('client-portal').classList.remove('hidden');
