@@ -5260,6 +5260,22 @@
 
     async function loadPublicBrandingFromUrl() {
       const slug = getUrlTenantSlug();
+      if (!slug && window.location.hostname.includes('minhaempresacrm.github.io')) {
+        const neutralBrand = {
+          id: '00000000-0000-4000-8000-000000000000',
+          slug: 'rpmaster-portal',
+          nome_escritorio: 'PORTAL JURÍDICO',
+          subtitulo: 'PLATAFORMA WHITE-LABEL • RPMASTER',
+          nome_advogado: 'Advogado(a) / Cliente',
+          oab_registro: 'ACESSO SEGURO',
+          cor_primaria: '#1E293B',
+          cor_destaque: '#22D3EE',
+          logo_url: ''
+        };
+        APP.publicBranding = neutralBrand;
+        applyEscritorioBranding(neutralBrand);
+        return;
+      }
       try {
         const { data, error } = await sb.rpc('legal_get_public_branding', {
           p_slug: slug || 'nathalia-lisboa'
