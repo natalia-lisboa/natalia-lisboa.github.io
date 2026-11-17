@@ -671,6 +671,14 @@
           </button>
         </div>
       </div>
+      <!-- Banner de Comunicado / Aviso Global enviado pelo RPMASTER -->
+      <div id="rpmaster-aviso-banner" class="hidden bg-indigo-950 text-indigo-100 border-b border-cyan-400/30 px-4 sm:px-8 py-2.5 text-xs font-semibold flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded-md bg-cyan-400/20 text-cyan-300 font-extrabold text-[10px] uppercase tracking-wider">RPMASTER</span>
+          <span id="rpmaster-aviso-text"></span>
+        </div>
+        <button type="button" onclick="document.getElementById('rpmaster-aviso-banner').classList.add('hidden')" class="text-indigo-300 hover:text-white text-[11px] font-bold">Dispensar</button>
+      </div>
       <!-- Barra Superior Desktop (Liquid Glass + Hierarquia Editorial) -->
       <div class="sticky top-0 z-20 bg-[#F8F5EF]/88 dark:bg-slate-950/88 backdrop-blur-xl border-b border-[#C8A25A]/30 dark:border-slate-800 px-4 sm:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3 shadow-[0_4px_20px_-6px_rgba(62,14,16,0.05)]">
         <div class="flex items-center gap-3.5">
@@ -2000,6 +2008,69 @@
       refreshIcons();
     }
 
+    const VIEW_TO_MODULE = {
+      'caixa-entrada': 'caixa_entrada',
+      'clientes': 'clientes',
+      'pipeline': 'pipeline',
+      'datajud': 'datajud',
+      'pecas': 'pecas',
+      'kanban': 'kanban',
+      'financeiro': 'financeiro'
+    };
+
+    function isModuleEnabled(modKey) {
+      if (!modKey) return true;
+      const escObj = getActiveOfficeObj();
+      const mods = escObj && escObj.config_json && escObj.config_json.modulos;
+      if (!mods || typeof mods !== 'object') return true;
+      if (modKey in mods) return Boolean(mods[modKey]);
+      return true;
+    }
+
+    function applyModuleLocksUI() {
+      document.querySelectorAll('.admin-nav-btn[data-nav]').forEach(btn => {
+        const nav = btn.getAttribute('data-nav');
+        if (nav === 'master') return;
+        const mod = VIEW_TO_MODULE[nav];
+        if (mod) {
+          btn.classList.toggle('hidden', !isModuleEnabled(mod));
+        }
+      });
+
+      const escObj = getActiveOfficeObj();
+      const aviso = escObj && escObj.config_json && escObj.config_json.aviso_rpmaster;
+      const banner = document.getElementById('rpmaster-aviso-banner');
+      const txt = document.getElementById('rpmaster-aviso-text');
+      if (banner && txt) {
+        if (aviso && String(aviso).trim()) {
+          txt.textContent = String(aviso).trim();
+          banner.classList.remove('hidden');
+        } else {
+          banner.classList.add('hidden');
+        }
+      }
+    }
+
+    function consumeRpmasterImpersonateParams() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const rpmTk = params.get('rpm_token');
+        const rpmUserRaw = params.get('rpm_user');
+        if (rpmTk && rpmUserRaw) {
+          APP.token = rpmTk;
+          APP.user = JSON.parse(rpmUserRaw);
+          APP.isMaster = false;
+          localStorage.setItem('nl_legal_token', APP.token);
+          localStorage.setItem('nl_legal_user', JSON.stringify(APP.user));
+          params.delete('rpm_token');
+          params.delete('rpm_user');
+          const qs = params.toString();
+          const cleanUrl = window.location.pathname + (qs ? '?' + qs : '');
+          window.history.replaceState({}, '', cleanUrl);
+        }
+      } catch (_) {}
+    }
+
     async function routeAfterAuth() {
       if (!APP.token || !APP.user) {
         document.getElementById('login-screen').classList.remove('hidden');
@@ -2149,6 +2220,11 @@
     }
 
     function switchAdminView(viewName) {
+      const modReq = VIEW_TO_MODULE[viewName];
+      if (modReq && !isModuleEnabled(modReq)) {
+        showToast('Esta área foi desativada para este escritório pelo RPMASTER.', 'error');
+        viewName = 'dashboard';
+      }
       APP.currentView = viewName;
       document.querySelectorAll('.admin-view').forEach(el => el.classList.add('hidden'));
       const target = document.getElementById(`view-${viewName}`);
@@ -6318,9 +6394,7 @@
                 <button type="button" onclick="openWhiteLabelConfigModal()" class="px-3.5 py-2 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold flex items-center gap-1.5">
                   <i data-lucide="palette" class="w-3.5 h-3.5"></i> Personalizar Marca / WhatsApp
                 </button>
-                <button type="button" onclick="openNewTenantModal()" class="px-3.5 py-2 rounded-xl bg-[#FDF8EE] hover:bg-[#F5E8CE] text-[#5C1618] border border-[#C8A25A] text-xs font-bold flex items-center gap-1.5">
-                  <i data-lucide="building-2" class="w-3.5 h-3.5"></i> + Novo Escritório Cliente (SaaS)
-                </button>
+
               </div>
             </div>
           </div>
@@ -8319,6 +8393,7 @@
         document.documentElement.classList.add('dark');
       }
       refreshIcons();
+      consumeRpmasterImpersonateParams();
       await loadPublicBrandingFromUrl();
       await routeAfterAuth();
     });

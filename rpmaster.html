@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://zlnaushxdvuznlwmongk.supabase.co wss://zlnaushxdvuznlwmongk.supabase.co https://api-publica.datajud.cnj.jus.br;">
+  <title>RPMASTER — Centro de Comando SaaS & Fábrica White-Label</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234F46E5'/%3E%3Cstop offset='50%25' stop-color='%237C3AED'/%3E%3Cstop offset='100%25' stop-color='%2322D3EE'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%23090D16'/%3E%3Cpath d='M32 6L54 18V46L32 58L10 46V18L32 6Z' fill='url(%23g)' fill-opacity='0.22' stroke='url(%23g)' stroke-width='3'/%3E%3Cpath d='M22 42V22H34C38.5 22 41 24.5 41 28.5C41 32.5 38.5 35 34 35H27V42H22ZM27 30.5H33.5C35.2 30.5 36.2 29.7 36.2 28.5C36.2 27.3 35.2 26.5 33.5 26.5H27V30.5Z' fill='%23FFFFFF'/%3E%3Ccircle cx='43' cy='41' r='4' fill='%2322D3EE'/%3E%3C/svg%3E">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap');
+
+    :root {
+      --rpm-bg: #070B14;
+      --rpm-surface: #0F1629;
+      --rpm-border: rgba(99, 102, 241, 0.22);
+      --rpm-indigo: #4F46E5;
+      --rpm-cyan: #22D3EE;
+    }
+
+    body {
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      background-color: var(--rpm-bg);
+      background-image:
+        radial-gradient(900px 420px at 15% -10%, rgba(79, 70, 229, 0.22), transparent 65%),
+        radial-gradient(800px 380px at 90% 0%, rgba(34, 211, 238, 0.14), transparent 65%);
+      background-attachment: fixed;
+      color: #E2E8F0;
+    }
+
+    .font-display { font-family: 'Space Grotesk', 'Outfit', sans-serif; letter-spacing: -0.03em; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+
+    .rpm-glass {
+      background: rgba(15, 22, 41, 0.78);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+    }
+
+    .rpm-card {
+      background: linear-gradient(180deg, rgba(17, 25, 46, 0.96) 0%, rgba(11, 17, 32, 0.98) 100%);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      box-shadow: 0 20px 44px -18px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+    .rpm-card:hover {
+      border-color: rgba(34, 211, 238, 0.38);
+    }
+
+    .rpm-glow-btn {
+      background: linear-gradient(135deg, #4F46E5 0%, #6366F1 45%, #06B6D4 100%);
+      box-shadow: 0 10px 28px -8px rgba(79, 70, 229, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      transition: transform 160ms ease, filter 160ms ease;
+    }
+    .rpm-glow-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .rpm-glow-btn:active { transform: translateY(0) scale(0.98); }
+
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(34, 211, 238, 0.65); }
+  </style>
+</head>
+<body class="min-h-[100dvh] antialiased selection:bg-indigo-500 selection:text-white">
+
+  <div id="toast-box" class="fixed top-4 right-4 z-[120] flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- =======================================================================
+       1. TELA DE LOGIN EXCLUSIVA RPMASTER
+       ======================================================================= -->
+  <section id="rpm-login-screen" class="min-h-[100dvh] flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
+    <div class="w-full max-w-[430px] rpm-card rounded-3xl overflow-hidden relative z-10">
+      <div class="h-1.5 w-full bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-400"></div>
+      <div class="p-7 sm:p-9 space-y-6">
+        <div class="flex flex-col items-center text-center">
+          <!-- LOGO MODERNO RPMASTER (SVG Vetorial Prismático) -->
+          <div class="mb-4 relative">
+            <div class="absolute inset-0 bg-cyan-400/20 blur-2xl rounded-full"></div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" class="w-20 h-20 relative drop-shadow-[0_12px_24px_rgba(79,70,229,0.45)]">
+              <defs>
+                <linearGradient id="rpmLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#4F46E5"/>
+                  <stop offset="50%" stop-color="#7C3AED"/>
+                  <stop offset="100%" stop-color="#22D3EE"/>
+                </linearGradient>
+                <linearGradient id="rpmCoreGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#FFFFFF"/>
+                  <stop offset="100%" stop-color="#A5F3FC"/>
+                </linearGradient>
+              </defs>
+              <rect x="4" y="4" width="80" height="80" rx="22" fill="#0B1120" stroke="url(#rpmLogoGrad)" stroke-width="2.5"/>
+              <path d="M44 13L69 26.5V61.5L44 75L19 61.5V26.5L44 13Z" fill="url(#rpmLogoGrad)" fill-opacity="0.16" stroke="url(#rpmLogoGrad)" stroke-width="2"/>
+              <path d="M29 56V30H45.5C51.2 30 54.8 33.2 54.8 38.4C54.8 42.3 52.7 45.1 49.1 46.2L56 56H48.6L42.5 47H35.5V56H29ZM35.5 41.6H44.6C47 41.6 48.3 40.4 48.3 38.5C48.3 36.6 47 35.4 44.6 35.4H35.5V41.6Z" fill="url(#rpmCoreGrad)"/>
+              <circle cx="60" cy="54" r="4.5" fill="#22D3EE"/>
+            </svg>
+          </div>
+
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-400/30 text-[10px] font-extrabold uppercase tracking-[0.2em] text-cyan-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span> Centro de Comando SaaS
+          </div>
+          <h1 class="font-display text-3xl font-bold tracking-tight text-white mt-3">
+            RP<span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300">MASTER</span>
+          </h1>
+          <p class="text-xs text-slate-400 mt-1">
+            Painel Supremo de Controle, Bloqueios, Áreas & Fábrica White-Label
+          </p>
+        </div>
+
+        <form onsubmit="handleRpmLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Usuário Super-Admin</label>
+            <div class="relative">
+              <i data-lucide="shield" class="w-4 h-4 text-cyan-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input id="rpm-user" type="text" required autocomplete="username" placeholder="@rpmaster"
+                class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950/80 border border-slate-700/80 focus:border-cyan-400 focus:outline-none text-sm font-mono text-white">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Senha Mestra</label>
+            <div class="relative">
+              <i data-lucide="key-round" class="w-4 h-4 text-cyan-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input id="rpm-pass" type="password" required autocomplete="current-password" placeholder="••••••••••••"
+                class="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-950/80 border border-slate-700/80 focus:border-cyan-400 focus:outline-none text-sm font-mono text-white">
+              <button type="button" onclick="const i=document.getElementById('rpm-pass'); i.type=i.type==='password'?'text':'password';"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="rpm-login-err" class="hidden p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-xs font-semibold text-rose-300"></div>
+
+          <button id="rpm-login-btn" type="submit" class="w-full py-3.5 rounded-xl rpm-glow-btn text-white font-extrabold text-sm flex items-center justify-center gap-2 cursor-pointer">
+            <i data-lucide="terminal" class="w-4 h-4"></i> Acessar Centro de Comando RPMASTER
+          </button>
+        </form>
+
+        <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+          <span>Acesso Restrito • Zero-Trust</span>
+          <a href="./index.html" class="text-cyan-400 hover:underline font-semibold">Ir para Portal dos Escritórios →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       2. PAINEL DE COMANDO RPMASTER
+       ======================================================================= -->
+  <div id="rpm-app-shell" class="hidden min-h-[100dvh] flex flex-col">
+
+    <!-- Topbar RPMASTER -->
+    <header class="sticky top-0 z-40 rpm-glass border-b border-slate-800/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <!-- Logo Inline Moderno RPMASTER -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" class="w-10 h-10 shrink-0">
+            <defs>
+              <linearGradient id="rpmTopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4F46E5"/>
+                <stop offset="50%" stop-color="#7C3AED"/>
+                <stop offset="100%" stop-color="#22D3EE"/>
+              </linearGradient>
+            </defs>
+            <rect x="4" y="4" width="80" height="80" rx="22" fill="#0B1120" stroke="url(#rpmTopGrad)" stroke-width="3"/>
+            <path d="M44 14L68 27V61L44 74L20 61V27L44 14Z" fill="url(#rpmTopGrad)" fill-opacity="0.2" stroke="url(#rpmTopGrad)" stroke-width="2"/>
+            <path d="M29 56V30H45.5C51.2 30 54.8 33.2 54.8 38.4C54.8 42.3 52.7 45.1 49.1 46.2L56 56H48.6L42.5 47H35.5V56H29ZM35.5 41.6H44.6C47 41.6 48.3 40.4 48.3 38.5C48.3 36.6 47 35.4 44.6 35.4H35.5V41.6Z" fill="#FFFFFF"/>
+            <circle cx="60" cy="54" r="4.5" fill="#22D3EE"/>
+          </svg>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-display text-xl font-bold text-white tracking-tight">
+                RP<span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300">MASTER</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-500/15 text-cyan-300 border border-cyan-400/30">
+                SaaS HQ
+              </span>
+            </div>
+            <div class="text-[11px] text-slate-400">Fábrica White-Label • Comando Global de Bloqueios & Áreas</div>
+          </div>
+        </div>
+
+        <!-- Abas de Navegação -->
+        <nav class="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-2xl border border-slate-800">
+          <button type="button" onclick="switchRpmTab('sistemas')" data-rpmtab="sistemas"
+            class="rpm-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="layers" class="w-3.5 h-3.5"></i> Sistemas & Áreas
+          </button>
+          <button type="button" onclick="switchRpmTab('auditoria')" data-rpmtab="auditoria"
+            class="rpm-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="scroll-text" class="w-3.5 h-3.5"></i> Auditoria Global
+          </button>
+          <button type="button" onclick="openChangePasswordModal()"
+            class="px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer" title="Alterar Senha Mestra">
+            <i data-lucide="lock" class="w-3.5 h-3.5 text-cyan-400"></i> Senha
+          </button>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="loadRpmDashboard(true)" class="px-3 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cyan-400"></i> Atualizar
+          </button>
+          <button type="button" onclick="openCreateSystemModal()" class="px-4 py-2 rounded-xl rpm-glow-btn text-white text-xs font-black flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="plus" class="w-4 h-4"></i> Criar Novo Sistema
+          </button>
+          <button type="button" onclick="handleRpmLogout()" class="p-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 cursor-pointer" title="Sair do RPMASTER">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <!-- KPIs Globais RPMASTER -->
+      <section id="rpm-kpis-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></section>
+
+      <!-- ABA 1: SISTEMAS, BLOQUEIOS & ÁREAS -->
+      <section id="rpm-pane-sistemas" class="space-y-5">
+        <div class="rpm-card rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2 flex-1 min-w-[240px]">
+            <div class="relative flex-1 max-w-md">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input id="rpm-search" type="text" oninput="renderTenantsGrid()" placeholder="Buscar sistema por marca, advogado(a), OAB, slug ou @login..."
+                class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/70 border border-slate-700/80 text-xs sm:text-sm text-white focus:border-cyan-400 focus:outline-none">
+            </div>
+            <select id="rpm-filter-status" onchange="renderTenantsGrid()"
+              class="px-3.5 py-2.5 rounded-xl bg-slate-950/70 border border-slate-700/80 text-xs font-bold text-slate-200 focus:border-cyan-400 focus:outline-none">
+              <option value="">Todos os Status</option>
+              <option value="ativos">Somente Ativos</option>
+              <option value="bloqueados">Suspensos / Bloqueados</option>
+            </select>
+          </div>
+          <div class="text-xs text-slate-400">
+            <span id="rpm-count-label" class="font-mono font-bold text-cyan-300">0</span> sistema(s) exibido(s)
+          </div>
+        </div>
+
+        <div id="rpm-tenants-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-5"></div>
+      </section>
+
+      <!-- ABA 2: AUDITORIA GLOBAL -->
+      <section id="rpm-pane-auditoria" class="hidden space-y-4">
+        <div class="rpm-card rounded-2xl p-5 overflow-x-auto">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-4 h-4 text-cyan-400"></i> Log de Auditoria Global do RPMASTER
+              </h2>
+              <p class="text-xs text-slate-400">Últimas 80 ações administrativas executadas na plataforma (criações, bloqueios, áreas e acessos).</p>
+            </div>
+          </div>
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-400">
+                <th class="py-2.5 px-3">Data / Hora</th>
+                <th class="py-2.5 px-3">Ator</th>
+                <th class="py-2.5 px-3">Ação</th>
+                <th class="py-2.5 px-3">Detalhes</th>
+              </tr>
+            </thead>
+            <tbody id="rpm-audit-tbody" class="divide-y divide-slate-800/70"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL GENÉRICO RPMASTER -->
+  <div id="rpm-modal-backdrop" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div id="rpm-modal-box" class="rpm-card rounded-3xl max-w-2xl w-full p-6 sm:p-7 my-8 max-h-[90vh] overflow-y-auto border border-indigo-500/30"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://zlnaushxdvuznlwmongk.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_U_vT8rFuKXlwF4_yUlfaUQ_WcXYtcbx';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    if (window.top !== window.self) {
+      try { window.top.location = window.self.location.href; } catch (_) { document.documentElement.style.display = 'none'; }
+    }
+
+    const SYSTEM_MODULES = [
+      { key: 'portal_cliente', label: 'Portal Externo do Cliente', desc: 'Acesso do cliente final, linha do tempo e tradutor IA' },
+      { key: 'clientes', label: 'CRM de Clientes & Cofre', desc: 'Cadastro de clientes, documentos e WhatsApp direto' },
+      { key: 'pipeline', label: 'Pipeline & Andamentos', desc: 'Fluxo de 9 etapas e publicação de andamentos' },
+      { key: 'datajud', label: 'Consulta CNJ (DataJud / DJEN)', desc: 'Sincronização automática com Tribunais' },
+      { key: 'pecas', label: 'Banco de Peças & Minutas', desc: 'Upload e preenchimento automático de petições' },
+      { key: 'kanban', label: 'Painel de Tarefas (Kanban)', desc: 'Quadro visual de prazos e checklists' },
+      { key: 'financeiro', label: 'Financeiro & Honorários', desc: 'Fluxo de caixa e carnês de parcelamento' },
+      { key: 'caixa_entrada', label: 'Dúvidas / Caixa de Entrada', desc: 'Perguntas enviadas pelos clientes no portal' }
+    ];
+
+    const COLOR_PRESETS = [
+      { name: 'Azul Imperial & Ouro', cor1: '#0F294A', cor2: '#D4AF37' },
+      { name: 'Vinho & Ouro', cor1: '#5C1618', cor2: '#C8A25A' },
+      { name: 'Esmeralda & Champanhe', cor1: '#064E3B', cor2: '#C8A25A' },
+      { name: 'Grafite & Ouro Velho', cor1: '#18181B', cor2: '#C5A059' },
+      { name: 'Indigo & Cyan', cor1: '#312E81', cor2: '#22D3EE' },
+      { name: 'Terracota & Bronze', cor1: '#7C2D12', cor2: '#D97706' }
+    ];
+
+    const DEFAULT_AREAS_JURIDICAS = [
+      'Direito Cível & Consumidor',
+      'Direito Trabalhista',
+      'Direito Previdenciário',
+      'Direito de Família & Sucessões',
+      'Contratos & Execuções'
+    ];
+
+    const RPM = {
+      token: localStorage.getItem('rpm_master_token') || '',
+      username: localStorage.getItem('rpm_master_user') || '@rpmaster',
+      tab: 'sistemas',
+      saude: null,
+      escritorios: [],
+      auditoria: []
+    };
+
+    function esc(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function fmtMoney(v) {
+      return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function fmtDateTime(dStr) {
+      if (!dStr) return '—';
+      const d = new Date(dStr);
+      if (isNaN(d.getTime())) return dStr;
+      return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function refreshIcons() {
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function showToast(msg, type = 'success') {
+      const box = document.getElementById('toast-box');
+      if (!box) return;
+      const el = document.createElement('div');
+      const cls = type === 'error'
+        ? 'bg-rose-950/95 border-rose-500/60 text-rose-100'
+        : type === 'info'
+        ? 'bg-indigo-950/95 border-cyan-400/60 text-cyan-100'
+        : 'bg-emerald-950/95 border-emerald-400/60 text-emerald-100';
+      el.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-2xl text-xs font-bold flex items-center justify-between gap-3 ${cls}`;
+      el.innerHTML = `<span>${esc(msg)}</span><button type="button" onclick="this.parentElement.remove()" class="opacity-70 hover:opacity-100">✕</button>`;
+      box.appendChild(el);
+      setTimeout(() => { if (el.parentElement) el.remove(); }, 4500);
+    }
+
+    function openModal(html) {
+      document.getElementById('rpm-modal-box').innerHTML = html;
+      document.getElementById('rpm-modal-backdrop').classList.remove('hidden');
+      refreshIcons();
+    }
+
+    function closeModal() {
+      document.getElementById('rpm-modal-backdrop').classList.add('hidden');
+    }
+
+    function copyText(txt, msg = 'Copiado!') {
+      navigator.clipboard.writeText(txt).then(() => showToast(msg)).catch(() => showToast('Não foi possível copiar automaticamente.', 'error'));
+    }
+
+    function buildClientUrl(slug) {
+      const url = new URL('./index.html', window.location.href);
+      if (slug && slug !== 'nathalia-lisboa') {
+        url.searchParams.set('escritorio', slug);
+      }
+      return url.toString();
+    }
+
+    function computeInitials(str) {
+      const words = String(str || 'RP').replace(/^(dr\.?|dra\.?|escrit[oó]rio|advocacia)\s+/i, '').trim().split(/\s+/).filter(Boolean);
+      if (words.length === 0) return 'AD';
+      if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+      return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+    }
+
+    function shadeHex(hex, pct) {
+      let c = String(hex || '#4F46E5').replace(/[^0-9a-fA-F]/g, '');
+      if (c.length !== 6) c = '4F46E5';
+      const num = parseInt(c, 16);
+      const clamp = n => Math.max(0, Math.min(255, n));
+      const r = clamp((num >> 16) + Math.round(2.55 * pct));
+      const g = clamp(((num >> 8) & 0xFF) + Math.round(2.55 * pct));
+      const b = clamp((num & 0xFF) + Math.round(2.55 * pct));
+      return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+    }
+
+    function generateBrandSvgUri(obj) {
+      const c1 = obj.cor_primaria || '#0F294A';
+      const c2 = obj.cor_destaque || '#D4AF37';
+      const c1d = shadeHex(c1, -22);
+      const ini = computeInitials(obj.nome_advogado || obj.nome_escritorio);
+      const nome = esc(String(obj.nome_escritorio || 'ESCRITÓRIO').toUpperCase().slice(0, 24));
+      const sub = esc(String(obj.subtitulo || 'ADVOCACIA & CONSULTORIA').toUpperCase().slice(0, 32));
+      const oab = esc(String(obj.oab_registro || 'OAB').toUpperCase().slice(0, 18));
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140">
+        <rect x="2" y="2" width="356" height="136" rx="20" fill="#FFFFFF"/>
+        <g transform="translate(16, 18)">
+          <rect width="104" height="104" rx="22" fill="${c1}" stroke="${c2}" stroke-width="3"/>
+          <text x="52" y="64" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="700" fill="${c2}">${ini}</text>
+          <text x="52" y="89" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="#FFFFFF" fill-opacity="0.85">${oab}</text>
+        </g>
+        <g transform="translate(136, 0)">
+          <text x="0" y="60" font-family="Georgia, serif" font-size="20" font-weight="700" fill="${c1d}">${nome}</text>
+          <line x1="0" y1="72" x2="195" y2="72" stroke="${c2}" stroke-width="1.5"/>
+          <text x="0" y="91" font-family="sans-serif" font-size="9" font-weight="700" fill="#64748B">${sub}</text>
+        </g>
+      </svg>`;
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    // =========================================================================
+    // AUTENTICAÇÃO RPMASTER
+    // =========================================================================
+    async function handleRpmLogin(e) {
+      e.preventDefault();
+      const errEl = document.getElementById('rpm-login-err');
+      const btn = document.getElementById('rpm-login-btn');
+      errEl.classList.add('hidden');
+
+      const u = document.getElementById('rpm-user').value.trim();
+      const p = document.getElementById('rpm-pass').value;
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Validando credenciais...';
+      refreshIcons();
+
+      try {
+        const { data, error } = await sb.rpc('rpm_login', { p_username: u, p_password: p });
+        if (error || !data || !data.ok) {
+          errEl.textContent = (data && data.error) || (error && error.message) || 'Falha na autenticação.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        RPM.token = data.token;
+        RPM.username = data.username || '@rpmaster';
+        localStorage.setItem('rpm_master_token', RPM.token);
+        localStorage.setItem('rpm_master_user', RPM.username);
+        await enterCommandCenter();
+      } catch (err) {
+        errEl.textContent = 'Erro de conexão: ' + (err.message || err);
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="terminal" class="w-4 h-4"></i> Acessar Centro de Comando RPMASTER';
+        refreshIcons();
+      }
+    }
+
+    async function handleRpmLogout() {
+      if (RPM.token) {
+        try { await sb.rpc('legal_logout', { p_token: RPM.token }); } catch (_) {}
+      }
+      RPM.token = '';
+      localStorage.removeItem('rpm_master_token');
+      document.getElementById('rpm-app-shell').classList.add('hidden');
+      document.getElementById('rpm-login-screen').classList.remove('hidden');
+      refreshIcons();
+    }
+
+    async function enterCommandCenter() {
+      if (!RPM.token) {
+        document.getElementById('rpm-login-screen').classList.remove('hidden');
+        document.getElementById('rpm-app-shell').classList.add('hidden');
+        refreshIcons();
+        return;
+      }
+      const ok = await loadRpmDashboard(false);
+      if (!ok) return;
+      document.getElementById('rpm-login-screen').classList.add('hidden');
+      document.getElementById('rpm-app-shell').classList.remove('hidden');
+      switchRpmTab(RPM.tab || 'sistemas');
+      refreshIcons();
+    }
+
+    async function loadRpmDashboard(showMsg = false) {
+      const { data, error } = await sb.rpc('rpm_get_dashboard', { p_token: RPM.token });
+      if (error || !data || !data.ok) {
+        await handleRpmLogout();
+        return false;
+      }
+      RPM.saude = data.saude || {};
+      RPM.escritorios = data.escritorios || [];
+      RPM.auditoria = data.auditoria || [];
+      renderKpis();
+      renderTenantsGrid();
+      renderAuditTable();
+      if (showMsg) showToast('Centro de Comando sincronizado!', 'info');
+      return true;
+    }
+
+    function switchRpmTab(tab) {
+      RPM.tab = tab;
+      document.getElementById('rpm-pane-sistemas').classList.toggle('hidden', tab !== 'sistemas');
+      document.getElementById('rpm-pane-auditoria').classList.toggle('hidden', tab !== 'auditoria');
+      document.querySelectorAll('.rpm-tab-btn').forEach(btn => {
+        const active = btn.getAttribute('data-rpmtab') === tab;
+        btn.className = active
+          ? 'rpm-tab-btn px-3.5 py-2 rounded-xl text-xs font-extrabold bg-indigo-600 text-white shadow-md transition flex items-center gap-1.5 cursor-pointer'
+          : 'rpm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer';
+      });
+      refreshIcons();
+    }
+
+    // =========================================================================
+    // RENDERIZAÇÃO DE KPIS, CARDS E AUDITORIA
+    // =========================================================================
+    function renderKpis() {
+      const lista = RPM.escritorios || [];
+      const ativos = lista.filter(e => e.ativo !== false && e.status_assinatura !== 'suspenso').length;
+      const bloq = lista.length - ativos;
+      const mrr = lista
+        .filter(e => e.ativo !== false && e.status_assinatura !== 'suspenso' && Number(e.valor_mensalidade || 0) > 0)
+        .reduce((acc, e) => acc + Number(e.valor_mensalidade || 0), 0);
+      const setups = lista.reduce((acc, e) => acc + Number(e.valor_setup || 0), 0);
+      const totalCli = lista.reduce((acc, e) => acc + Number(e.total_clientes || 0), 0);
+      const totalProcs = lista.reduce((acc, e) => acc + Number(e.total_processos || 0), 0);
+      const db = (RPM.saude && RPM.saude.banco_dados) || { usado_mb: 0, limite_mb: 500, restante_mb: 500, percentual: 0 };
+
+      document.getElementById('rpm-kpis-grid').innerHTML = `
+        <div class="rpm-card rounded-2xl p-5">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span>Sistemas Gerenciados</span>
+            <i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i>
+          </div>
+          <div class="font-mono text-3xl font-black text-white mt-2">${ativos} <span class="text-xs font-semibold text-slate-400">ativos</span></div>
+          <div class="text-[11px] mt-2 ${bloq > 0 ? 'text-rose-400 font-bold' : 'text-emerald-400'}">
+            ${bloq > 0 ? `${bloq} suspenso(s) / bloqueado(s)` : 'Todos os sistemas operacionais'}
+          </div>
+        </div>
+
+        <div class="rpm-card rounded-2xl p-5">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span>Receita Recorrente (MRR)</span>
+            <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="font-mono text-2xl sm:text-3xl font-black text-emerald-400 mt-2">${fmtMoney(mrr)}</div>
+          <div class="text-[11px] text-slate-400 mt-2">ARR: <strong class="text-white">${fmtMoney(mrr * 12)}</strong> • Setups: <strong class="text-white">${fmtMoney(setups)}</strong></div>
+        </div>
+
+        <div class="rpm-card rounded-2xl p-5">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span>Operação na Nuvem</span>
+            <i data-lucide="users" class="w-4 h-4 text-indigo-400"></i>
+          </div>
+          <div class="font-mono text-3xl font-black text-white mt-2">${totalProcs} <span class="text-xs font-semibold text-slate-400">processos</span></div>
+          <div class="text-[11px] text-slate-400 mt-2"><strong class="text-white">${totalCli}</strong> clientes finais isolados</div>
+        </div>
+
+        <div class="rpm-card rounded-2xl p-5">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span>Infraestrutura Gratuita</span>
+            <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
+          </div>
+          <div class="font-mono text-2xl sm:text-3xl font-black text-cyan-300 mt-2">${db.restante_mb} MB <span class="text-xs font-semibold text-slate-400">livres</span></div>
+          <div class="text-[11px] text-slate-400 mt-2">Banco: ${db.usado_mb} / ${db.limite_mb} MB (${db.percentual}%) • R$ 0,00</div>
+        </div>
+      `;
+    }
+
+    function getEnabledModulesCount(e) {
+      const mods = (e.config_json && e.config_json.modulos) || {};
+      let active = 0;
+      for (const m of SYSTEM_MODULES) {
+        if (!(m.key in mods) || mods[m.key] === true) active++;
+      }
+      return active;
+    }
+
+    function renderTenantsGrid() {
+      const q = (document.getElementById('rpm-search')?.value || '').toLowerCase().trim();
+      const st = document.getElementById('rpm-filter-status')?.value || '';
+      const lista = (RPM.escritorios || []).filter(e => {
+        const isAtivo = e.ativo !== false && e.status_assinatura !== 'suspenso';
+        if (st === 'ativos' && !isAtivo) return false;
+        if (st === 'bloqueados' && isAtivo) return false;
+        if (!q) return true;
+        return `${e.nome_escritorio || ''} ${e.nome_advogado || ''} ${e.slug || ''} ${e.oab_registro || ''} ${e.admin_user_login || ''}`.toLowerCase().includes(q);
+      });
+
+      document.getElementById('rpm-count-label').textContent = lista.length;
+      const grid = document.getElementById('rpm-tenants-grid');
+
+      if (lista.length === 0) {
+        grid.innerHTML = '<div class="lg:col-span-2 rpm-card rounded-2xl p-10 text-center text-sm text-slate-400">Nenhum sistema encontrado para este filtro.</div>';
+        return;
+      }
+
+      grid.innerHTML = lista.map(e => {
+        const isNat = e.id === '00000000-0000-4000-8000-000000000001';
+        const isAtivo = e.ativo !== false && e.status_assinatura !== 'suspenso';
+        const cfg = e.config_json || {};
+        const bloqTipo = cfg.bloqueio_tipo || 'suspenso';
+        const bloqMotivo = cfg.bloqueio_motivo || '';
+        const aviso = cfg.aviso_rpmaster || '';
+        const pubUrl = buildClientUrl(e.slug);
+        const modCount = getEnabledModulesCount(e);
+        const areas = Array.isArray(e.areas_atuacao) ? e.areas_atuacao : [];
+        const c1 = e.cor_primaria || '#4F46E5';
+        const c2 = e.cor_destaque || '#22D3EE';
+        const ini = computeInitials(e.nome_advogado || e.nome_escritorio);
+
+        return `
+          <div class="rpm-card rounded-3xl overflow-hidden flex flex-col justify-between">
+            <div>
+              <div class="h-2 w-full" style="background: linear-gradient(90deg, ${esc(c1)} 0%, ${esc(c2)} 100%);"></div>
+              <div class="p-5 sm:p-6 space-y-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3.5">
+                    ${e.logo_url ? `
+                      <img src="${esc(e.logo_url)}" alt="${esc(e.nome_escritorio)}" class="w-13 h-13 rounded-2xl object-contain bg-white p-1 border border-slate-700">
+                    ` : `
+                      <div class="w-13 h-13 rounded-2xl flex items-center justify-center font-display font-black text-lg border-2 shrink-0"
+                        style="background:${esc(c1)}; color:${esc(c2)}; border-color:${esc(c2)};">${esc(ini)}</div>
+                    `}
+                    <div>
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${isAtivo ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'}">
+                          ${isAtivo ? '● Ativo' : `⛔ ${esc(bloqTipo.toUpperCase())}`}
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                          ${esc(e.plano || 'Boutique Pro')}
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/15 text-cyan-300 border border-indigo-400/30">
+                          ${modCount}/${SYSTEM_MODULES.length} áreas
+                        </span>
+                      </div>
+                      <h3 class="text-lg font-black text-white mt-1">${esc(e.nome_escritorio)}</h3>
+                      <div class="text-xs text-slate-400">${esc(e.nome_advogado || e.nome_escritorio)} • <strong class="text-slate-200">${esc(e.oab_registro || 'OAB')}</strong></div>
+                    </div>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <div class="font-mono text-sm font-black text-emerald-400">${isNat && Number(e.valor_mensalidade || 0) === 0 ? 'Matriz' : `${fmtMoney(e.valor_mensalidade || 197)}/mês`}</div>
+                    <div class="text-[10px] text-slate-500">Sessões ativas: <strong class="text-slate-300">${Number(e.sessoes_ativas || 0)}</strong></div>
+                  </div>
+                </div>
+
+                ${!isAtivo && bloqMotivo ? `
+                  <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-200">
+                    <strong>Motivo do bloqueio:</strong> ${esc(bloqMotivo)}
+                  </div>
+                ` : ''}
+
+                ${aviso ? `
+                  <div class="p-3 rounded-xl bg-indigo-500/10 border border-cyan-400/30 text-xs text-cyan-200 flex items-center justify-between gap-2">
+                    <span><strong>Aviso ativo:</strong> ${esc(aviso)}</span>
+                  </div>
+                ` : ''}
+
+                <!-- Link e Credenciais -->
+                <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2 text-xs">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-slate-400">URL Exclusiva:</span>
+                    <div class="flex items-center gap-1.5">
+                      <a href="${esc(pubUrl)}" target="_blank" class="font-mono font-bold text-cyan-300 underline truncate max-w-[210px]">?escritorio=${esc(e.slug)}</a>
+                      <button type="button" onclick="copyText('${esc(pubUrl)}', 'URL copiada!')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-200 cursor-pointer">Copiar</button>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-800/80">
+                    <div>
+                      <span class="text-slate-500">Login:</span> <strong class="font-mono text-white">${esc(e.admin_user_login || e.admin_username || '')}</strong>
+                      <span class="text-slate-600 mx-1">•</span>
+                      <span class="text-slate-500">WhatsApp:</span> <strong class="font-mono text-slate-300">${esc(e.whatsapp_oficial || '')}</strong>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <span class="w-3 h-3 rounded-full border border-white/20" style="background:${esc(c1)}"></span>
+                      <span class="w-3 h-3 rounded-full border border-white/20" style="background:${esc(c2)}"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Áreas de Atuação Jurídica + Contadores -->
+                <div class="flex flex-wrap gap-1.5">
+                  ${areas.slice(0, 4).map(a => `<span class="px-2 py-0.5 rounded-md bg-slate-800/90 border border-slate-700 text-[10px] font-semibold text-slate-300">${esc(a)}</span>`).join('')}
+                  ${areas.length > 4 ? `<span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] text-slate-400">+${areas.length - 4}</span>` : ''}
+                </div>
+
+                <div class="grid grid-cols-4 gap-2 text-center">
+                  <div class="p-2 rounded-xl bg-slate-950/50 border border-slate-800/80">
+                    <div class="font-mono text-sm font-black text-white">${Number(e.total_clientes || 0)}</div>
+                    <div class="text-[10px] text-slate-400">Clientes</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-slate-950/50 border border-slate-800/80">
+                    <div class="font-mono text-sm font-black text-white">${Number(e.total_processos || 0)}</div>
+                    <div class="text-[10px] text-slate-400">Processos</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-slate-950/50 border border-slate-800/80">
+                    <div class="font-mono text-sm font-black text-white">${Number(e.total_pecas || 0)}</div>
+                    <div class="text-[10px] text-slate-400">Peças</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-slate-950/50 border border-slate-800/80">
+                    <div class="font-mono text-sm font-black text-white">${Number(e.total_anexos || 0)}</div>
+                    <div class="text-[10px] text-slate-400">Docs</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Barra de Comando do RPMASTER -->
+            <div class="px-5 py-3.5 bg-slate-950/80 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button type="button" onclick="impersonateTenant('${e.id}')"
+                  class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold flex items-center gap-1 cursor-pointer">
+                  <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Acessar Painel
+                </button>
+                <button type="button" onclick="openModulesAreasModal('${e.id}')"
+                  class="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-200 text-xs font-extrabold flex items-center gap-1 cursor-pointer">
+                  <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i> Áreas & Módulos
+                </button>
+                <button type="button" onclick="openBlockModal('${e.id}')"
+                  class="px-3 py-1.5 rounded-xl ${isAtivo ? 'bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200' : 'bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200'} text-xs font-extrabold flex items-center gap-1 cursor-pointer">
+                  <i data-lucide="${isAtivo ? 'ban' : 'check-circle'}" class="w-3.5 h-3.5"></i> ${isAtivo ? 'Bloquear' : 'Desbloquear'}
+                </button>
+              </div>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="openAvisoModal('${e.id}')" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 cursor-pointer" title="Enviar Aviso / Comunicado">
+                  <i data-lucide="megaphone" class="w-3.5 h-3.5"></i>
+                </button>
+                <button type="button" onclick="killTenantSessions('${e.id}', '${esc(e.nome_escritorio)}')" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 cursor-pointer" title="Derrubar Sessões Ativas">
+                  <i data-lucide="power" class="w-3.5 h-3.5"></i>
+                </button>
+                <button type="button" onclick="openEditTenantModal('${e.id}')" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer" title="Editar Marca, Cores, Plano e Senha">
+                  <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                </button>
+                ${!isNat ? `
+                  <button type="button" onclick="openDeleteTenantModal('${e.id}')" class="p-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 cursor-pointer" title="Excluir Sistema">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      refreshIcons();
+    }
+
+    function renderAuditTable() {
+      const tb = document.getElementById('rpm-audit-tbody');
+      if (!tb) return;
+      const logs = RPM.auditoria || [];
+      if (logs.length === 0) {
+        tb.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-slate-500">Nenhum evento registrado ainda.</td></tr>';
+        return;
+      }
+      tb.innerHTML = logs.map(a => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-2.5 px-3 font-mono text-[11px] text-slate-400 whitespace-nowrap">${esc(fmtDateTime(a.created_at))}</td>
+          <td class="py-2.5 px-3 font-mono font-bold text-cyan-300">${esc(a.actor)}</td>
+          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-md bg-indigo-500/15 border border-indigo-400/30 text-indigo-200 font-bold text-[11px]">${esc(a.acao)}</span></td>
+          <td class="py-2.5 px-3 font-mono text-[11px] text-slate-300">${esc(JSON.stringify(a.detalhes || {}))}</td>
+        </tr>
+      `).join('');
+    }
+
+    // =========================================================================
+    // AÇÕES DE COMANDO RPMASTER
+    // =========================================================================
+    async function rpmAction(action, payload) {
+      const { data, error } = await sb.rpc('rpm_manage_tenant', {
+        p_token: RPM.token,
+        p_action: action,
+        p_payload: payload
+      });
+      if (error || !data || !data.ok) {
+        showToast((data && data.error) || (error && error.message) || 'Erro na operação.', 'error');
+        return null;
+      }
+      return data;
+    }
+
+    async function impersonateTenant(escritorioId) {
+      showToast('Gerando acesso administrativo auditado...', 'info');
+      const res = await rpmAction('impersonate', { escritorio_id: escritorioId });
+      if (!res) return;
+      const url = new URL('./index.html', window.location.href);
+      if (res.slug && res.slug !== 'nathalia-lisboa') url.searchParams.set('escritorio', res.slug);
+      url.searchParams.set('rpm_token', res.token);
+      url.searchParams.set('rpm_user', JSON.stringify(res.user));
+      window.open(url.toString(), '_blank', 'noopener');
+      await loadRpmDashboard(false);
+    }
+
+    function openBlockModal(escritorioId) {
+      const e = RPM.escritorios.find(x => x.id === escritorioId);
+      if (!e) return;
+      const isAtivo = e.ativo !== false && e.status_assinatura !== 'suspenso';
+      const cfg = e.config_json || {};
+      openModal(`
+        <form onsubmit="submitBlockForm(event, '${e.id}')" class="space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <h3 class="text-lg font-black text-white flex items-center gap-2">
+              <i data-lucide="shield-alert" class="w-5 h-5 text-amber-400"></i>
+              Controle de Bloqueio — ${esc(e.nome_escritorio)}
+            </h3>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Status do Sistema</label>
+              <select id="blk-status" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold">
+                <option value="ativo" ${!isAtivo ? 'selected' : ''}>● Ativo (Acesso 100% Liberado)</option>
+                <option value="suspenso" ${isAtivo ? 'selected' : ''}>⏸ Suspenso (Inadimplência / Financeiro)</option>
+                <option value="bloqueado">⛔ Bloqueado (Bloqueio Administrativo Total)</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Motivo exibido ao tentar fazer login (Opcional)</label>
+              <textarea id="blk-motivo" rows="3" placeholder="Ex: Mensalidade em atraso. Regularize via PIX para reativação imediata."
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white">${esc(cfg.bloqueio_motivo || '')}</textarea>
+            </div>
+            <p class="text-[11px] text-slate-400">
+              Ao suspender ou bloquear, todas as sessões ativas deste escritório (advogados e clientes) são encerradas na hora.
+            </p>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 cursor-pointer">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl rpm-glow-btn text-white text-xs font-black cursor-pointer">Aplicar Status Agora</button>
+          </div>
+        </form>
+      `);
+    }
+
+    async function submitBlockForm(ev, escritorioId) {
+      ev.preventDefault();
+      const status = document.getElementById('blk-status').value;
+      const motivo = document.getElementById('blk-motivo').value.trim();
+      const res = await rpmAction('set_status', { escritorio_id: escritorioId, status, motivo });
+      if (!res) return;
+      closeModal();
+      await loadRpmDashboard(false);
+      showToast(`Status atualizado para: ${status.toUpperCase()}!`);
+    }
+
+    function openModulesAreasModal(escritorioId) {
+      const e = RPM.escritorios.find(x => x.id === escritorioId);
+      if (!e) return;
+      const mods = (e.config_json && e.config_json.modulos) || {};
+      const areas = Array.isArray(e.areas_atuacao) && e.areas_atuacao.length ? e.areas_atuacao : DEFAULT_AREAS_JURIDICAS;
+
+      openModal(`
+        <form onsubmit="submitModulesAreasForm(event, '${e.id}')" class="space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div>
+              <span class="text-[10px] font-black uppercase tracking-widest text-cyan-400">Alteração de Áreas & Módulos</span>
+              <h3 class="text-lg font-black text-white">${esc(e.nome_escritorio)}</h3>
+            </div>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+
+          <div class="space-y-2">
+            <div class="text-xs font-extrabold uppercase tracking-wider text-slate-300">1. Áreas / Módulos do Sistema (Ligar ou Bloquear por Plano)</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              ${SYSTEM_MODULES.map(m => {
+                const checked = !(m.key in mods) || mods[m.key] === true;
+                return `
+                  <label class="p-3 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-cyan-400/40 flex items-start gap-2.5 cursor-pointer">
+                    <input type="checkbox" data-mod-key="${m.key}" ${checked ? 'checked' : ''} class="mt-0.5 rounded text-indigo-500">
+                    <div>
+                      <div class="font-bold text-white">${esc(m.label)}</div>
+                      <div class="text-[11px] text-slate-400">${esc(m.desc)}</div>
+                    </div>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="space-y-2 pt-2 border-t border-slate-800">
+            <label class="text-xs font-extrabold uppercase tracking-wider text-slate-300 block">2. Áreas Jurídicas de Atuação do Escritório (1 por linha)</label>
+            <textarea id="mod-areas-txt" rows="4" class="w-full p-3 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white font-mono">${esc(areas.join('\n'))}</textarea>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 cursor-pointer">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl rpm-glow-btn text-white text-xs font-black cursor-pointer">Salvar Áreas & Módulos</button>
+          </div>
+        </form>
+      `);
+    }
+
+    async function submitModulesAreasForm(ev, escritorioId) {
+      ev.preventDefault();
+      const modulos = {};
+      document.querySelectorAll('[data-mod-key]').forEach(cb => {
+        modulos[cb.getAttribute('data-mod-key')] = cb.checked;
+      });
+      const areas = document.getElementById('mod-areas-txt').value
+        .split('\n').map(x => x.trim()).filter(Boolean);
+
+      const res = await rpmAction('set_modules', {
+        escritorio_id: escritorioId,
+        modulos,
+        areas_atuacao: areas
+      });
+      if (!res) return;
+      closeModal();
+      await loadRpmDashboard(false);
+      showToast('Áreas e módulos atualizados com sucesso!');
+    }
+
+    function openAvisoModal(escritorioId) {
+      const e = RPM.escritorios.find(x => x.id === escritorioId);
+      if (!e) return;
+      const avisoAtual = (e.config_json && e.config_json.aviso_rpmaster) || '';
+      openModal(`
+        <form onsubmit="submitAvisoForm(event, '${e.id}')" class="space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <h3 class="text-lg font-black text-white">Comunicado no Painel — ${esc(e.nome_escritorio)}</h3>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+          <p class="text-xs text-slate-400">Exibe um banner fixo no topo do sistema deste cliente. Deixe em branco para remover o aviso.</p>
+          <textarea id="rpm-aviso-input" rows="3" maxlength="500" placeholder="Ex: Lembrete: sua assinatura vence dia 10. Atualize seu plano para liberar o módulo Financeiro."
+            class="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white">${esc(avisoAtual)}</textarea>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 cursor-pointer">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl rpm-glow-btn text-white text-xs font-black cursor-pointer">Salvar Aviso</button>
+          </div>
+        </form>
+      `);
+    }
+
+    async function submitAvisoForm(ev, escritorioId) {
+      ev.preventDefault();
+      const aviso = document.getElementById('rpm-aviso-input').value.trim();
+      const res = await rpmAction('set_aviso', { escritorio_id: escritorioId, aviso });
+      if (!res) return;
+      closeModal();
+      await loadRpmDashboard(false);
+      showToast(aviso ? 'Aviso publicado no sistema do cliente!' : 'Aviso removido.');
+    }
+
+    async function killTenantSessions(escritorioId, nome) {
+      if (!confirm(`Encerrar todas as sessões logadas de "${nome}" agora?`)) return;
+      const res = await rpmAction('kill_sessions', { escritorio_id: escritorioId });
+      if (!res) return;
+      await loadRpmDashboard(false);
+      showToast(`Sessões de ${nome} encerradas!`);
+    }
+
+    // =========================================================================
+    // CRIAR & EDITAR SISTEMAS (WIZARD COMPLETO RPMASTER)
+    // =========================================================================
+    function autoSlugAndUser(val) {
+      const s = String(val || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const slugEl = document.getElementById('cw-slug');
+      const userEl = document.getElementById('cw-user');
+      if (slugEl && !slugEl.dataset.touched) slugEl.value = s;
+      if (userEl && !userEl.dataset.touched) userEl.value = s ? '@' + s.replace(/-/g, '') : '';
+      updateBrandPreview();
+    }
+
+    function applyColorPreset(c1, c2) {
+      document.getElementById('cw-cor1').value = c1;
+      document.getElementById('cw-cor1-hex').value = c1;
+      document.getElementById('cw-cor2').value = c2;
+      document.getElementById('cw-cor2-hex').value = c2;
+      updateBrandPreview();
+    }
+
+    function updateBrandPreview() {
+      const img = document.getElementById('cw-preview-img');
+      if (!img) return;
+      const custom = (document.getElementById('cw-logo')?.value || '').trim();
+      if (custom) { img.src = custom; return; }
+      img.src = generateBrandSvgUri({
+        nome_escritorio: document.getElementById('cw-nome')?.value || 'SILVA & ASSOCIADOS',
+        subtitulo: document.getElementById('cw-sub')?.value || 'ADVOCACIA & CONSULTORIA',
+        nome_advogado: document.getElementById('cw-adv')?.value || 'Dr. Marcos Silva',
+        oab_registro: document.getElementById('cw-oab')?.value || 'OAB/RJ',
+        cor_primaria: document.getElementById('cw-cor1-hex')?.value || '#0F294A',
+        cor_destaque: document.getElementById('cw-cor2-hex')?.value || '#D4AF37'
+      });
+    }
+
+    function openCreateSystemModal() {
+      openModal(`
+        <form onsubmit="submitCreateSystem(event)" class="space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div>
+              <span class="text-[10px] font-black uppercase tracking-widest text-cyan-400">Fábrica RPMASTER</span>
+              <h3 class="text-lg font-black text-white">Criar Novo Sistema White-Label</h3>
+            </div>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col sm:flex-row items-center gap-4">
+            <img id="cw-preview-img" src="" alt="Preview" class="h-20 w-auto rounded-xl bg-white p-1">
+            <div class="flex-1 space-y-2 text-xs">
+              <div class="font-bold text-slate-300">Paletas Prontas:</div>
+              <div class="flex flex-wrap gap-1.5">
+                ${COLOR_PRESETS.map(p => `
+                  <button type="button" onclick="applyColorPreset('${p.cor1}','${p.cor2}')"
+                    class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 hover:border-cyan-400 text-[11px] font-semibold text-slate-200 flex items-center gap-1.5 cursor-pointer">
+                    <span class="w-3 h-3 rounded-full" style="background:${p.cor1}"></span>
+                    <span class="w-3 h-3 rounded-full -ml-2 border border-white" style="background:${p.cor2}"></span>
+                    <span>${esc(p.name)}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Nome do Escritório (Marca) *</label>
+              <input id="cw-nome" required oninput="autoSlugAndUser(this.value)" placeholder="Ex: Almeida & Costa"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold">
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Subtítulo *</label>
+              <input id="cw-sub" required oninput="updateBrandPreview()" value="ADVOCACIA & CONSULTORIA JURÍDICA"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white">
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Nome do(a) Advogado(a) Titular *</label>
+              <input id="cw-adv" required oninput="updateBrandPreview()" placeholder="Ex: Dr. Rafael Almeida"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="font-bold text-slate-300 block mb-1">OAB *</label>
+                <input id="cw-oab" required oninput="updateBrandPreview()" value="OAB/RJ" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+              </div>
+              <div>
+                <label class="font-bold text-slate-300 block mb-1">UFs DJEN</label>
+                <input id="cw-ufs" value="RJ,SP" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono uppercase">
+              </div>
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Link Exclusivo (slug) *</label>
+              <input id="cw-slug" required oninput="this.dataset.touched='1'" placeholder="almeida-costa" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-cyan-300 font-mono">
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">WhatsApp Oficial *</label>
+              <input id="cw-whats" required placeholder="5521999999999" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">@Usuário Admin *</label>
+              <input id="cw-user" required oninput="this.dataset.touched='1'" placeholder="@almeidacosta" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono font-bold">
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Senha Inicial *</label>
+              <input id="cw-pass" required value="123456" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Cor Primária</label>
+              <div class="flex gap-2">
+                <input id="cw-cor1" type="color" value="#0F294A" oninput="document.getElementById('cw-cor1-hex').value=this.value; updateBrandPreview();" class="w-10 h-10 rounded-lg bg-slate-950 border border-slate-700">
+                <input id="cw-cor1-hex" value="#0F294A" oninput="document.getElementById('cw-cor1').value=this.value; updateBrandPreview();" class="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+              </div>
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Cor Destaque</label>
+              <div class="flex gap-2">
+                <input id="cw-cor2" type="color" value="#D4AF37" oninput="document.getElementById('cw-cor2-hex').value=this.value; updateBrandPreview();" class="w-10 h-10 rounded-lg bg-slate-950 border border-slate-700">
+                <input id="cw-cor2-hex" value="#D4AF37" oninput="document.getElementById('cw-cor2').value=this.value; updateBrandPreview();" class="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+              </div>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="font-bold text-slate-300 block mb-1">Logo Própria (URL opcional — vazio usa brasão automático)</label>
+              <input id="cw-logo" oninput="updateBrandPreview()" placeholder="https://..." class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+            </div>
+            <div class="grid grid-cols-3 gap-2 sm:col-span-2">
+              <div>
+                <label class="font-bold text-slate-300 block mb-1">Plano</label>
+                <select id="cw-plano" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold">
+                  <option value="Boutique Pro">Boutique Pro</option>
+                  <option value="Solo / Start">Solo / Start</option>
+                  <option value="VIP / Full">VIP / Full</option>
+                </select>
+              </div>
+              <div>
+                <label class="font-bold text-slate-300 block mb-1">Mensalidade (R$)</label>
+                <input id="cw-mens" type="number" step="0.01" value="197.00" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+              </div>
+              <div>
+                <label class="font-bold text-slate-300 block mb-1">Setup (R$)</label>
+                <input id="cw-setup" type="number" step="0.01" value="497.00" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-800 space-y-2">
+            <div class="text-xs font-extrabold uppercase tracking-wider text-cyan-300">Áreas / Módulos Liberados Neste Sistema</div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+              ${SYSTEM_MODULES.map(m => `
+                <label class="p-2 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" data-cw-mod="${m.key}" checked class="rounded text-indigo-500">
+                  <span class="text-slate-200 font-semibold truncate">${esc(m.label.split(' ')[0])} ${esc(m.label.split(' ')[1] || '')}</span>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+            <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 cursor-pointer">Cancelar</button>
+            <button type="submit" class="px-6 py-2.5 rounded-xl rpm-glow-btn text-white text-xs font-black cursor-pointer">🚀 Gerar Sistema Agora</button>
+          </div>
+        </form>
+      `);
+      updateBrandPreview();
+    }
+
+    async function submitCreateSystem(ev) {
+      ev.preventDefault();
+      const modulos = {};
+      document.querySelectorAll('[data-cw-mod]').forEach(cb => {
+        modulos[cb.getAttribute('data-cw-mod')] = cb.checked;
+      });
+      const payload = {
+        nome_escritorio: document.getElementById('cw-nome').value.trim(),
+        subtitulo: document.getElementById('cw-sub').value.trim(),
+        nome_advogado: document.getElementById('cw-adv').value.trim(),
+        oab_registro: document.getElementById('cw-oab').value.trim(),
+        ufs_djen: document.getElementById('cw-ufs').value.trim(),
+        slug: document.getElementById('cw-slug').value.trim(),
+        whatsapp_oficial: document.getElementById('cw-whats').value.trim(),
+        username: document.getElementById('cw-user').value.trim(),
+        password: document.getElementById('cw-pass').value.trim(),
+        cor_primaria: document.getElementById('cw-cor1-hex').value.trim(),
+        cor_destaque: document.getElementById('cw-cor2-hex').value.trim(),
+        logo_url: document.getElementById('cw-logo').value.trim(),
+        plano: document.getElementById('cw-plano').value,
+        valor_mensalidade: document.getElementById('cw-mens').value,
+        valor_setup: document.getElementById('cw-setup').value,
+        seed_pecas: true,
+        modulos
+      };
+      const res = await rpmAction('create', payload);
+      if (!res) return;
+      closeModal();
+      await loadRpmDashboard(false);
+      showToast(`Sistema ${res.escritorio.nome_escritorio} criado no RPMASTER!`);
+    }
+
+    function openEditTenantModal(escritorioId) {
+      const e = RPM.escritorios.find(x => x.id === escritorioId);
+      if (!e) return;
+      openModal(`
+        <form onsubmit="submitEditTenant(event, '${e.id}')" class="space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <h3 class="text-lg font-black text-white">Editar Sistema — ${esc(e.nome_escritorio)}</h3>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Nome do Escritório *</label>
+              <input id="ed-nome" required value="${esc(e.nome_escritorio || '')}" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold">
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Subtítulo *</label>
+              <input id="ed-sub" required value="${esc(e.subtitulo || '')}" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white">
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Advogado(a) Titular *</label>
+              <input id="ed-adv" required value="${esc(e.nome_advogado || '')}" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="font-bold text-slate-300 block mb-1">OAB</label>
+                <input id="ed-oab" value="${esc(e.oab_registro || '')}" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+              </div>
+              <div>
+                <label class="font-bold text-slate-300 block mb-1">UFs DJEN</label>
+                <input id="ed-ufs" value="${esc(e.ufs_djen || '')}" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+              </div>
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">WhatsApp Oficial</label>
+              <input id="ed-whats" value="${esc(e.whatsapp_oficial || '')}" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="font-bold text-slate-300 block mb-1">Plano</label>
+                <input id="ed-plano" value="${esc(e.plano || '')}" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white">
+              </div>
+              <div>
+                <label class="font-bold text-slate-300 block mb-1">Mensalidade (R$)</label>
+                <input id="ed-mens" type="number" step="0.01" value="${Number(e.valor_mensalidade || 0)}" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+              </div>
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Cor Primária</label>
+              <div class="flex gap-2">
+                <input type="color" value="${esc(e.cor_primaria || '#4F46E5')}" oninput="document.getElementById('ed-c1').value=this.value" class="w-10 h-10 rounded-lg bg-slate-950 border border-slate-700">
+                <input id="ed-c1" value="${esc(e.cor_primaria || '#4F46E5')}" class="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+              </div>
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Cor Destaque</label>
+              <div class="flex gap-2">
+                <input type="color" value="${esc(e.cor_destaque || '#22D3EE')}" oninput="document.getElementById('ed-c2').value=this.value" class="w-10 h-10 rounded-lg bg-slate-950 border border-slate-700">
+                <input id="ed-c2" value="${esc(e.cor_destaque || '#22D3EE')}" class="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+              </div>
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">@Login Advogado</label>
+              <input id="ed-user" value="${esc(e.admin_user_login || e.admin_username || '')}" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Nova Senha (Opcional)</label>
+              <input id="ed-pass" placeholder="Deixe em branco para manter" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="font-bold text-slate-300 block mb-1">Logo URL (Opcional)</label>
+              <input id="ed-logo" value="${esc(e.logo_url || '')}" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 cursor-pointer">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl rpm-glow-btn text-white text-xs font-black cursor-pointer">Salvar Alterações</button>
+          </div>
+        </form>
+      `);
+    }
+
+    async function submitEditTenant(ev, escritorioId) {
+      ev.preventDefault();
+      const res = await rpmAction('update', {
+        escritorio_id: escritorioId,
+        nome_escritorio: document.getElementById('ed-nome').value.trim(),
+        subtitulo: document.getElementById('ed-sub').value.trim(),
+        nome_advogado: document.getElementById('ed-adv').value.trim(),
+        oab_registro: document.getElementById('ed-oab').value.trim(),
+        ufs_djen: document.getElementById('ed-ufs').value.trim(),
+        whatsapp_oficial: document.getElementById('ed-whats').value.trim(),
+        plano: document.getElementById('ed-plano').value.trim(),
+        valor_mensalidade: document.getElementById('ed-mens').value,
+        cor_primaria: document.getElementById('ed-c1').value.trim(),
+        cor_destaque: document.getElementById('ed-c2').value.trim(),
+        admin_username: document.getElementById('ed-user').value.trim(),
+        new_password: document.getElementById('ed-pass').value.trim(),
+        logo_url: document.getElementById('ed-logo').value.trim()
+      });
+      if (!res) return;
+      closeModal();
+      await loadRpmDashboard(false);
+      showToast('Sistema atualizado com sucesso!');
+    }
+
+    function openDeleteTenantModal(escritorioId) {
+      const e = RPM.escritorios.find(x => x.id === escritorioId);
+      if (!e) return;
+      openModal(`
+        <form onsubmit="submitDeleteTenant(event, '${e.id}')" class="space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <h3 class="text-lg font-black text-rose-400">Excluir Sistema Permanentemente</h3>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+          <p class="text-xs text-slate-300">
+            Isso apagará permanentemente o escritório <strong>${esc(e.nome_escritorio)}</strong> e todos os clientes, processos, anexos e usuários dele.
+            Para confirmar, digite exatamente o slug <code class="px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 font-mono">${esc(e.slug)}</code> abaixo:
+          </p>
+          <input id="del-confirm" required placeholder="${esc(e.slug)}" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-rose-500/40 text-white font-mono text-xs">
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 cursor-pointer">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black cursor-pointer">Confirmar Exclusão</button>
+          </div>
+        </form>
+      `);
+    }
+
+    async function submitDeleteTenant(ev, escritorioId) {
+      ev.preventDefault();
+      const confirmSlug = document.getElementById('del-confirm').value.trim();
+      const res = await rpmAction('delete', { escritorio_id: escritorioId, confirm: confirmSlug });
+      if (!res) return;
+      closeModal();
+      await loadRpmDashboard(false);
+      showToast('Sistema excluído.');
+    }
+
+    function openChangePasswordModal() {
+      openModal(`
+        <form onsubmit="submitChangePassword(event)" class="space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <h3 class="text-lg font-black text-white">Alterar Senha Mestra (@rpmaster)</h3>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Senha Atual *</label>
+              <input id="cp-old" type="password" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+            </div>
+            <div>
+              <label class="font-bold text-slate-300 block mb-1">Nova Senha (mínimo 10 caracteres) *</label>
+              <input id="cp-new" type="password" minlength="10" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono">
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 cursor-pointer">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl rpm-glow-btn text-white text-xs font-black cursor-pointer">Atualizar Senha</button>
+          </div>
+        </form>
+      `);
+    }
+
+    async function submitChangePassword(ev) {
+      ev.preventDefault();
+      const { data, error } = await sb.rpc('rpm_change_password', {
+        p_token: RPM.token,
+        p_old: document.getElementById('cp-old').value,
+        p_new: document.getElementById('cp-new').value
+      });
+      if (error || !data || !data.ok) {
+        return showToast((data && data.error) || 'Erro ao alterar senha.', 'error');
+      }
+      closeModal();
+      showToast('Senha do RPMASTER atualizada com sucesso!');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshIcons();
+      enterCommandCenter();
+    });
+  </script>
+</body>
+</html>
