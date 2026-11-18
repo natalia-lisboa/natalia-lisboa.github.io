@@ -3264,19 +3264,31 @@
 
     function getEventHighlightClass(titulo) {
       const t = String(titulo || '').toUpperCase();
-      if (t.includes('RENÚNCIA') || t.includes('RENUNCIA') || t.includes('SENTENÇA') || t.includes('SENTENCA') || t.includes('EXTINÇÃO')) {
-        return 'bg-[#5C1618] text-white font-extrabold px-2.5 py-1 rounded-md shadow-2xs text-sm sm:text-base font-extrabold inline-block';
+      if (t.includes('TRÂNSITO EM JULGADO') || t.includes('TRANSITO EM JULGADO') || t.includes('TRANSITADO EM JULGADO')) {
+        return 'bg-emerald-700 text-white font-extrabold px-3 py-1 rounded-md shadow-2xs text-sm sm:text-base inline-block';
+      }
+      if (t.includes('SENTENÇA') || t.includes('SENTENCA')) {
+        return 'bg-[#5C1618] text-white font-extrabold px-3 py-1 rounded-md shadow-2xs text-sm sm:text-base inline-block';
+      }
+      if (t.includes('INÍCIO DA EXECUÇÃO') || t.includes('INICIO DA EXECUCAO') || t.includes('CUMPRIMENTO DA SENTENÇA') || t.includes('CUMPRIMENTO DE SENTENÇA')) {
+        return 'bg-emerald-800 text-[#E5C888] border border-[#C8A25A]/50 font-extrabold px-3 py-1 rounded-md shadow-2xs text-sm sm:text-base inline-block';
+      }
+      if (t.includes('EMBARGOS DE DECLARA') || t.includes('RECURSO') || t.includes('AGRAVO') || t.includes('APELAÇÃO') || t.includes('IMPUGNAÇÃO') || t.includes('IMPUGNACAO')) {
+        return 'bg-rose-100 text-rose-950 border border-rose-300 font-extrabold px-3 py-1 rounded-md text-sm sm:text-base dark:bg-rose-950/80 dark:text-rose-200 inline-block';
+      }
+      if (t.includes('JUNTADA DE PETIÇÃO') || t.includes('JUNTADA DE PETICAO') || t.includes('JUNTADA DE CERTIDÃO') || t.includes('JUNTADA DE GUIA')) {
+        return 'bg-sky-100 text-sky-950 border border-sky-300 font-extrabold px-3 py-1 rounded-md text-sm sm:text-base dark:bg-sky-950/80 dark:text-sky-200 inline-block';
+      }
+      if (t.includes('DESPACHO') || t.includes('DECISÃO') || t.includes('DECISAO') || t.includes('CONCLUSOS')) {
+        return 'bg-amber-100 text-amber-950 border border-amber-300 font-extrabold px-3 py-1 rounded-md text-sm sm:text-base dark:bg-amber-950/80 dark:text-amber-200 inline-block';
       }
       if (t.includes('DJEN') || t.includes('PUBLICADO') || t.includes('DISPONIBILIZADO')) {
-        return 'bg-emerald-700 text-white font-bold px-2.5 py-1 rounded-md text-sm sm:text-base font-extrabold inline-block';
+        return 'bg-emerald-700 text-white font-bold px-2.5 py-1 rounded-md text-sm sm:text-base inline-block';
       }
       if (t.includes('INTIMAÇÃO') || t.includes('INTIMACAO') || t.includes('EXPEDIDA') || t.includes('PRAZO') || t.includes('AUDIÊNCIA') || t.includes('AUDIENCIA')) {
-        return 'bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2.5 py-1 rounded-md text-sm sm:text-base dark:bg-amber-950/80 dark:text-amber-200 inline-block';
+        return 'bg-stone-200 text-slate-900 border border-stone-300 font-bold px-2.5 py-1 rounded-md text-sm sm:text-base dark:bg-slate-700 dark:text-white inline-block';
       }
-      if (t.includes('CONCLUSOS') || t.includes('DESPACHO') || t.includes('DECISÃO') || t.includes('DECISAO')) {
-        return 'bg-stone-200 text-slate-800 border border-stone-300 font-bold px-2.5 py-1 rounded-md text-sm sm:text-base dark:bg-slate-700 dark:text-white inline-block';
-      }
-      return 'text-slate-900 dark:text-white font-extrabold text-sm sm:text-base font-extrabold inline-block';
+      return 'text-slate-900 dark:text-white font-extrabold text-sm sm:text-base inline-block';
     }
 
     function formatEventDateParts(dStr) {
@@ -3706,17 +3718,29 @@
         .replace(/&quot;/gi, '"')
         .replace(/&#39;/gi, "'")
         .replace(/&lt;/gi, '<')
-        .replace(/&gt;/gi, ' ')
+        .replace(/&gt;/gi, '>')
+        .replace(/&Agrave;/gi, 'À')
+        .replace(/&aacute;/gi, 'á')
+        .replace(/&eacute;/gi, 'é')
+        .replace(/&iacute;/gi, 'í')
+        .replace(/&oacute;/gi, 'ó')
+        .replace(/&uacute;/gi, 'ú')
+        .replace(/&ccedil;/gi, 'ç')
+        .replace(/&atilde;/gi, 'ã')
+        .replace(/&otilde;/gi, 'õ')
+        .replace(/&ordm;/gi, 'º')
         .replace(/\s+/g, ' ')
         .trim();
+
+      txt = txt.replace(/^body\s*\{[\s\S]*?\}\s*(?:#div\w+\s*\{[\s\S]*?\}\s*;?\s*)*/i, '').trim();
 
       const patterns = [
         /DESPACHO\/DECIS[ÃA]O\s*[:\-]?\s*/i,
         /SENTEN[ÇC]A\s*[:\-]?\s*/i,
         /DECIS[ÃA]O\s*[:\-]?\s*/i,
         /DESPACHO\s*[:\-]?\s*/i,
-        /ATO ORDINAT[ÓO]RIO\s*[:\-]?\s*/i,
-        /CERTID[ÃA]O\s*[:\-]?\s*/i
+        /ATO ORDINAT[ÓO]RIO(?:\s+PRATICADO)?\s*[:\-]?\s*/i,
+        /CERTID[ÃA]O(?:\s+DE\s+[A-ZÇÃÕÁÉÍÓÚ\s]+)?\s*[:\-]?\s*/i
       ];
       for (const rx of patterns) {
         const m = rx.exec(txt);
@@ -3730,41 +3754,265 @@
         }
       }
       txt = txt.replace(/^Poder Judici[áa]rio do Estado do Rio de Janeiro.*?CEP\s*:\s*[\d\-]*\s*/i, '').replace(/^[\s_\-:]+/, '');
-      if (txt.length > 360) txt = txt.slice(0, 357).replace(/\s+\S*$/, '') + '...';
+      txt = txt.replace(/^PODER JUDICI[ÁA]RIO DO ESTADO DE MINAS GERAIS.*?CEP\s*:\s*[\d\-]*\s*/i, '').replace(/^[\s_\-:]+/, '');
+      if (txt.length > 420) txt = txt.slice(0, 417).replace(/\s+\S*$/, '') + '...';
       return txt || `${tipoCom || 'Movimentação'} (${tipoDoc || 'Autos'}) registrada em ${orgao || 'Juízo'}.`;
     }
 
-    function buildDjenTitle(tipoCom, tipoDoc, cleanTxt) {
+    // Classifica o movimento garantindo os 8 títulos canônicos obrigatórios exigidos pela Dra. Nathalia:
+    // 1. Juntada de petição pela parte XXX
+    // 2. Despacho / Decisão
+    // 3. Sentença
+    // 4. Trânsito em julgado
+    // 5. Início da execução / Cumprimento da sentença
+    // 6. Embargos de declaração
+    // 7. Recurso
+    // 8. Impugnação
+    function buildDjenTitle(tipoCom, tipoDoc, cleanTxt, rawTxt, autorNome, reuNome) {
       const tc = String(tipoCom || 'Movimentação').trim();
       const td = String(tipoDoc || '').trim();
-      const up = cleanTxt.toUpperCase();
+      const up = `${cleanTxt} ${td} ${tc}`.toUpperCase();
+      const rawUp = String(rawTxt || '').toUpperCase();
+      const autorLbl = String(autorNome || 'Parte Autora').trim();
+
+      if (up.includes('TRÂNSITO EM JULGADO') || up.includes('TRANSITO EM JULGADO') || up.includes('TRANSITADO EM JULGADO')) {
+        return 'Trânsito em julgado';
+      }
+      if (up.includes('EMBARGOS DE DECLARA') || up.includes('EMBARGADO') || up.includes('ALEGA A EMBARGANTE') || up.includes('SOBRE OS EMBARGOS OPOSTOS')) {
+        if (td.toUpperCase().includes('SENTENÇA') || up.includes('JULGO') || up.includes('REJEITO OS EMBARGOS') || up.includes('ACOLHO OS EMBARGOS')) {
+          return 'Embargos de declaração — Decisão / Julgamento';
+        }
+        return 'Embargos de declaração';
+      }
+      if (
+        up.includes('RECURSO ESPECIAL') ||
+        up.includes('AGRAVO DE INSTRUMENTO') ||
+        rawUp.includes('AGRAVO DE INSTRUMENTO') ||
+        up.includes('APELAÇÃO') ||
+        up.includes('APELACAO') ||
+        up.includes('RECURSO INOMINADO') ||
+        up.includes('CONSELHO DA MAGISTRATURA') ||
+        up.includes('CÂMARA DE DIREITO PRIVADO') ||
+        up.includes('3VP - DIVISAO DE PROCESSAMENTO')
+      ) {
+        if (up.includes('RECURSO ESPECIAL')) return 'Recurso — Recurso Especial Cível';
+        if (up.includes('AGRAVO DE INSTRUMENTO') || rawUp.includes('AGRAVO DE INSTRUMENTO')) return 'Recurso — Agravo de Instrumento';
+        if (up.includes('DISTRIBUIDO PARA GABINETE DO DES') || up.includes('DISTRIBUÍDO PARA GABINETE DO DES')) return 'Recurso — Distribuição ao Tribunal (2ª Instância)';
+        return 'Recurso';
+      }
+      if (up.includes('IMPUGNAÇÃO') || up.includes('IMPUGNACAO') || up.includes('PARTE IMPUGNANTE')) {
+        if (up.includes('LAUDO') || up.includes('PERITO')) return 'Despacho / Decisão';
+        return 'Impugnação — Manifestação / Regularização';
+      }
+      if (
+        td.toUpperCase().includes('SENTENÇA') ||
+        td.toUpperCase().includes('SENTENCA') ||
+        up.includes('JULGO PARCIALMENTE PROCEDENTE') ||
+        up.includes('JULGO PROCEDENTE') ||
+        up.includes('JULGO IMPROCEDENTE') ||
+        up.includes('CONVERSÃO DO FEITO PARA O RITO DE ARROLAMENTO')
+      ) {
+        return 'Sentença';
+      }
+      if (
+        rawUp.includes('CUMPRIMENTO DE SENTENÇA') ||
+        rawUp.includes('CUMPRIMENTO DE SENTENCA') ||
+        up.includes('PENHORA ON LINE') ||
+        up.includes('PENHORA ONLINE') ||
+        up.includes('EFETUAR O PAGAMENTO DO VALOR APONTADO') ||
+        up.includes('SOB PENA DE IMEDIATA PENHORA') ||
+        up.includes('PROSSEGUIR COM A EXECUÇÃO') ||
+        up.includes('ARTIGO 835') ||
+        up.includes('QUITAÇÃO AO(S) RÉU(S)') ||
+        up.includes('À PARTE EXECUTADA')
+      ) {
+        if (up.includes('PENHORA')) return 'Início da execução / Cumprimento da sentença — Penhora / Sisbajud';
+        if (up.includes('QUITAÇÃO')) return 'Início da execução / Cumprimento da sentença — Quitação / Extinção';
+        return 'Início da execução / Cumprimento da sentença';
+      }
+      const mEv = /Evento\s+(\d+)\s*-\s*(\d{2}\/\d{2}\/\d{4})\s*-\s*([^.]+)/i.exec(cleanTxt);
+      if (mEv) {
+        return `${mEv[3].trim()} (Evento ${mEv[1]} — Eproc)`;
+      }
+      if (up.includes('SOBRE JUNTADA DE') || up.includes('CADASTRO DO(A) PATRONO(A) SUBSCRITOR(A) DA PETIÇÃO')) {
+        return `Juntada de petição pela parte (${autorLbl})`;
+      }
       if (up.includes('DISTRIBUIDO PARA') || up.includes('DISTRIBUÍDO PARA') || tc.toUpperCase().includes('LISTA DE DISTRIBUI')) {
         return 'Distribuição do Processo ao Juízo';
       }
-      if (up.includes('REMESSA') && up.includes('NATJUS')) return 'Despacho / Decisão — Remessa ao NAT-JUS';
-      if (up.includes('PERITA PARA MANIFESTA') || up.includes('PERITO')) return `${tc} — Prova Pericial / Perito`;
-      if (up.includes('JULGO PARCIALMENTE PROCEDENTE') || up.includes('JULGO PROCEDENTE') || td.toUpperCase().includes('SENTENÇA')) {
-        return 'Publicação de Sentença no DJEN';
+      if (
+        td.toUpperCase().includes('DESPACHO') ||
+        td.toUpperCase().includes('DECISÃO') ||
+        td.toUpperCase().includes('DECISAO') ||
+        up.includes('DESPACHO') ||
+        up.includes('DECISÃO') ||
+        up.includes('DEFIRO') ||
+        up.includes('INDEFIRO') ||
+        up.includes('INTIME-SE') ||
+        up.includes('INTIMEM-SE') ||
+        up.includes('DÊ-SE VISTA') ||
+        up.includes('REMETA-SE') ||
+        up.includes('AGUARDE-SE') ||
+        up.includes('REDESIGNO AUDIÊNCIA')
+      ) {
+        if (up.includes('NATJUS') || up.includes('NAT-JUS')) return 'Despacho / Decisão — Remessa ao NAT-JUS';
+        if (up.includes('PERITO') || up.includes('PROVA PERICIAL')) return 'Despacho / Decisão — Prova Pericial';
+        if (up.includes('AUDIÊNCIA') || up.includes('AUDIENCIA')) return 'Despacho / Decisão — Designação de Audiência';
+        if (up.includes('GRATUIDADE') || up.includes('DEFIRO JG')) return 'Despacho / Decisão — Gratuidade de Justiça';
+        return 'Despacho / Decisão';
       }
-      if (up.includes('EMBARGADO') || up.includes('EMBARGOS')) return 'Despacho — Intimação sobre Embargos de Declaração';
-      if (td && td.toUpperCase() !== 'OUTROS' && td.toUpperCase() !== tc.toUpperCase()) {
+      if (up.includes('AUDIÊNCIA DE CONCILIAÇÃO') || up.includes('AUDIENCIA DE CONCILIACAO')) {
+        return 'Designação de Audiência — Intimação das Partes';
+      }
+      if (up.includes('LAUDO PERICIAL') || up.includes('À PERITA PARA MANIFESTAÇÃO')) {
+        return 'Ato Ordinatório — Manifestação sobre Perícia';
+      }
+      if (up.includes('MIGRAÇÃO DO PROCESSO PARA O SISTEMA EPROC') || up.includes('CERTIDÃO DE MIGRAÇÃO')) {
+        return 'Certidão — Migração para o Sistema Eproc';
+      }
+      if (td && td.toUpperCase() !== 'OUTROS' && td.toUpperCase() !== '80' && td.toUpperCase() !== tc.toUpperCase()) {
         return `${tc} — ${td}`;
       }
-      return `${tc} — Publicação Oficial DJEN`;
+      return 'Despacho / Decisão';
     }
 
-    // Consulta em tempo real a API Oficial do CNJ Comunica PJe/DJEN (CORS liberado, < 1s) + Ponte DataJud
-    async function fetchDataJudHits(parsed) {
+    function extractReferencedEventsFromDjenJS(cleanTxt, rawTxt, isoDt, orgaoIt, autorNome, reuNome) {
+      const up = String(cleanTxt || '').toUpperCase();
+      const autorLbl = String(autorNome || 'Parte Autora').trim();
+      const reuLbl = String(reuNome || 'Parte Ré').trim();
+      const extra = [];
+      let prevIso = isoDt;
+      try {
+        const dtObj = new Date(isoDt);
+        if (!isNaN(dtObj.getTime())) {
+          dtObj.setDate(dtObj.getDate() - 1);
+          prevIso = dtObj.toISOString();
+        }
+      } catch (_) {}
+
+      if (up.includes('RECEBO A EMENDA SUBSTITUTIVA') || up.includes('EMENDA À INICIAL')) {
+        extra.push({
+          codigo_cnj: 85,
+          titulo_movimento: `Juntada de petição pela parte Autora (${autorLbl})`,
+          descricao_tecnica: `Juntada de petição de emenda à inicial protocolada pela parte autora (${autorLbl}) perante ${orgaoIt}.`,
+          data_hora: prevIso
+        });
+      } else if (up.includes('ACERCA DA PETIÇÃO DE FLS') || up.includes('EM RELAÇÃO À PETIÇÃO DE ID') || up.includes('CADASTRO DO(A) PATRONO(A) SUBSCRITOR(A) DA PETIÇÃO')) {
+        extra.push({
+          codigo_cnj: 85,
+          titulo_movimento: `Juntada de petição pela parte (${autorLbl})`,
+          descricao_tecnica: `Petição intercorrente protocolada nos autos eletrônicos por ${autorLbl} perante ${orgaoIt}.`,
+          data_hora: prevIso
+        });
+      } else if (up.includes('PROVA DOCUMENTAL APRESENTADA PELO DEMANDADO') || up.includes('EVENTO 40, DOC1')) {
+        extra.push({
+          codigo_cnj: 85,
+          titulo_movimento: `Juntada de petição pela parte Ré (${reuLbl})`,
+          descricao_tecnica: `Juntada de petição e documentos apresentada pela parte contrária (${reuLbl}) nos autos eletrônicos.`,
+          data_hora: prevIso
+        });
+      } else if (up.includes('SOBRE OS EMBARGOS OPOSTOS') || up.includes('ALEGA A EMBARGANTE')) {
+        extra.push({
+          codigo_cnj: 198,
+          titulo_movimento: 'Embargos de declaração',
+          descricao_tecnica: `Oposição de Embargos de Declaração juntada aos autos eletrônicos perante ${orgaoIt}.`,
+          data_hora: prevIso
+        });
+      } else if (up.includes('PARTE IMPUGNANTE')) {
+        extra.push({
+          codigo_cnj: 85,
+          titulo_movimento: `Impugnação — Juntada pela parte Executada (${reuLbl})`,
+          descricao_tecnica: `Protocolo de Impugnação nos autos da execução perante ${orgaoIt} por ${reuLbl}.`,
+          data_hora: prevIso
+        });
+      } else if (up.includes('TRATA-SE DE AGRAVO DE INSTRUMENTO INTERPOSTO POR')) {
+        extra.push({
+          codigo_cnj: 198,
+          titulo_movimento: `Recurso — Interposição de Agravo de Instrumento (${autorLbl})`,
+          descricao_tecnica: `Juntada e interposição de Recurso de Agravo de Instrumento pela parte autora (${autorLbl}).`,
+          data_hora: prevIso
+        });
+      }
+      return extra;
+    }
+
+    function mapDataJudTpuToCanonicalJS(mCod, mNome, compStr, orgao, autorNome) {
+      const up = String(mNome || '').toUpperCase();
+      const autorLbl = String(autorNome || 'Parte nos Autos').trim();
+      if (mCod === 85 || up.includes('PETIÇÃO')) {
+        return {
+          titulo: `Juntada de petição pela parte (${autorLbl})`,
+          desc: compStr || `Juntada de petição protocolada nos autos eletrônicos perante ${orgao} (Código TPU CNJ 85).`
+        };
+      }
+      if (mCod === 848 || up.includes('TRÂNSITO EM JULGADO') || up.includes('TRANSITO EM JULGADO')) {
+        return {
+          titulo: 'Trânsito em julgado',
+          desc: compStr || `Certificado o Trânsito em Julgado da decisão/sentença nos autos eletrônicos perante ${orgao}.`
+        };
+      }
+      if ([193, 219, 442, 471].includes(mCod) || up.includes('SENTENÇA') || up.includes('JULGAMENTO')) {
+        return {
+          titulo: 'Sentença',
+          desc: compStr || `Sentença registrada nos autos eletrônicos perante ${orgao}.`
+        };
+      }
+      if ([3, 11010, 12164].includes(mCod) || up.includes('DESPACHO') || up.includes('DECISÃO')) {
+        return {
+          titulo: 'Despacho / Decisão',
+          desc: compStr || `Despacho / Decisão proferida pelo juízo (${orgao}) nos autos eletrônicos.`
+        };
+      }
+      if ([156, 11385].includes(mCod) || up.includes('CUMPRIMENTO DE SENTENÇA') || up.includes('EXECUÇÃO')) {
+        return {
+          titulo: 'Início da execução / Cumprimento da sentença',
+          desc: compStr || `Movimentação de execução / cumprimento de sentença perante ${orgao}.`
+        };
+      }
+      if (up.includes('EMBARGOS')) {
+        return {
+          titulo: 'Embargos de declaração',
+          desc: compStr || `Embargos de Declaração registrados nos autos eletrônicos perante ${orgao}.`
+        };
+      }
+      if (mCod === 198 || up.includes('RECURSO') || up.includes('APELAÇÃO') || up.includes('AGRAVO')) {
+        return {
+          titulo: 'Recurso',
+          desc: compStr || `Movimentação recursal registrada nos autos eletrônicos perante ${orgao}.`
+        };
+      }
+      if (up.includes('IMPUGNAÇÃO')) {
+        return {
+          titulo: 'Impugnação',
+          desc: compStr || `Impugnação registrada nos autos eletrônicos perante ${orgao}.`
+        };
+      }
+      if (mCod === 1051 || up.includes('DECURSO DE PRAZO')) {
+        return {
+          titulo: 'Decorrido prazo — Certidão de Decurso de Prazo',
+          desc: compStr || `Certificado o decurso de prazo processual nos autos perante ${orgao} (Código TPU CNJ 1051).`
+        };
+      }
+      return {
+        titulo: mNome || `Movimento CNJ ${mCod || ''}`.trim(),
+        desc: compStr || `Movimento oficial registrado pelo tribunal (${orgao}).`
+      };
+    }
+
+    // Consulta em tempo real a API Oficial do CNJ Comunica PJe/DJEN (CORS liberado, < 1s) + Ponte DataJud combinadas!
+    async function fetchDataJudHits(parsed, forceRefresh = false) {
       const cacheKey = `${parsed.tribunalSigla}|${parsed.digitsOnly}`;
       APP._djCache = APP._djCache || {};
       const cached = APP._djCache[cacheKey];
-      if (cached && Date.now() - cached.ts < 180000) return cached.result;
+      if (!forceRefresh && cached && Date.now() - cached.ts < 120000) return cached.result;
+
+      let djenItems = [];
+      let hits = [];
 
       // 1) Consulta direta a API Oficial de Comunicacoes Processuais do CNJ (comunicaapi.pje.jus.br)
-      //    Responde em ~0.6s com CORS aberto (*) e traz as datas, horas, varas e despachos reais da Justica!
       try {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 5000);
+        const timer = setTimeout(() => ctrl.abort(), 5500);
         const rDjen = await fetch(`https://comunicaapi.pje.jus.br/api/v1/comunicacao?numeroProcesso=${parsed.digitsOnly}`, {
           headers: { Accept: 'application/json' },
           signal: ctrl.signal
@@ -3772,12 +4020,7 @@
         clearTimeout(timer);
         if (rDjen.ok) {
           const jDjen = await rDjen.json();
-          const items = (jDjen && jDjen.items) || [];
-          if (items.length > 0) {
-            const result = { ok: true, djenItems: items, hits: [] };
-            APP._djCache[cacheKey] = { ts: Date.now(), result };
-            return result;
-          }
+          djenItems = (jDjen && jDjen.items) || [];
         }
       } catch (_) {}
 
@@ -3792,15 +4035,13 @@
           });
           if (rEdge.ok) {
             const jEdge = await rEdge.json();
-            const result = { ok: true, hits: (jEdge && jEdge.hits && jEdge.hits.hits) || [] };
-            APP._djCache[cacheKey] = { ts: Date.now(), result };
-            return result;
+            hits = (jEdge && jEdge.hits && jEdge.hits.hits) || [];
           }
         } catch (_) {}
       }
 
-      // 3) Fallback para ponte DataJud no Supabase
-      if (APP.token) {
+      // 3) Ponte DataJud no Supabase (cache instantaneo ou disparo assincrono pg_net)
+      if (APP.token && hits.length === 0) {
         try {
           const { data: st, error } = await sb.rpc('legal_datajud_start', {
             p_token: APP.token,
@@ -3809,12 +4050,9 @@
           });
           if (!error && st && st.ok) {
             if (st.cached && Array.isArray(st.hits)) {
-              const result = { ok: true, hits: st.hits };
-              APP._djCache[cacheKey] = { ts: Date.now(), result };
-              return result;
-            }
-            if (st.request_id) {
-              for (let i = 0; i < 3; i++) {
+              hits = st.hits;
+            } else if (st.request_id && djenItems.length === 0) {
+              for (let i = 0; i < 2; i++) {
                 await sleepMs(900);
                 const { data: res, error: err2 } = await sb.rpc('legal_datajud_result', {
                   p_token: APP.token,
@@ -3823,9 +4061,7 @@
                 if (err2 || !res || res.ok === false) break;
                 if (res.pending) continue;
                 if (res.status >= 200 && res.status < 300 && Array.isArray(res.hits)) {
-                  const result = { ok: true, hits: res.hits };
-                  APP._djCache[cacheKey] = { ts: Date.now(), result };
-                  return result;
+                  hits = res.hits;
                 }
                 break;
               }
@@ -3834,13 +4070,47 @@
         } catch (_) {}
       }
 
-      return { ok: false, reason: 'cache_local' };
+      if (djenItems.length > 0 || hits.length > 0) {
+        const result = { ok: true, djenItems, hits };
+        APP._djCache[cacheKey] = { ts: Date.now(), result };
+        return result;
+      }
+
+      return { ok: false, reason: 'cache_local', djenItems: [], hits: [] };
     }
 
-    // Converte a resposta oficial do CNJ (DJEN ou DataJud) em capa + movimentacoes com datas reais da Justica
-    function buildDataJudResult(parsed, resultObj, baseCapa) {
+    // Converte e FUNDE a resposta oficial do CNJ (DJEN + DataJud) nos 8 marcos canônicos com datas reais da Justiça
+    function buildDataJudResult(parsed, resultObj, baseCapa, proc = {}, cli = {}) {
       const capa = { ...baseCapa };
       const djenItems = (resultObj && resultObj.djenItems) || [];
+      const hitsRaw = Array.isArray(resultObj) ? resultObj : ((resultObj && resultObj.hits) || []);
+      const sources = (hitsRaw || []).map(h => h && h._source).filter(Boolean);
+
+      const autorNome = cli.nome || 'Parte Autora';
+      let reuNome = proc.parte_contraria || '';
+
+      // Detecta Réu / Parte Contrária automaticamente dos destinatários do DJEN se estiver vazio
+      if (!reuNome && djenItems.length > 0) {
+        for (const it of djenItems) {
+          const dests = it.destinatarios || [];
+          for (const d of dests) {
+            if (String(d.polo || '').toUpperCase() === 'P' && d.nome) {
+              const cand = String(d.nome).trim();
+              if (cand.toUpperCase() !== String(autorNome).trim().toUpperCase()) {
+                reuNome = cand;
+                break;
+              }
+            }
+          }
+          if (reuNome) break;
+        }
+      }
+      if (reuNome) capa.detected_parte_contraria = reuNome;
+
+      const seen = new Set();
+      const combinedMovs = [];
+
+      // A) Processa publicações e despachos reais do DJEN
       if (djenItems.length > 0) {
         const first = djenItems[0];
         if (first.nomeClasse) {
@@ -3858,24 +4128,24 @@
           capa.data_ajuizamento = djenItems[djenItems.length - 1].data_disponibilizacao;
         }
 
-        const seen = new Set();
-        const movs = [];
-        for (const it of djenItems.slice(0, 15)) {
+        for (const it of djenItems.slice(0, 20)) {
           const dDisp = it.data_disponibilizacao || '2026-01-01';
           const advs = it.destinatarioadvogados || [];
           const rawTs = (advs[0] && advs[0].created_at) || `${dDisp}T14:30:00`;
           const timePart = rawTs.includes('T') ? rawTs.split('T')[1].slice(0, 8) : '14:30:00';
           const isoDt = `${dDisp}T${timePart}-03:00`;
           const orgaoIt = it.nomeOrgao || capa.orgao_julgador || '';
-          const cleanTxt = cleanDjenCourtText(it.texto, it.tipoComunicacao, it.tipoDocumento, orgaoIt);
-          const tit = buildDjenTitle(it.tipoComunicacao, it.tipoDocumento, cleanTxt);
-          const dedupK = `${dDisp}|${tit}|${cleanTxt.slice(0, 60)}`;
+          const rawTxt = it.texto || '';
+          const cleanTxt = cleanDjenCourtText(rawTxt, it.tipoComunicacao, it.tipoDocumento, orgaoIt);
+          const tit = buildDjenTitle(it.tipoComunicacao, it.tipoDocumento, cleanTxt, rawTxt, autorNome, reuNome);
+          const dedupK = `${dDisp}|${tit}|${cleanTxt.slice(0, 50)}`;
           if (seen.has(dedupK)) continue;
           seen.add(dedupK);
-          movs.push({
+
+          combinedMovs.push({
             passo_numero: 0,
             total_passos: 0,
-            codigo_cnj: parseInt(it.codigoClasse || '970', 10) || 970,
+            codigo_cnj: parseInt(it.codigoClasse || '11010', 10) || 11010,
             titulo_movimento: tit,
             orgao_julgador: orgaoIt,
             complementos_cnj: `Órgão: ${orgaoIt}${it.numeroComunicacao ? ` | Publicação nº ${it.numeroComunicacao}` : ''}`,
@@ -3887,173 +4157,109 @@
             proximo_passo_leigo: 'Acompanhamento ativo pelo escritório nos autos eletrônicos.',
             origem: 'DataJud CNJ'
           });
+
+          const extras = extractReferencedEventsFromDjenJS(cleanTxt, rawTxt, isoDt, orgaoIt, autorNome, reuNome);
+          for (const ex of extras) {
+            const exK = `${ex.data_hora.slice(0, 10)}|${ex.titulo_movimento}`;
+            if (!seen.has(exK)) {
+              seen.add(exK);
+              combinedMovs.push({
+                passo_numero: 0,
+                total_passos: 0,
+                codigo_cnj: ex.codigo_cnj,
+                titulo_movimento: ex.titulo_movimento,
+                orgao_julgador: orgaoIt,
+                complementos_cnj: `Órgão: ${orgaoIt} | Protocolo nos Autos Eletrônicos`,
+                descricao_tecnica: ex.descricao_tecnica,
+                prazo_sugerido: '',
+                data_hora: ex.data_hora,
+                etapa_pipeline: null,
+                explicacao_leiga: translateLegalMovementLocal(ex.titulo_movimento, ex.descricao_tecnica, ''),
+                proximo_passo_leigo: 'Acompanhamento ativo pelo escritório nos autos eletrônicos.',
+                origem: 'DataJud CNJ'
+              });
+            }
+          }
         }
-        movs.forEach((m, i) => {
-          m.passo_numero = movs.length - i;
-          m.total_passos = movs.length;
+      }
+
+      // B) Funde movimentações TPU do DataJud (Juntada de Petição, Trânsito em Julgado, Decurso de Prazo, etc.)
+      if (sources.length > 0) {
+        const stamp = s => (parseDataJudDate(s.dataHoraUltimaAtualizacao) || new Date(0)).getTime();
+        const main = [...sources].sort((a, b) => stamp(b) - stamp(a))[0];
+
+        if (main.classe && main.classe.nome && main.classe.nome !== 'Inválido') {
+          capa.classe_processual = main.classe.codigo ? `${main.classe.nome} (Cód. ${main.classe.codigo})` : main.classe.nome;
+        }
+        const assuntos = [].concat(...(main.assuntos || []).map(a => (Array.isArray(a) ? a : [a])))
+          .map(a => (a && a.nome ? (a.codigo ? `${a.nome} (${a.codigo})` : a.nome) : ''))
+          .filter(Boolean);
+        if (assuntos.length) capa.assuntos_cnj = assuntos.join(' / ');
+        if (main.orgaoJulgador && main.orgaoJulgador.nome) capa.orgao_julgador = main.orgaoJulgador.nome;
+        if (main.sistema && main.sistema.nome) capa.sistema_processual = main.sistema.nome;
+        if (main.grau) capa.grau_jurisdicao = cleanCapaGrau(main.grau);
+        const ajuizamento = dataJudDateOnly(main.dataAjuizamento);
+        if (ajuizamento) capa.data_ajuizamento = ajuizamento;
+
+        const allDj = [];
+        sources.forEach(srcItem => {
+          (srcItem.movimentos || []).forEach(m => {
+            const d = parseDataJudDate(m.dataHora);
+            if (d) allDj.push({ m, d, srcItem });
+          });
         });
-        return { capa, movs, hasOfficial: movs.length > 0 };
+        allDj.sort((a, b) => b.d - a.d);
+
+        for (const it of allDj.slice(0, 25)) {
+          const m = it.m;
+          const comp = (m.complementosTabelados || []).map(c => {
+            const label = c.descricao || '';
+            const val = c.nome || (c.valor !== undefined && c.valor !== null ? String(c.valor) : '');
+            return label && val ? `${label}: ${val}` : (label || val);
+          }).filter(Boolean).join(' | ');
+          const orgao = (m.orgaoJulgador && m.orgaoJulgador.nomeOrgao) || (it.srcItem.orgaoJulgador && it.srcItem.orgaoJulgador.nome) || capa.orgao_julgador || '';
+          const mapped = mapDataJudTpuToCanonicalJS(m.codigo, m.nome, comp, orgao, autorNome);
+          const isoDt = it.d.toISOString();
+          const dk = `${isoDt.slice(0, 10)}|${mapped.titulo.slice(0, 22)}`;
+          if (seen.has(dk)) continue;
+          seen.add(dk);
+
+          combinedMovs.push({
+            passo_numero: 0,
+            total_passos: 0,
+            codigo_cnj: m.codigo || null,
+            titulo_movimento: mapped.titulo,
+            orgao_julgador: orgao,
+            complementos_cnj: `Órgão: ${orgao} | Sincronização TPU DataJud CNJ${m.codigo ? ` (Cód. ${m.codigo})` : ''}`,
+            descricao_tecnica: mapped.desc,
+            prazo_sugerido: '',
+            data_hora: isoDt,
+            etapa_pipeline: null,
+            explicacao_leiga: translateLegalMovementLocal(mapped.titulo, mapped.desc, ''),
+            proximo_passo_leigo: 'Acompanhamento ativo pelo escritório nos autos eletrônicos.',
+            origem: 'DataJud CNJ'
+          });
+        }
       }
 
-      const hitsRaw = Array.isArray(resultObj) ? resultObj : ((resultObj && resultObj.hits) || []);
-      const sources = (hitsRaw || []).map(h => h && h._source).filter(Boolean);
-      if (!sources.length) return { capa, movs: [], hasOfficial: false };
-
-      const stamp = s => (parseDataJudDate(s.dataHoraUltimaAtualizacao) || new Date(0)).getTime();
-      const main = [...sources].sort((a, b) => stamp(b) - stamp(a))[0];
-
-      if (main.classe && main.classe.nome) {
-        capa.classe_processual = main.classe.codigo ? `${main.classe.nome} (Cód. ${main.classe.codigo})` : main.classe.nome;
-      }
-      const assuntos = [].concat(...(main.assuntos || []).map(a => (Array.isArray(a) ? a : [a])))
-        .map(a => (a && a.nome ? (a.codigo ? `${a.nome} (${a.codigo})` : a.nome) : ''))
-        .filter(Boolean);
-      if (assuntos.length) capa.assuntos_cnj = assuntos.join(' / ');
-      if (main.orgaoJulgador && main.orgaoJulgador.nome) capa.orgao_julgador = main.orgaoJulgador.nome;
-      if (main.sistema && main.sistema.nome) capa.sistema_processual = main.sistema.nome;
-      if (main.grau) capa.grau_jurisdicao = cleanCapaGrau(main.grau);
-      const ajuizamento = dataJudDateOnly(main.dataAjuizamento);
-      if (ajuizamento) capa.data_ajuizamento = ajuizamento;
-      if (main.nivelSigilo !== undefined && main.nivelSigilo !== null) {
-        capa.nivel_sigilo = Number(main.nivelSigilo) === 0 ? 'Público' : `Sigilo nível ${main.nivelSigilo}`;
-      }
-
-      const all = [];
-      sources.forEach(srcItem => {
-        (srcItem.movimentos || []).forEach(m => {
-          const d = parseDataJudDate(m.dataHora);
-          if (d) all.push({ m, d, srcItem });
-        });
-      });
-      all.sort((a, b) => b.d - a.d);
-
-      const seen = new Set();
-      const recent = [];
-      for (const it of all) {
-        const k = `${it.m.codigo}|${it.d.getTime()}`;
-        if (seen.has(k)) continue;
-        seen.add(k);
-        recent.push(it);
-        if (recent.length >= 15) break;
-      }
-
-      const movs = recent.map((it, idx) => {
-        const m = it.m;
-        const nome = m.nome || `Movimento CNJ ${m.codigo || ''}`.trim();
-        const comp = (m.complementosTabelados || []).map(c => {
-          const label = c.descricao || '';
-          const val = c.nome || (c.valor !== undefined && c.valor !== null ? String(c.valor) : '');
-          return label && val ? `${label}: ${val}` : (label || val);
-        }).filter(Boolean).join(' | ');
-        const orgao = (m.orgaoJulgador && m.orgaoJulgador.nomeOrgao) || (it.srcItem.orgaoJulgador && it.srcItem.orgaoJulgador.nome) || capa.orgao_julgador || '';
-        const desc = comp || 'Movimento oficial registrado pelo tribunal.';
-        return {
-          passo_numero: recent.length - idx,
-          total_passos: recent.length,
-          codigo_cnj: m.codigo || null,
-          titulo_movimento: nome,
-          orgao_julgador: orgao,
-          complementos_cnj: '',
-          descricao_tecnica: desc,
-          prazo_sugerido: '',
-          data_hora: it.d.toISOString(),
-          etapa_pipeline: null,
-          explicacao_leiga: translateLegalMovementLocal(nome, desc, ''),
-          proximo_passo_leigo: '',
-          origem: 'DataJud CNJ'
-        };
+      combinedMovs.sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
+      const finalMovs = combinedMovs.slice(0, 25);
+      finalMovs.forEach((m, i) => {
+        m.passo_numero = finalMovs.length - i;
+        m.total_passos = finalMovs.length;
       });
 
-      return { capa, movs, hasOfficial: true };
+      return { capa, movs: finalMovs, hasOfficial: finalMovs.length > 0 };
     }
 
-    async function consultarDataJudCNJ(silentToast = false) {
-      const cnj = document.getElementById('datajud-cnj-input').value.trim();
-      const parsed = parseCNJNumber(cnj);
-      const procId = document.getElementById('datajud-processo-select').value || APP.selectedProcessoId;
-      // Se o CNJ digitado corresponde a outro processo cadastrado, localiza-o automaticamente
-      const matchedByCnj = parsed.digitsOnly
-        ? APP.admin.processos.find(p => String(p.numero_cnj || '').replace(/\D/g, '') === parsed.digitsOnly)
-        : null;
-      const proc = matchedByCnj || APP.admin.processos.find(p => p.id === procId) || {};
-      const cli = APP.admin.clientes.find(c => c.id === proc.cliente_id) || {};
-      const container = document.getElementById('datajud-results-container');
-      const btn = document.getElementById('btn-consultar-datajud');
-      const myReq = (APP._djSeq = (APP._djSeq || 0) + 1);
+    function renderDataJudContainerHtml(parsed, cnj, proc, cli, capa, rows, sourceLabel, isSyncingLive = false) {
+      const badge = isSyncingLive
+        ? `<span class="px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shadow-xs"><i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Verificando atualizações no CNJ...</span>`
+        : `<span class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Sincronizado ao Vivo (${esc(parsed.tribunalSigla)})</span>`;
 
-      const baseCapa = deriveTruthfulCapaFromProcesso(proc, parsed);
-      let capa = { ...baseCapa };
-      let movs = [];
-      let sourceLabel = `CNJ • DataJud (${parsed.tribunalSigla})`;
+      const reuDisplay = proc.parte_contraria || capa.detected_parte_contraria || '';
 
-      // Na troca de aba/select (silentToast === true), carrega instantaneamente os dados reais sem travar no CNJ.
-      // Ao clicar em "Consultar DataJud" (silentToast === false), consulta a ponte oficial com timeout curto (2.7s).
-      if (!silentToast && parsed.valid) {
-        if (btn) {
-          btn.disabled = true;
-          btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sincronizando...`;
-          refreshIcons();
-        }
-        const result = await fetchDataJudHits(parsed);
-        if (myReq !== APP._djSeq) return;
-        if (result && result.ok && ((result.djenItems && result.djenItems.length > 0) || (Array.isArray(result.hits) && result.hits.length > 0))) {
-          const built = buildDataJudResult(parsed, result, baseCapa);
-          capa = built.capa;
-          movs = built.movs;
-          if (built.hasOfficial && proc.id) {
-            await autoSyncDataJudToEcosystem(proc, parsed, capa, movs);
-            if (myReq !== APP._djSeq) return;
-          }
-        }
-      }
-
-      // Linha do tempo: usa os andamentos reais do processo (fiel ao caso especifico)
-      let rows = movs;
-      if (proc.id) {
-        const stored = (APP.admin.andamentos || [])
-          .filter(a => a.processo_id === proc.id)
-          .sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
-        if (stored.length) rows = stored;
-      }
-
-      // Se digitou um CNJ avulso que ainda nao tem andamento gravado, exibe o registro de autuacao fiel ao proprio caso
-      if (!rows || rows.length === 0) {
-        const acaoNome = proc.titulo_acao || capa.assuntos_cnj || 'Processo Judicial';
-        const varaNome = capa.orgao_julgador || `Juízo ${parsed.tribunalSigla}`;
-        rows = [
-          {
-            passo_numero: 1,
-            codigo_cnj: 26,
-            titulo_movimento: `Distribuição e Autuação — ${acaoNome}`,
-            descricao_tecnica: `Processo ${parsed.formatted || cnj} (${acaoNome}) registrado perante ${varaNome}.`,
-            explicacao_leiga: `Seu processo de ${acaoNome.toLowerCase()} está devidamente registrado na ${varaNome} e sob acompanhamento da nossa equipe.`,
-            proximo_passo_leigo: 'Acompanhamento das movimentações e despachos nos autos eletrônicos.',
-            orgao_julgador: varaNome,
-            etapa_pipeline: proc.fase_pipeline || 'Em tramitação',
-            data_hora: new Date().toISOString(),
-            visivel_cliente: true,
-            origem: 'Autos do Processo'
-          }
-        ];
-      }
-
-      APP.datajudLastResult = { parsed, capa, movs: rows, status: 'real' };
-
-      if (!silentToast) {
-        if (!parsed.valid && !proc.id) {
-          showToast('Informe um número CNJ válido (20 dígitos).', 'error');
-        } else {
-          showToast('Processo sincronizado com os dados e movimentações oficiais!');
-          setTimeout(() => {
-            APP._lastBgHarvestTs = 0;
-            triggerBackgroundDataJudHarvest();
-          }, 22000);
-        }
-      }
-
-      const badge = `<span class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Sincronizado (${esc(parsed.tribunalSigla)})</span>`;
-
-      container.innerHTML = `
+      return `
         <!-- PAINEL 1: CAPA DO PROCESSO (somente dados reais do caso) -->
         <div class="p-5 rounded-2xl bg-gradient-to-br from-[#FDF8EE] via-white to-[#FAF3E3] dark:from-slate-800 dark:to-slate-900 border border-[#C8A25A]/60 shadow-xs space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#C8A25A]/30">
@@ -4065,7 +4271,7 @@
                 Processo CNJ ${esc(parsed.formatted || cnj || proc.numero_cnj || '—')}
               </h4>
               <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                Cliente: <strong>${esc(cli.nome || 'Vinculado')}</strong> • ${esc(proc.titulo_acao || capa.assuntos_cnj || 'Ação Judicial')}${proc.parte_contraria ? ` • Contra: <strong>${esc(proc.parte_contraria)}</strong>` : ''}
+                Autor: <strong>${esc(cli.nome || 'Vinculado')}</strong> • ${esc(proc.titulo_acao || capa.assuntos_cnj || 'Ação Judicial')}${reuDisplay ? ` • Réu: <strong>${esc(reuDisplay)}</strong>` : ''}
               </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">${badge}</div>
@@ -4120,6 +4326,113 @@
           ${renderEprocEventsTable(rows, { isPipeline: true, procId: proc.id })}
         </div>
       `;
+    }
+
+    async function consultarDataJudCNJ(silentToast = false) {
+      const cnjInput = document.getElementById('datajud-cnj-input');
+      const cnj = cnjInput ? cnjInput.value.trim() : '';
+      const parsed = parseCNJNumber(cnj);
+      const selEl = document.getElementById('datajud-processo-select');
+      const procId = (selEl && selEl.value) || APP.selectedProcessoId;
+      const matchedByCnj = parsed.digitsOnly
+        ? APP.admin.processos.find(p => String(p.numero_cnj || '').replace(/\D/g, '') === parsed.digitsOnly)
+        : null;
+      let proc = matchedByCnj || APP.admin.processos.find(p => p.id === procId) || {};
+      const cli = APP.admin.clientes.find(c => c.id === proc.cliente_id) || {};
+      const container = document.getElementById('datajud-results-container');
+      const btn = document.getElementById('btn-consultar-datajud');
+      if (!container) return;
+      const myReq = (APP._djSeq = (APP._djSeq || 0) + 1);
+
+      const baseCapa = deriveTruthfulCapaFromProcesso(proc, parsed);
+      let capa = { ...baseCapa };
+      let sourceLabel = `CNJ • DataJud (${parsed.tribunalSigla})`;
+
+      // 1. Exibe imediatamente os andamentos já salvos no banco (< 5ms) enquanto checa novas atualizações no CNJ
+      let storedRows = proc.id
+        ? (APP.admin.andamentos || [])
+            .filter(a => a.processo_id === proc.id)
+            .sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora))
+        : [];
+
+      if (silentToast && storedRows.length > 0) {
+        container.innerHTML = renderDataJudContainerHtml(parsed, cnj, proc, cli, capa, storedRows, sourceLabel, false);
+        refreshIcons();
+      } else if (!silentToast && btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sincronizando...`;
+        refreshIcons();
+      }
+
+      // 2. Consulta SEMPRE a API oficial do CNJ (mesmo na troca de aba/caso!) para capturar novos andamentos em tempo real
+      let movs = [];
+      if (parsed.valid) {
+        const forceRefresh = !silentToast;
+        const result = await fetchDataJudHits(parsed, forceRefresh);
+        if (myReq !== APP._djSeq) return;
+        if (result && result.ok && ((result.djenItems && result.djenItems.length > 0) || (Array.isArray(result.hits) && result.hits.length > 0))) {
+          const built = buildDataJudResult(parsed, result, baseCapa, proc, cli);
+          capa = built.capa;
+          movs = built.movs;
+          if (built.hasOfficial && proc.id) {
+            const changed = await autoSyncDataJudToEcosystem(proc, parsed, capa, movs);
+            if (myReq !== APP._djSeq) return;
+            if (changed) {
+              proc = APP.admin.processos.find(p => p.id === proc.id) || proc;
+              const casosBar = document.getElementById('datajud-cliente-casos-bar');
+              if (casosBar && cli.id) {
+                const cliProcs = APP.admin.processos.filter(p => p.cliente_id === cli.id);
+                casosBar.innerHTML = renderClienteCasosBarHtml(cli, cliProcs, proc.id, 'onDataJudSelectProcesso');
+              }
+            }
+          }
+        }
+      }
+
+      // 3. Linha do tempo consolidada com os dados atualizados
+      let rows = movs;
+      if (proc.id) {
+        const freshStored = (APP.admin.andamentos || [])
+          .filter(a => a.processo_id === proc.id)
+          .sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
+        if (freshStored.length) rows = freshStored;
+      }
+
+      if (!rows || rows.length === 0) {
+        const acaoNome = proc.titulo_acao || capa.assuntos_cnj || 'Processo Judicial';
+        const varaNome = capa.orgao_julgador || `Juízo ${parsed.tribunalSigla}`;
+        rows = [
+          {
+            passo_numero: 1,
+            codigo_cnj: 26,
+            titulo_movimento: `Distribuição do Processo ao Juízo — ${acaoNome}`,
+            descricao_tecnica: `Processo ${parsed.formatted || cnj} (${acaoNome}) registrado perante ${varaNome}.`,
+            explicacao_leiga: `Seu processo de ${acaoNome.toLowerCase()} está devidamente registrado na ${varaNome} e sob acompanhamento da nossa equipe.`,
+            proximo_passo_leigo: 'Acompanhamento das movimentações e despachos nos autos eletrônicos.',
+            orgao_julgador: varaNome,
+            etapa_pipeline: proc.fase_pipeline || 'Em tramitação',
+            data_hora: new Date().toISOString(),
+            visivel_cliente: true,
+            origem: 'Autos do Processo'
+          }
+        ];
+      }
+
+      APP.datajudLastResult = { parsed, capa, movs: rows, status: 'real' };
+
+      if (!silentToast) {
+        if (!parsed.valid && !proc.id) {
+          showToast('Informe um número CNJ válido (20 dígitos).', 'error');
+        } else {
+          showToast('Processo sincronizado ao vivo com os dados e movimentações oficiais do CNJ!');
+          setTimeout(() => {
+            APP._lastBgHarvestTs = 0;
+            triggerBackgroundDataJudHarvest();
+          }, 18000);
+        }
+      }
+
+      container.innerHTML = renderDataJudContainerHtml(parsed, cnj, proc, cli, capa, rows, sourceLabel, false);
 
       if (btn) {
         btn.disabled = false;
@@ -4133,7 +4446,7 @@
       if (!proc || !proc.id) return false;
       let changed = false;
 
-      // 1. Capa: preenche apenas campos VAZIOS com dados oficiais (nunca sobrescreve o que a advogada digitou)
+      // 1. Capa: preenche campos vazios com dados oficiais (incluindo Réu / Parte Contrária detectado no CNJ!)
       const patch = {};
       if (!proc.classe_processual && capa.classe_processual) patch.classe_processual = capa.classe_processual;
       if (!proc.assuntos_cnj && capa.assuntos_cnj && capa.assuntos_cnj !== proc.titulo_acao) patch.assuntos_cnj = capa.assuntos_cnj;
@@ -4141,6 +4454,7 @@
       if (!proc.grau_jurisdicao && capa.grau_jurisdicao) patch.grau_jurisdicao = capa.grau_jurisdicao;
       if (!proc.data_ajuizamento && capa.data_ajuizamento) patch.data_ajuizamento = capa.data_ajuizamento;
       if (!proc.vara_comarca && capa.orgao_julgador) patch.vara_comarca = capa.orgao_julgador;
+      if (!proc.parte_contraria && capa.detected_parte_contraria) patch.parte_contraria = capa.detected_parte_contraria;
       if (parsed.valid && parsed.tribunalSigla && proc.tribunal !== parsed.tribunalSigla) patch.tribunal = parsed.tribunalSigla;
       if (Object.keys(patch).length) {
         const { error } = await sb.rpc('legal_save_record', {
@@ -4151,10 +4465,30 @@
         if (!error) changed = true;
       }
 
-      // 2. Andamentos oficiais ainda nao gravados (chave: titulo + data/hora exata)
-      const keyOf = (titulo, dataHora) => `${String(titulo || '').trim().toLowerCase()}|${new Date(dataHora).getTime()}`;
+      // 2. Remove registro sintetico "Sistema Integrado" caso existam movimentacoes reais do CNJ
+      if (movs.length > 0) {
+        const synthRows = (APP.admin.andamentos || []).filter(
+          a => a.processo_id === proc.id && (a.origem === 'Sistema Integrado' || a.origem === 'Autos do Processo')
+        );
+        for (const sr of synthRows) {
+          await sb.rpc('legal_delete_record', {
+            p_token: APP.token,
+            p_table: 'legal_andamentos',
+            p_id: sr.id
+          });
+          changed = true;
+        }
+      }
+
+      // 3. Andamentos oficiais ainda nao gravados (desduplicados por titulo + dia)
+      const keyOf = (titulo, dataHora) => {
+        const dtStr = String(dataHora || '').slice(0, 10);
+        return `${String(titulo || '').trim().toLowerCase().slice(0, 28)}|${dtStr}`;
+      };
       const existing = new Set(
-        APP.admin.andamentos.filter(a => a.processo_id === proc.id).map(a => keyOf(a.titulo_movimento, a.data_hora))
+        (APP.admin.andamentos || [])
+          .filter(a => a.processo_id === proc.id && a.origem !== 'Sistema Integrado' && a.origem !== 'Autos do Processo')
+          .map(a => keyOf(a.titulo_movimento, a.data_hora))
       );
       for (let i = movs.length - 1; i >= 0; i--) {
         const m = movs[i];
@@ -4167,15 +4501,15 @@
             processo_id: proc.id,
             cliente_id: proc.cliente_id,
             data_hora: m.data_hora,
-            etapa_pipeline: null,
+            etapa_pipeline: proc.fase_pipeline || null,
             codigo_cnj: m.codigo_cnj,
             titulo_movimento: m.titulo_movimento,
             orgao_julgador: m.orgao_julgador || '',
-            complementos_cnj: '',
+            complementos_cnj: m.complementos_cnj || '',
             descricao_tecnica: m.descricao_tecnica,
-            prazo_sugerido: '',
+            prazo_sugerido: m.prazo_sugerido || '',
             explicacao_leiga: m.explicacao_leiga,
-            proximo_passo_leigo: '',
+            proximo_passo_leigo: m.proximo_passo_leigo || 'Acompanhamento ativo pelo escritório nos autos eletrônicos.',
             origem: 'DataJud CNJ',
             visivel_cliente: true
           }
@@ -4186,7 +4520,7 @@
         }
       }
 
-      // 3. Cartao no Kanban apenas a partir da movimentacao oficial MAIS RECENTE
+      // 4. Cartao no Kanban a partir da movimentacao oficial MAIS RECENTE
       const topMov = movs[0];
       if (topMov) {
         const kanbanTitle = `[DataJud ${parsed.tribunalSigla}] ${topMov.titulo_movimento}`;
@@ -5972,8 +6306,20 @@
             </div>
 
             <div>
+              <label class="font-bold block mb-1">Atalhos Rápidos — Andamentos Oficiais CNJ (Clique para preencher):</label>
+              <div class="flex flex-wrap gap-1.5 mb-2.5">
+                <button type="button" onclick="applyCanonicalMovementPreset('peticao_autor')" class="px-2.5 py-1 rounded-lg bg-sky-100 hover:bg-sky-200 text-sky-950 border border-sky-300 text-xs font-extrabold transition">Juntada de petição (Parte Autora)</button>
+                <button type="button" onclick="applyCanonicalMovementPreset('peticao_reu')" class="px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200 text-xs font-bold transition">Juntada de petição (Parte Ré)</button>
+                <button type="button" onclick="applyCanonicalMovementPreset('despacho')" class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 text-xs font-extrabold transition">Despacho / Decisão</button>
+                <button type="button" onclick="applyCanonicalMovementPreset('sentenca')" class="px-2.5 py-1 rounded-lg bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-extrabold transition">Sentença</button>
+                <button type="button" onclick="applyCanonicalMovementPreset('transito')" class="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-extrabold transition">Trânsito em julgado</button>
+                <button type="button" onclick="applyCanonicalMovementPreset('cumprimento')" class="px-2.5 py-1 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-[#E5C888] text-xs font-extrabold transition">Início da execução / Cumprimento da sentença</button>
+                <button type="button" onclick="applyCanonicalMovementPreset('embargos')" class="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-950 border border-rose-300 text-xs font-extrabold transition">Embargos de declaração</button>
+                <button type="button" onclick="applyCanonicalMovementPreset('recurso')" class="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-950 border border-rose-300 text-xs font-extrabold transition">Recurso</button>
+                <button type="button" onclick="applyCanonicalMovementPreset('impugnacao')" class="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-950 border border-rose-300 text-xs font-extrabold transition">Impugnação</button>
+              </div>
               <label class="font-bold block mb-1">Título do Movimento / Despacho *</label>
-              <input id="f-and-titulo" required value="${esc(a.titulo_movimento)}" placeholder="Ex: Designada Audiência de Conciliação / Conclusos para Sentença"
+              <input id="f-and-titulo" required value="${esc(a.titulo_movimento)}" placeholder="Ex: Juntada de petição pela parte / Despacho / Sentença / Trânsito em julgado"
                 oninput="autoPreviewTranslation()"
                 class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800">
             </div>
@@ -6022,6 +6368,75 @@
           </div>
         </form>
       `);
+    }
+
+    function applyCanonicalMovementPreset(presetKey) {
+      const procId = document.getElementById('f-and-proc')?.value || APP.selectedProcessoId;
+      const proc = APP.admin.processos.find(p => p.id === procId) || {};
+      const cli = APP.admin.clientes.find(c => c.id === proc.cliente_id) || {};
+      const autorNome = cli.nome || 'Parte Autora';
+      const reuNome = proc.parte_contraria || 'Parte Contrária';
+      const orgao = proc.vara_comarca || 'Juízo';
+
+      const presets = {
+        peticao_autor: {
+          titulo: `Juntada de petição pela parte Autora (${autorNome})`,
+          desc: `Juntada de petição e manifestação protocolada nos autos eletrônicos pela parte autora (${autorNome}) perante ${orgao}.`,
+          etapa: proc.fase_pipeline || 'Procedimento em tramitação'
+        },
+        peticao_reu: {
+          titulo: `Juntada de petição pela parte Ré (${reuNome})`,
+          desc: `Juntada de petição / manifestação apresentada nos autos eletrônicos pela parte contrária (${reuNome}) perante ${orgao}.`,
+          etapa: proc.fase_pipeline || 'Procedimento em tramitação'
+        },
+        despacho: {
+          titulo: 'Despacho / Decisão',
+          desc: `Despacho / Decisão proferida pelo juízo (${orgao}) determinando o prosseguimento do feito e intimação das partes.`,
+          etapa: proc.fase_pipeline || 'Procedimento em tramitação'
+        },
+        sentenca: {
+          titulo: 'Sentença',
+          desc: `Sentença proferida pelo juízo (${orgao}) julgando o mérito da demanda.`,
+          etapa: 'Aguardando sentença'
+        },
+        transito: {
+          titulo: 'Trânsito em julgado',
+          desc: `Certificado nos autos eletrônicos que a Sentença / Decisão transitou em julgado perante ${orgao}.`,
+          etapa: 'Em execução/concluido'
+        },
+        cumprimento: {
+          titulo: 'Início da execução / Cumprimento da sentença',
+          desc: `Iniciado o cumprimento de sentença / fase de execução perante ${orgao} para satisfação do crédito ou obrigação reconhecida na sentença.`,
+          etapa: 'Em execução/concluido'
+        },
+        embargos: {
+          titulo: 'Embargos de declaração',
+          desc: `Opostos Embargos de Declaração nos autos eletrônicos perante ${orgao} para esclarecimento / integração da decisão.`,
+          etapa: 'Fase recursal'
+        },
+        recurso: {
+          titulo: 'Recurso',
+          desc: `Interposição / processamento de Recurso nos autos eletrônicos perante ${orgao}.`,
+          etapa: 'Fase recursal'
+        },
+        impugnacao: {
+          titulo: 'Impugnação',
+          desc: `Apresentada Impugnação nos autos eletrônicos perante ${orgao}, sob análise do juízo.`,
+          etapa: proc.fase_pipeline || 'Procedimento em tramitação'
+        }
+      };
+
+      const p = presets[presetKey];
+      if (!p) return;
+      const titEl = document.getElementById('f-and-titulo');
+      const descEl = document.getElementById('f-and-desc');
+      const orgaoEl = document.getElementById('f-and-orgao');
+      const etapaEl = document.getElementById('f-and-etapa');
+      if (titEl) titEl.value = p.titulo;
+      if (descEl && !descEl.value.trim()) descEl.value = p.desc;
+      if (orgaoEl && !orgaoEl.value.trim()) orgaoEl.value = orgao;
+      if (etapaEl && p.etapa) etapaEl.value = p.etapa;
+      autoPreviewTranslation(true);
     }
 
     function autoPreviewTranslation(force = false) {
