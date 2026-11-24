@@ -4039,18 +4039,22 @@
       let djenItems = [];
       let hits = [];
 
-      // 1) Consulta direta a API Oficial de Comunicacoes Processuais do CNJ (comunicaapi.pje.jus.br)
+      // 1) Consulta direta a API Oficial de Comunicacoes Processuais do CNJ (comunicaapi.pje.jus.br ? todas as paginas)
       try {
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 5500);
-        const rDjen = await fetch(`https://comunicaapi.pje.jus.br/api/v1/comunicacao?numeroProcesso=${parsed.digitsOnly}`, {
-          headers: { Accept: 'application/json' },
-          signal: ctrl.signal
-        });
-        clearTimeout(timer);
-        if (rDjen.ok) {
+        for (let page = 1; page <= 5; page++) {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 6500);
+          const rDjen = await fetch(`https://comunicaapi.pje.jus.br/api/v1/comunicacao?numeroProcesso=${parsed.digitsOnly}&itensPorPagina=100&pagina=${page}`, {
+            headers: { Accept: 'application/json' },
+            signal: ctrl.signal
+          });
+          clearTimeout(timer);
+          if (!rDjen.ok) break;
           const jDjen = await rDjen.json();
-          djenItems = (jDjen && jDjen.items) || [];
+          const pageItems = (jDjen && jDjen.items) || [];
+          djenItems = djenItems.concat(pageItems);
+          const totalCount = Number((jDjen && jDjen.count) || pageItems.length);
+          if (pageItems.length === 0 || djenItems.length >= totalCount) break;
         }
       } catch (_) {}
 
@@ -4158,7 +4162,7 @@
           capa.data_ajuizamento = djenItems[djenItems.length - 1].data_disponibilizacao;
         }
 
-        for (const it of djenItems.slice(0, 20)) {
+        for (const it of djenItems) {
           const dDisp = it.data_disponibilizacao || '2026-01-01';
           const advs = it.destinatarioadvogados || [];
           const rawTs = (advs[0] && advs[0].created_at) || `${dDisp}T14:30:00`;
@@ -4240,7 +4244,7 @@
         });
         allDj.sort((a, b) => b.d - a.d);
 
-        for (const it of allDj.slice(0, 25)) {
+        for (const it of allDj) {
           const m = it.m;
           const comp = (m.complementosTabelados || []).map(c => {
             const label = c.descricao || '';
@@ -4250,7 +4254,7 @@
           const orgao = (m.orgaoJulgador && m.orgaoJulgador.nomeOrgao) || (it.srcItem.orgaoJulgador && it.srcItem.orgaoJulgador.nome) || capa.orgao_julgador || '';
           const mapped = mapDataJudTpuToCanonicalJS(m.codigo, m.nome, comp, orgao, autorNome);
           const isoDt = it.d.toISOString();
-          const dk = `${isoDt.slice(0, 10)}|${mapped.titulo.slice(0, 22)}`;
+          const dk = `${isoDt.slice(0, 16)}|${m.codigo || ''}|${mapped.titulo.slice(0, 28)}`;
           if (seen.has(dk)) continue;
           seen.add(dk);
 
@@ -4273,7 +4277,7 @@
       }
 
       combinedMovs.sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
-      const finalMovs = combinedMovs.slice(0, 25);
+      const finalMovs = combinedMovs;
       finalMovs.forEach((m, i) => {
         m.passo_numero = finalMovs.length - i;
         m.total_passos = finalMovs.length;
@@ -4526,10 +4530,14 @@
         }
       }
 
-      // 3. Andamentos oficiais ainda nao gravados (desduplicados por titulo + dia)
+      // 3. Andamentos oficiais ainda nao gravados (desduplicados por titulo + minuto UTC, preservando TODOS do mesmo dia)
       const keyOf = (titulo, dataHora) => {
-        const dtStr = String(dataHora || '').slice(0, 10);
-        return `${String(titulo || '').trim().toLowerCase().slice(0, 28)}|${dtStr}`;
+        let minIso = String(dataHora || '').slice(0, 16);
+        try {
+          const d = new Date(dataHora);
+          if (!isNaN(d.getTime())) minIso = d.toISOString().slice(0, 16);
+        } catch (_) {}
+        return `${String(titulo || '').trim().toLowerCase().slice(0, 28)}|${minIso}`;
       };
       const existing = new Set(
         (APP.admin.andamentos || [])

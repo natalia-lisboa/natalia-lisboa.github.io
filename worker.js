@@ -569,7 +569,7 @@ export default {
           }
         }
 
-        const djenUrl = `${DJEN_ENDPOINT}?numeroProcesso=${numeroProcesso}`;
+        const djenUrl = `${DJEN_ENDPOINT}?numeroProcesso=${numeroProcesso}&itensPorPagina=100&pagina=1`;
         const datajudUrl = `${DATAJUD_ORIGIN}/api_publica_${courtAlias}/_search`;
         const apiKey = env.DATAJUD_API_KEY || DEFAULT_DATAJUD_PUBLIC_KEY;
 
