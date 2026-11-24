@@ -4289,7 +4289,7 @@
 
       const reuDisplay = proc.parte_contraria || capa.detected_parte_contraria || '';
       const lastSyncLabel = proc.ultima_sinc_datajud ? fmtDateTime(proc.ultima_sinc_datajud) : 'Agora';
-      const hasMniActive = Array.isArray(APP.admin.mni_credenciais) && APP.admin.mni_credenciais.length > 0;
+      const hasMniActive = Array.isArray(APP.admin.mni_credenciais) && APP.admin.mni_credenciais.some(c => c.ativo !== false);
 
       return `
         <!-- PAINEL 1: CAPA DO PROCESSO (somente dados reais do caso) -->
@@ -4675,10 +4675,14 @@
 
       const pill = document.getElementById('mni-header-status-pill');
       if (!pill) return;
-      const qtd = (APP.admin.mni_credenciais || []).length;
-      if (qtd > 0) {
-        pill.textContent = `${qtd} Ativa(s)`;
+      const creds = APP.admin.mni_credenciais || [];
+      const qtdAtivas = creds.filter(c => c.ativo !== false).length;
+      if (qtdAtivas > 0) {
+        pill.textContent = `${qtdAtivas} Ativa(s)`;
         pill.className = 'px-2 py-0.5 rounded-full text-xs font-extrabold bg-emerald-600 text-white';
+      } else if (creds.length > 0) {
+        pill.textContent = 'Pausada';
+        pill.className = 'px-2 py-0.5 rounded-full text-xs font-extrabold bg-amber-600 text-white';
       } else {
         pill.textContent = 'Configurar';
         pill.className = 'px-2 py-0.5 rounded-full text-xs font-extrabold bg-stone-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200';
