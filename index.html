@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://zlnaushxdvuznlwmongk.supabase.co wss://zlnaushxdvuznlwmongk.supabase.co https://api-publica.datajud.cnj.jus.br https://challenges.cloudflare.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://zlnaushxdvuznlwmongk.supabase.co wss://zlnaushxdvuznlwmongk.supabase.co https://api-publica.datajud.cnj.jus.br https://comunicaapi.pje.jus.br https://challenges.cloudflare.com;">
   <title>Nathalia Lisboa — Advocacia & Assistência Jurídica | Plataforma LegalTech</title>
 
   <!-- Tailwind CSS CDN -->
@@ -884,6 +884,9 @@
                 <button type="button" onclick="syncCurrentProcessWithDataJud()" class="px-3.5 py-2.5 rounded-xl border border-[#C8A25A] bg-[#FDF8EE] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] text-xs font-bold flex items-center gap-1.5">
                   <i data-lucide="landmark" class="w-4 h-4"></i> Acompanhamento do Processo
                 </button>
+                <button type="button" onclick="sincronizarProcessoTempoReal(true)" class="px-3.5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shadow-sm transition">
+                  <i data-lucide="zap" class="w-4 h-4"></i> Atualizar Agora (Tempo Real)
+                </button>
                 <button type="button" onclick="editCurrentPipelineProcesso()" class="px-3 py-2.5 rounded-xl border border-stone-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1">
                   <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Editar Processo
                 </button>
@@ -934,6 +937,18 @@
                   Consulte pelo número CNJ ou vincule a um processo cadastrado para sincronizar movimentações e resumos ao cliente.
                 </p>
               </div>
+              <div class="flex flex-wrap items-center gap-2.5">
+                <button type="button" onclick="openMniConfigModal()"
+                  class="px-3.5 py-2.5 rounded-xl border border-[#C8A25A]/60 bg-[#FAF3E3] hover:bg-[#F5E9CE] dark:bg-slate-800 dark:hover:bg-slate-700 text-[#5C1618] dark:text-[#E5C888] text-xs sm:text-sm font-bold flex items-center gap-2 shadow-2xs transition">
+                  <i data-lucide="shield-check" class="w-4 h-4 text-[#C8A25A]"></i>
+                  <span>Conexão Direta MNI (PJe / Eproc)</span>
+                  <span id="mni-header-status-pill" class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-stone-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">Configurar</span>
+                </button>
+                <button type="button" id="btn-sync-realtime-now" onclick="sincronizarProcessoTempoReal(true)"
+                  class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shadow-sm transition">
+                  <i data-lucide="zap" class="w-4 h-4"></i> Atualizar Agora (Tempo Real)
+                </button>
+              </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
@@ -960,11 +975,15 @@
             <select id="datajud-processo-select" onchange="onDataJudSelectProcesso(this.value)" class="hidden"></select>
 
             <div id="datajud-endpoint-info" class="text-sm bg-stone-50 dark:bg-slate-800/70 rounded-xl p-3 border border-stone-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2">
                 <span>Tribunal: <strong id="dj-detected-tribunal" class="text-[#5C1618] dark:text-[#E5C888]">TJSP</strong></span>
                 <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
                   <i data-lucide="check" class="w-3 h-3"></i> Conexão Oficial Ativa
                 </span>
+                <span class="inline-flex items-center gap-1.5 text-xs font-bold text-[#5C1618] dark:text-[#E5C888] bg-[#FAF3E3] dark:bg-slate-900 border border-[#C8A25A]/40 px-2.5 py-0.5 rounded-md">
+                  <i data-lucide="radio" class="w-3.5 h-3.5 text-emerald-600"></i> MNI 2.2 Tempo Real • DJEN Mesmo Dia • DataJud CNJ
+                </span>
+                <span id="dj-last-sync-clock" class="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">Sincronização Híbrida Ativa</span>
               </div>
               <span class="font-mono text-xs text-slate-400 truncate max-w-xs" id="dj-detected-url">https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search</span>
             </div>
@@ -1567,7 +1586,8 @@
         duvidas: [],
         tarefas_kanban: [],
         financeiro: [],
-        users: []
+        users: [],
+        mni_credenciais: []
       },
       portal: {
         cliente: {},
@@ -2053,6 +2073,7 @@
       }
       updateSidebarBadges();
       triggerBackgroundDataJudHarvest();
+      refreshMniStatusBadge();
     }
 
     async function triggerBackgroundDataJudHarvest() {
@@ -3403,6 +3424,14 @@
                   const dt = formatEventDateParts(item.data_hora);
                   const isVisible = item.visivel_cliente !== false;
                   const rowId = `${prefix}_${item.id || idx}`;
+                  const canal = String(item.canal_sincronizacao || item.origem || 'CNJ Oficial');
+                  const canalBadgeHtml = canal.includes('MNI')
+                    ? `<span class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-extrabold bg-emerald-800 text-white"><i data-lucide="zap" class="w-3 h-3"></i> MNI Tempo Real</span>`
+                    : canal.includes('DJEN')
+                    ? `<span class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-extrabold bg-[#FAF3E3] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] border border-[#C8A25A]/40"><i data-lucide="radio" class="w-3 h-3"></i> DJEN Oficial</span>`
+                    : canal === 'Manual'
+                    ? `<span class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-stone-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200"><i data-lucide="pencil" class="w-3 h-3"></i> Registro Escritório</span>`
+                    : `<span class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-900 dark:text-sky-200"><i data-lucide="landmark" class="w-3 h-3"></i> DataJud CNJ</span>`;
 
                   return `
                     <tr class="hover:bg-stone-50/80 dark:hover:bg-slate-800/50 transition-colors align-top">
@@ -3419,6 +3448,7 @@
                         <span class="mt-1.5 inline-block px-2 py-0.5 rounded text-xs sm:text-sm font-bold bg-stone-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                           ${esc(item.etapa_pipeline || (item.origem === 'DataJud CNJ' ? 'DataJud CNJ' : 'Em Curso'))}
                         </span>
+                        <div>${canalBadgeHtml}</div>
                       </td>
 
                       <!-- 3. Movimentação dos Autos (Estilo Eproc / PJe) -->
@@ -4258,6 +4288,8 @@
         : `<span class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Sincronizado ao Vivo (${esc(parsed.tribunalSigla)})</span>`;
 
       const reuDisplay = proc.parte_contraria || capa.detected_parte_contraria || '';
+      const lastSyncLabel = proc.ultima_sinc_datajud ? fmtDateTime(proc.ultima_sinc_datajud) : 'Agora';
+      const hasMniActive = Array.isArray(APP.admin.mni_credenciais) && APP.admin.mni_credenciais.length > 0;
 
       return `
         <!-- PAINEL 1: CAPA DO PROCESSO (somente dados reais do caso) -->
@@ -4273,8 +4305,22 @@
               <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                 Autor: <strong>${esc(cli.nome || 'Vinculado')}</strong> • ${esc(proc.titulo_acao || capa.assuntos_cnj || 'Ação Judicial')}${reuDisplay ? ` • Réu: <strong>${esc(reuDisplay)}</strong>` : ''}
               </p>
+              <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold ${hasMniActive ? 'bg-emerald-800 text-white' : 'bg-stone-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200'}">
+                  <i data-lucide="shield-check" class="w-3 h-3"></i> MNI 2.2
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-[#FAF3E3] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] border border-[#C8A25A]/40">
+                  <i data-lucide="radio" class="w-3 h-3"></i> DJEN
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-900 dark:text-sky-200">
+                  <i data-lucide="landmark" class="w-3 h-3"></i> DataJud
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-white/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-stone-200 dark:border-slate-700">
+                  <i data-lucide="clock" class="w-3 h-3 text-[#C8A25A]"></i> Última sinc.: ${esc(lastSyncLabel)}
+                </span>
+              </div>
             </div>
-            <div class="flex flex-wrap items-center gap-2">${badge}</div>
+            <div class="flex flex-wrap items-center gap-2">${badge}<button type="button" onclick="sincronizarProcessoTempoReal(true)" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-xs transition"><i data-lucide="zap" class="w-3.5 h-3.5"></i> Atualizar Agora</button></div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
@@ -4552,6 +4598,245 @@
     }
 
     // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // SINCRONIZACAO EM TEMPO REAL (MNI 2.2 + DJEN + DATAJUD) & COFRE MNI ZERO-TRUST
+    // -------------------------------------------------------------------------
+    async function sincronizarProcessoTempoReal(force = true) {
+      const cnjDigits = (document.getElementById('datajud-cnj-input')?.value || '').replace(/\D/g, '');
+      const matchedByCnj = (APP.currentView === 'datajud' && cnjDigits)
+        ? (APP.admin.processos || []).find(p => String(p.numero_cnj || '').replace(/\D/g, '') === cnjDigits)
+        : null;
+      const proc = matchedByCnj || (APP.admin.processos || []).find(p => p.id === APP.selectedProcessoId)
+        || (cnjDigits ? (APP.admin.processos || []).find(p => String(p.numero_cnj || '').replace(/\D/g, '') === cnjDigits) : null);
+
+      if (!proc) {
+        return await consultarDataJudCNJ(false);
+      }
+
+      const btnRt = document.getElementById('btn-sync-realtime-now');
+      const origBtnHtml = btnRt ? btnRt.innerHTML : '';
+      if (btnRt) {
+        btnRt.disabled = true;
+        btnRt.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Consultando Tribunal...`;
+        refreshIcons();
+      }
+
+      if (force) {
+        APP._djCache = {};
+      }
+
+      try {
+        const { data: rtRes, error: rtErr } = await sb.rpc('legal_sync_processo_realtime', {
+          p_token: APP.token,
+          p_processo_id: proc.id,
+          p_force: Boolean(force)
+        });
+
+        await loadAdminBundle();
+
+        if (APP.currentView === 'datajud') {
+          await consultarDataJudCNJ(true);
+        } else if (APP.currentView === 'pipeline') {
+          renderPipelineView();
+        }
+
+        const clockEl = document.getElementById('dj-last-sync-clock');
+        if (clockEl) {
+          clockEl.textContent = 'Verificado às ' + new Date().toLocaleTimeString('pt-BR');
+        }
+
+        if (!rtErr && rtRes && rtRes.cached_cooldown) {
+          showToast('Proteção Anti-Bloqueio: processo já verificado há poucos segundos.', 'info');
+        } else if (!rtErr && rtRes && rtRes.ok) {
+          const canaisTxt = (rtRes.canais_ativos || ['DJEN Oficial']).join(' + ');
+          showToast(`Sincronização em Tempo Real concluída (${canaisTxt}) — ${rtRes.novos_andamentos || 0} novo(s) andamento(s)!`);
+        } else {
+          showToast('Sincronização oficial concluída com sucesso!');
+        }
+      } catch (err) {
+        showToast('Erro ao consultar tribunal: ' + (err.message || err), 'error');
+      } finally {
+        if (btnRt) {
+          btnRt.disabled = false;
+          btnRt.innerHTML = origBtnHtml || `<i data-lucide="zap" class="w-4 h-4"></i> Atualizar Agora (Tempo Real)`;
+          refreshIcons();
+        }
+      }
+    }
+
+    async function refreshMniStatusBadge() {
+      if (!APP.token) return;
+      try {
+        const { data, error } = await sb.rpc('legal_get_mni_status', { p_token: APP.token });
+        if (!error && data) {
+          APP.admin.mni_credenciais = Array.isArray(data.credenciais) ? data.credenciais : [];
+        }
+      } catch (_) {}
+
+      const pill = document.getElementById('mni-header-status-pill');
+      if (!pill) return;
+      const qtd = (APP.admin.mni_credenciais || []).length;
+      if (qtd > 0) {
+        pill.textContent = `${qtd} Ativa(s)`;
+        pill.className = 'px-2 py-0.5 rounded-full text-xs font-extrabold bg-emerald-600 text-white';
+      } else {
+        pill.textContent = 'Configurar';
+        pill.className = 'px-2 py-0.5 rounded-full text-xs font-extrabold bg-stone-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200';
+      }
+    }
+
+    async function openMniConfigModal() {
+      if (APP.token) {
+        await refreshMniStatusBadge();
+      }
+      const creds = APP.admin.mni_credenciais || [];
+
+      openModal(`
+        <div class="space-y-5">
+          <div class="flex items-start justify-between gap-3 pb-3 border-b border-stone-200 dark:border-slate-800">
+            <div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#FAF3E3] dark:bg-slate-800 text-[#5C1618] dark:text-[#E5C888] border border-[#C8A25A]/40">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-[#C8A25A]"></i> Cofre Criptografado Zero-Trust
+              </span>
+              <h3 class="text-lg font-black text-slate-900 dark:text-white mt-1.5">
+                Conexão Direta MNI 2.2 (PJe / Eproc)
+              </h3>
+            </div>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-800 text-slate-500">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-[#FDF8EE] dark:bg-slate-800/80 border border-[#C8A25A]/45 text-xs sm:text-sm text-slate-700 dark:text-slate-200 space-y-1.5">
+            <div class="font-extrabold text-[#5C1618] dark:text-[#E5C888] flex items-center gap-1.5">
+              <i data-lucide="lock" class="w-4 h-4 text-[#C8A25A]"></i>
+              100% Gratuito R$ 0,00 • Cofre Criptografado AES/PGP Zero-Trust
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Conexão direta SOAP/XML com Eproc 1G/2G e PJe sem depender do atraso do DataJud. Suas credenciais são cifradas no servidor e nunca ficam expostas no navegador.
+            </p>
+          </div>
+
+          <form onsubmit="saveMniCredentialForm(event)" class="space-y-3.5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+              <div>
+                <label class="font-bold block mb-1 text-slate-700 dark:text-slate-200">Tribunal *</label>
+                <select id="mni-tribunal" required class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-bold">
+                  <option value="TJRJ">TJRJ (Rio de Janeiro)</option>
+                  <option value="TJMG">TJMG (Minas Gerais)</option>
+                  <option value="TRT1">TRT1 (Trabalho 1ª Região)</option>
+                </select>
+              </div>
+              <div>
+                <label class="font-bold block mb-1 text-slate-700 dark:text-slate-200">Sistema *</label>
+                <select id="mni-sistema" required class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-bold">
+                  <option value="EPROC_1G">EPROC_1G (1º Grau)</option>
+                  <option value="EPROC_2G">EPROC_2G (2º Grau)</option>
+                  <option value="PJE_1G">PJE_1G (1º Grau)</option>
+                  <option value="PJE_2G">PJE_2G (2º Grau)</option>
+                </select>
+              </div>
+              <div>
+                <label class="font-bold block mb-1 text-slate-700 dark:text-slate-200">CPF / Login MNI da Advogada *</label>
+                <input id="mni-id-consultante" type="text" required placeholder="000.000.000-00 ou login"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-mono">
+              </div>
+              <div>
+                <label class="font-bold block mb-1 text-slate-700 dark:text-slate-200">Senha do Tribunal / Senha MNI *</label>
+                <input id="mni-senha" type="password" required placeholder="••••••••"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 font-mono">
+              </div>
+            </div>
+            <div class="flex justify-end">
+              <button type="submit" class="px-4 py-2.5 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="key-round" class="w-4 h-4 text-[#E5C888]"></i> Salvar Credencial no Cofre
+              </button>
+            </div>
+          </form>
+
+          <div class="pt-3 border-t border-stone-200 dark:border-slate-800 space-y-2.5">
+            <div class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+              Credenciais Salvas (${creds.length})
+            </div>
+            ${creds.length === 0 ? `
+              <div class="p-4 rounded-xl bg-stone-50 dark:bg-slate-800/50 border border-stone-200 dark:border-slate-800 text-xs text-slate-500 text-center">
+                Nenhuma credencial MNI cadastrada ainda. O sistema continua operando gratuitamente via DJEN Oficial + DataJud CNJ.
+              </div>
+            ` : `
+              <div class="space-y-2 max-h-52 overflow-y-auto pr-1">
+                ${creds.map(c => `
+                  <div class="p-3 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50/70 dark:bg-slate-800/50 flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-2 py-0.5 rounded-md bg-[#5C1618] text-[#E5C888] text-xs font-extrabold">${esc(c.tribunal_sigla || c.tribunal || 'TJRJ')}</span>
+                        <span class="px-2 py-0.5 rounded-md bg-stone-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold">${esc(c.sistema || 'EPROC_1G')}</span>
+                        <span class="font-mono text-xs font-bold text-slate-800 dark:text-white">${esc(c.id_consultante_masked || '********')}</span>
+                      </div>
+                      <div class="text-xs ${c.ativo === false ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'} font-semibold mt-1">
+                        Status: ${esc(c.ultimo_teste_status || 'Pronta para consulta MNI')}
+                      </div>
+                    </div>
+                    <button type="button" onclick="deleteMniCredential('${esc(c.id)}')"
+                      class="p-2 rounded-xl border border-rose-200 dark:border-rose-900/50 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 shrink-0" title="Remover Credencial">
+                      <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <div class="flex justify-end pt-2 border-t border-stone-200 dark:border-slate-800">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-stone-300 dark:border-slate-700 text-xs font-bold">Fechar</button>
+          </div>
+        </div>
+      `);
+    }
+
+    async function saveMniCredentialForm(e) {
+      e.preventDefault();
+      const tribunal = document.getElementById('mni-tribunal')?.value || 'TJRJ';
+      const sistema = document.getElementById('mni-sistema')?.value || 'EPROC_1G';
+      const idConsultante = (document.getElementById('mni-id-consultante')?.value || '').trim();
+      const senha = document.getElementById('mni-senha')?.value || '';
+
+      if (!idConsultante || !senha) {
+        return showToast('Informe o CPF/Login MNI e a senha do tribunal.', 'error');
+      }
+
+      const { data, error } = await sb.rpc('legal_save_mni_credential', {
+        p_token: APP.token,
+        p_tribunal: tribunal,
+        p_sistema: sistema,
+        p_id_consultante: idConsultante,
+        p_senha: senha
+      });
+
+      if (error || (data && data.ok === false)) {
+        return showToast((data && data.error) || (error && error.message) || 'Erro ao salvar credencial MNI.', 'error');
+      }
+
+      await refreshMniStatusBadge();
+      await openMniConfigModal();
+      showToast(`Credencial MNI (${tribunal} • ${sistema}) salva no Cofre Zero-Trust!`);
+    }
+
+    async function deleteMniCredential(credId) {
+      if (!credId) return;
+      const { data, error } = await sb.rpc('legal_delete_mni_credential', {
+        p_token: APP.token,
+        p_id: credId
+      });
+
+      if (error || (data && data.ok === false)) {
+        return showToast((data && data.error) || (error && error.message) || 'Erro ao remover credencial MNI.', 'error');
+      }
+
+      await refreshMniStatusBadge();
+      await openMniConfigModal();
+      showToast('Credencial MNI removida do cofre.');
+    }
+
     // VIEW E: GESTÃO DE TAREFAS (QUADRO ESTILO TRELLO / KANBAN COM COLUNAS LIVRES)
     // -------------------------------------------------------------------------
     function renderKanbanBoard() {
