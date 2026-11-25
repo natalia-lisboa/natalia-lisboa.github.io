@@ -9,6 +9,21 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://zlnaushxdvuznlwmongk.supabase.co wss://zlnaushxdvuznlwmongk.supabase.co https://api-publica.datajud.cnj.jus.br https://comunicaapi.pje.jus.br https://challenges.cloudflare.com;">
   <title>Nathalia Lisboa — Advocacia & Assistência Jurídica | Plataforma LegalTech</title>
+  <style>html.rpm-brand-pending #login-screen { opacity: 0; transition: opacity .18s ease; }</style>
+  <script>
+    (function(){
+      try {
+        var qs = new URLSearchParams(window.location.search);
+        var slug = (qs.get('escritorio') || '').trim().toLowerCase();
+        var pth = (window.location.pathname || '').toLowerCase();
+        var isOther = (slug && slug !== 'nathalia-lisboa') || pth.indexOf('/darcy-luiz-advocacia') !== -1 || pth.indexOf('/rpmaster/') !== -1 || pth.slice(-13) === '/sistema.html';
+        if (isOther) {
+          document.documentElement.classList.add('rpm-brand-pending');
+          setTimeout(function(){ document.documentElement.classList.remove('rpm-brand-pending'); }, 3000);
+        }
+      } catch (_) {}
+    })();
+  </script>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -494,10 +509,10 @@
         <div>
           <div class="flex items-center justify-between pb-4 border-b border-white/10">
             <div class="flex items-center gap-2.5">
-              <img src="data:image/jpeg;base64,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" alt="NL" class="w-10 h-10 rounded-xl bg-white p-1 object-contain">
+              <img id="mobile-drawer-logo-img" src="data:image/jpeg;base64,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" alt="NL" class="w-10 h-10 rounded-xl bg-white p-1 object-contain">
               <div>
-                <div class="font-editorial font-bold text-base text-[#E5C888]">Nathalia Lisboa</div>
-                <div class="text-xs text-rose-200/70">Advocacia & Assistência</div>
+                <div id="mobile-drawer-brand-name" class="font-editorial font-bold text-base text-[#E5C888]">Nathalia Lisboa</div>
+                <div id="mobile-drawer-brand-sub" class="text-xs text-rose-200/70">Advocacia & Assistência</div>
               </div>
             </div>
             <button type="button" onclick="toggleMobileMenu()" class="p-1.5 rounded-lg bg-white/10 text-white">
@@ -1257,7 +1272,7 @@
         <i data-lucide="eye" class="w-4 h-4"></i>
         <span>MODO DE SIMULAÇÃO DA ADVOGADA — Você está visualizando exatamente o Portal do Cliente: <strong id="preview-client-name">-</strong></span>
       </div>
-      <button type="button" onclick="exitClientPreview()" class="px-3 py-1 rounded-lg bg-slate-950 text-white text-xs font-bold hover:bg-slate-800">
+      <button type="button" id="admin-preview-back-btn" onclick="exitClientPreview()" class="px-3 py-1 rounded-lg bg-slate-950 text-white text-xs font-bold hover:bg-slate-800">
         Voltar ao Painel da Dra. Nathalia
       </button>
     </div>
@@ -1618,7 +1633,7 @@
       const impTk = sessionStorage.getItem('rpm_impersonate_token') || '';
       const impUserRaw = sessionStorage.getItem('rpm_impersonate_user') || '';
       const impSlug = sessionStorage.getItem('rpm_impersonate_slug') || '';
-      if (impTk && impUserRaw && (!slug || !impSlug || impSlug === slug)) {
+      if (impTk && impUserRaw && !OFFICE_CTX.neutralPortal && slug && impSlug && impSlug === slug) {
         try { return { token: impTk, user: JSON.parse(impUserRaw), isImpersonate: true }; } catch (_) {}
       }
       const tkKey = getScopedStorageKey('nl_legal_token', slug);
@@ -1656,9 +1671,11 @@
       sessionStorage.removeItem('rpm_impersonate_token');
       sessionStorage.removeItem('rpm_impersonate_user');
       sessionStorage.removeItem('rpm_impersonate_slug');
-      const targetSlug = slug || OFFICE_CTX.slug || 'nathalia-lisboa';
-      localStorage.removeItem(getScopedStorageKey('nl_legal_token', targetSlug));
-      localStorage.removeItem(getScopedStorageKey('nl_legal_user', targetSlug));
+      const targetSlug = slug || APP.activeSlug || OFFICE_CTX.slug || '';
+      if (targetSlug) {
+        localStorage.removeItem(getScopedStorageKey('nl_legal_token', targetSlug));
+        localStorage.removeItem(getScopedStorageKey('nl_legal_user', targetSlug));
+      }
       if (targetSlug === 'nathalia-lisboa') {
         localStorage.removeItem('nl_legal_token');
         localStorage.removeItem('nl_legal_user');
@@ -1686,6 +1703,19 @@
       const p2 = safeHexColor(accentHex, '#D4AF37');
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect width="96" height="96" rx="22" fill="${p1}"/><rect x="6" y="6" width="84" height="84" rx="18" fill="none" stroke="${p2}" stroke-width="2.5"/><text x="48" y="58" text-anchor="middle" font-family="Georgia,serif" font-size="34" font-weight="700" fill="${p2}">${ini}</text></svg>`;
       return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    function getOfficeBrandMeta() {
+      const e = getActiveOfficeObj() || {};
+      const slug = String(e.slug || APP.activeSlug || OFFICE_CTX.slug || '').toLowerCase();
+      const isNathalia = (slug === 'nathalia-lisboa');
+      const nomeEsc = String(e.nome_escritorio || (isNathalia ? 'NATHALIA LISBOA' : 'Escritório Jurídico')).trim();
+      const subEsc = String(e.subtitulo || (isNathalia ? 'ADVOCACIA & ASSISTÊNCIA JURÍDICA' : 'ADVOCACIA & CONSULTORIA JURÍDICA')).trim();
+      const nomeAdv = String(e.nome_advogado || (isNathalia ? 'Dra. Nathalia Lisboa' : nomeEsc)).trim();
+      const oab = String(e.oab_registro || (isNathalia ? 'OAB/RJ 219.544' : '')).trim();
+      const waRaw = String(e.whatsapp_oficial || (isNathalia ? '5521981801373' : '')).replace(/\D/g, '');
+      const end = String(e.endereco_escritorio || (isNathalia ? 'Rio de Janeiro/RJ' : '')).trim();
+      return { isNathalia, slug, nomeEsc, subEsc, nomeAdv, oab, whatsapp: waRaw, endereco: end };
     }
 
     function renderNeutralPortalUI(errorMessage) {
@@ -1716,6 +1746,7 @@
           errBox.classList.remove('hidden');
         }
       }
+      document.documentElement.classList.remove('rpm-brand-pending');
     }
 
     async function loadPublicOfficeBranding() {
@@ -1735,10 +1766,13 @@
           return null;
         }
         APP.publicOffice = data.escritorio;
+        APP.activeSlug = data.escritorio.slug || OFFICE_CTX.slug;
         applyEscritorioBranding(data.escritorio);
+        document.documentElement.classList.remove('rpm-brand-pending');
         return data.escritorio;
       } catch (_) {
         if (OFFICE_CTX.strict) renderNeutralPortalUI('');
+        document.documentElement.classList.remove('rpm-brand-pending');
         return null;
       }
     }
@@ -1768,6 +1802,7 @@
       token: _initialSess.token,
       user: _initialSess.user,
       isImpersonate: _initialSess.isImpersonate,
+      activeSlug: OFFICE_CTX.slug || '',
       publicOffice: null,
       currentView: 'dashboard',
       selectedClienteId: null,
@@ -2158,7 +2193,14 @@
           applyEscritorioBranding(data.escritorio);
         }
         const loggedSlug = (data.escritorio && data.escritorio.slug) || effectiveSlug || OFFICE_CTX.slug || 'nathalia-lisboa';
+        APP.activeSlug = loggedSlug;
         saveScopedSession(APP.token, APP.user, loggedSlug, false);
+        if (OFFICE_CTX.neutralPortal && loggedSlug) {
+          try {
+            const nextUrl = window.location.pathname + '?escritorio=' + encodeURIComponent(loggedSlug);
+            window.history.replaceState({}, document.title, nextUrl);
+          } catch (_) {}
+        }
         showToast(`Bem-vindo(a), ${APP.user.nome_exibicao}!`, 'info');
         await routeAfterAuth();
       } catch (err) {
@@ -2179,7 +2221,7 @@
       APP.user = null;
       APP.previewingClient = false;
       APP.isImpersonate = false;
-      clearScopedSession((APP.admin && APP.admin.escritorio && APP.admin.escritorio.slug) || OFFICE_CTX.slug);
+      clearScopedSession(APP.activeSlug || (APP.admin && APP.admin.escritorio && APP.admin.escritorio.slug) || OFFICE_CTX.slug);
       const impBanner = document.getElementById('rpmaster-impersonate-banner');
       if (impBanner) impBanner.classList.add('hidden');
       document.getElementById('admin-portal').classList.add('hidden');
@@ -2465,7 +2507,7 @@
           const cli = APP.admin.clientes.find(c => c.id === d.cliente_id) || {};
           const proc = APP.admin.processos.find(p => p.id === d.processo_id) || {};
           const andam = APP.admin.andamentos.find(a => a.id === d.andamento_id) || {};
-          const waMsg = `Olá ${cli.nome || ''}! Aqui é a Dra. Nathalia Lisboa. Vi a sua dúvida no Portal sobre o processo ${proc.numero_cnj || ''} (${andam.titulo_movimento || 'Andamento'}): "${d.pergunta_cliente}". Segue a orientação: `;
+          const waMsg = `Olá ${cli.nome || ''}! Aqui é ${getOfficeBrandMeta().nomeAdv}. Vi a sua dúvida no Portal sobre o processo ${proc.numero_cnj || ''} (${andam.titulo_movimento || 'Andamento'}): "${d.pergunta_cliente}". Segue a orientação: `;
           const waUrl = buildWhatsAppLink(cli.telefone, waMsg);
 
           return `
@@ -2902,7 +2944,7 @@
       const finPago = cliFin.filter(x => x.status === 'Pago').reduce((s, x) => s + Number(x.valor || 0), 0);
       const finPendente = finTotal - finPago;
 
-      const waDefaultMsg = `Olá ${cli.nome}, tudo bem? Aqui é a Dra. Nathalia Lisboa. Estou entrando em contato para atualizar você sobre o seu processo.`;
+      const waDefaultMsg = `Olá ${cli.nome}, tudo bem? Aqui é ${getOfficeBrandMeta().nomeAdv}. Estou entrando em contato para atualizar você sobre o seu processo.`;
       const waDirectUrl = buildWhatsAppLink(cli.telefone, waDefaultMsg);
 
       pane.innerHTML = `
@@ -2953,15 +2995,15 @@
             <i data-lucide="send" class="w-3.5 h-3.5"></i> Atalhos de Mensagem Rápida para WhatsApp (${esc(cli.nome)}):
           </div>
           <div class="flex flex-wrap gap-1.5">
-            <a target="_blank" href="${buildWhatsAppLink(cli.telefone, `Olá ${cli.nome}! Aqui é a Dra. Nathalia Lisboa. Seu processo teve uma nova movimentação que já está explicada de forma simples no seu Portal do Cliente!`)}"
+            <a target="_blank" href="${buildWhatsAppLink(cli.telefone, `Olá ${cli.nome}! Aqui é ${getOfficeBrandMeta().nomeAdv}. Seu processo teve uma nova movimentação que já está explicada de forma simples no seu Portal do Cliente!`)}"
               class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-300 text-emerald-800 dark:text-emerald-300 text-xs sm:text-sm font-bold hover:bg-emerald-600 hover:text-white transition">
               <i data-lucide="bell" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Aviso de Novo Andamento
             </a>
-            <a target="_blank" href="${buildWhatsAppLink(cli.telefone, `Olá ${cli.nome}! Aqui é a Dra. Nathalia Lisboa. Passando para lembrar da nossa audiência agendada e alinhar as orientações finais com você.`)}"
+            <a target="_blank" href="${buildWhatsAppLink(cli.telefone, `Olá ${cli.nome}! Aqui é ${getOfficeBrandMeta().nomeAdv}. Passando para lembrar da nossa audiência agendada e alinhar as orientações finais com você.`)}"
               class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-300 text-emerald-800 dark:text-emerald-300 text-xs sm:text-sm font-bold hover:bg-emerald-600 hover:text-white transition">
               <i data-lucide="scale" class="w-3 h-3 inline -mt-0.5 mr-1"></i> Orientação de Audiência
             </a>
-            <a target="_blank" href="${buildWhatsAppLink(cli.telefone, `Olá ${cli.nome}! O seu acesso exclusivo ao Portal do Cliente Nathalia Lisboa Advocacia está ativo. Utilizador: ${cliUser ? cliUser.username : '@cliente'} | Senha inicial: 123456`)}"
+            <a target="_blank" href="${buildWhatsAppLink(cli.telefone, `Olá ${cli.nome}! O seu acesso exclusivo ao Portal do Cliente ${getOfficeBrandMeta().nomeEsc} está ativo. Utilizador: ${cliUser ? cliUser.username : '@cliente'} | Senha inicial: 123456`)}"
               class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-300 text-emerald-800 dark:text-emerald-300 text-xs sm:text-sm font-bold hover:bg-emerald-600 hover:text-white transition">
               <i data-lucide="key-round" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i> Enviar Login do Portal
             </a>
@@ -3520,6 +3562,9 @@
     }
 
     function syncCurrentProcessWithDataJud() {
+      if (!isModuleEnabled('datajud')) {
+        return showToast('O módulo Consulta CNJ (DataJud) não está habilitado neste plano.', 'error');
+      }
       const proc = APP.admin.processos.find(p => p.id === APP.selectedProcessoId);
       switchAdminView('datajud');
       if (proc) {
@@ -4920,6 +4965,11 @@
           p_force: Boolean(force)
         });
 
+        if (rtErr || (rtRes && rtRes.ok === false)) {
+          showToast((rtRes && rtRes.error) || (rtErr && rtErr.message) || 'Sincronização indisponível para este plano.', 'error');
+          return;
+        }
+
         await loadAdminBundle();
 
         if (APP.currentView === 'datajud') {
@@ -5804,8 +5854,10 @@
       const isNathalia = (String(escObj.slug || '').toLowerCase() === 'nathalia-lisboa');
       const primary = safeHexColor(escObj.cor_primaria, '#5C1618');
       const accent = safeHexColor(escObj.cor_destaque, '#C8A25A');
-      if (escObj.whatsapp_oficial) {
-        ESCRITORIO_WHATSAPP = String(escObj.whatsapp_oficial).replace(/\D/g, '') || '5521981801373';
+      if (isNathalia) {
+        ESCRITORIO_WHATSAPP = String(escObj.whatsapp_oficial || '').replace(/\D/g, '') || '5521981801373';
+      } else {
+        ESCRITORIO_WHATSAPP = String(escObj.whatsapp_oficial || '').replace(/\D/g, '');
       }
       document.documentElement.style.setProperty('--p-accent', primary);
       document.documentElement.style.setProperty('--p-gold', accent);
@@ -5846,6 +5898,8 @@
         if (sideImg) { sideImg.src = safeLogo || monogram; sideImg.alt = nomeEsc; }
         const mobImg = document.getElementById('mobile-logo-img');
         if (mobImg) { mobImg.src = safeLogo || monogram; mobImg.alt = nomeEsc; }
+        const drwImg = document.getElementById('mobile-drawer-logo-img');
+        if (drwImg) { drwImg.src = safeLogo || monogram; drwImg.alt = nomeEsc; }
         const cliImg = document.getElementById('client-logo-img');
         if (cliImg) { cliImg.src = safeLogo || monogram; cliImg.alt = nomeEsc; }
       }
@@ -5854,6 +5908,12 @@
       if (mobName) mobName.textContent = nomeEsc.toUpperCase();
       const mobSub = document.getElementById('mobile-brand-sub');
       if (mobSub) mobSub.textContent = subEsc.toUpperCase();
+      const drwName = document.getElementById('mobile-drawer-brand-name');
+      if (drwName) drwName.textContent = nomeEsc;
+      const drwSub = document.getElementById('mobile-drawer-brand-sub');
+      if (drwSub) drwSub.textContent = subEsc;
+      const backBtn = document.getElementById('admin-preview-back-btn');
+      if (backBtn) backBtn.textContent = isNathalia ? 'Voltar ao Painel da Dra. Nathalia' : ('Voltar ao Painel de ' + nomeAdv);
       const cliName = document.getElementById('client-brand-name');
       if (cliName) cliName.textContent = nomeEsc;
       const cliSub = document.getElementById('client-brand-sub');
@@ -6330,7 +6390,12 @@
         return;
       }
 
-      if (data.escritorio) applyEscritorioBranding(data.escritorio);
+      if (data.escritorio) {
+        APP.portal.escritorio = data.escritorio;
+        APP.publicOffice = data.escritorio;
+        if (data.escritorio.slug) APP.activeSlug = data.escritorio.slug;
+        applyEscritorioBranding(data.escritorio);
+      }
       APP.portal.cliente = data.cliente || {};
       APP.portal.processos = data.processos || [];
       APP.portal.andamentos = data.andamentos || [];
@@ -6342,10 +6407,11 @@
       document.getElementById('preview-client-name').textContent = APP.portal.cliente.nome || '';
       document.getElementById('portal-count-docs').textContent = APP.portal.anexos.length;
 
+      const _bm = getOfficeBrandMeta();
       const headerWa = document.getElementById('client-header-whatsapp');
       headerWa.href = buildWhatsAppLink(
-        ESCRITORIO_WHATSAPP,
-        `Olá Dra. Nathalia Lisboa! Sou ${APP.portal.cliente.nome || ''} e estou acessando o meu Portal do Cliente.`
+        _bm.whatsapp,
+        `Olá ${_bm.nomeAdv}! Sou ${APP.portal.cliente.nome || ''} e estou acessando o meu Portal do Cliente.`
       );
 
       renderClientPortalContent();
@@ -6370,7 +6436,7 @@
       // 1. Processos e Andamentos com Tradutor Jurídico IA
       const procContainer = document.getElementById('portal-processos-container');
       if (APP.portal.processos.length === 0) {
-        procContainer.innerHTML = `<div class="bg-white rounded-3xl p-8 text-center text-sm text-slate-400">O seu processo está sendo cadastrado pela Dra. Nathalia Lisboa.</div>`;
+        procContainer.innerHTML = `<div class="bg-white rounded-3xl p-8 text-center text-sm text-slate-400">O seu processo está sendo cadastrado por ${esc(getOfficeBrandMeta().nomeAdv)}.</div>`;
       } else {
         procContainer.innerHTML = APP.portal.processos.map(p => {
           const curIdx = Math.max(0, PIPELINE_PHASES.indexOf(p.fase_pipeline));
@@ -6445,7 +6511,7 @@
                               <span class="text-xs font-extrabold uppercase tracking-wider text-[#5C1618] dark:text-[#E5C888]">
                                 Entenda este andamento
                               </span>
-                              <div class="text-xs sm:text-sm text-slate-500">Esclarecimento em linguagem simples da Dra. Nathalia Lisboa</div>
+                              <div class="text-xs sm:text-sm text-slate-500">Esclarecimento em linguagem simples de ${esc(getOfficeBrandMeta().nomeAdv)}</div>
                             </div>
                           </div>
                           <button type="button" onclick="document.getElementById('ia-exp-${a.id}').classList.toggle('hidden')"
@@ -6475,7 +6541,7 @@
                         `).join('')}
 
                         <div class="flex flex-col sm:flex-row gap-2 pt-1">
-                          <input id="input-duvida-${a.id}" type="text" placeholder="Ficou com alguma dúvida sobre este andamento? Escreva aqui para a Dra. Nathalia..."
+                          <input id="input-duvida-${a.id}" type="text" placeholder="Ficou com alguma dúvida sobre este andamento? Escreva aqui para o escritório..."
                             class="flex-1 px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-[#5C1618]">
                           <button type="button" onclick="enviarDuvidaCliente('${a.id}')"
                             class="px-4 py-2.5 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold shrink-0 flex items-center justify-center gap-1.5">
@@ -6547,7 +6613,7 @@
 
         const compUrl = buildWhatsAppLink(
           ESCRITORIO_WHATSAPP,
-          `Olá Dra. Nathalia! Segue o comprovante de pagamento da parcela ${f.numero_parcela}/${f.total_parcelas} (${f.descricao}) no valor de ${fmtMoney(f.valor)}.`
+          `Olá ${getOfficeBrandMeta().nomeAdv}! Segue o comprovante de pagamento da parcela ${f.numero_parcela}/${f.total_parcelas} (${f.descricao}) no valor de ${fmtMoney(f.valor)}.`
         );
 
         return `
@@ -6592,7 +6658,7 @@
       }
 
       inp.value = '';
-      showToast('Sua dúvida foi enviada diretamente para a Dra. Nathalia Lisboa!');
+      showToast('Sua dúvida foi enviada diretamente para ' + getOfficeBrandMeta().nomeAdv + '!');
       await loadClientPortalData(APP.previewingClient ? APP.portal.cliente.id : null);
     }
 
@@ -8097,8 +8163,8 @@
 </head>
 <body>
   <div style="text-align: center; border-bottom: 1px solid #8C6B32; padding-bottom: 8pt; margin-bottom: 18pt; font-family: 'Times New Roman', serif;">
-    <strong style="font-size: 13pt; color: #5C1618;">NATHALIA LISBOA — ADVOCACIA &amp; ASSISTÊNCIA JURÍDICA</strong><br>
-    <span style="font-size: 10pt; color: #444444;">OAB/RJ 219.544 • Tel/WhatsApp: (21) 98180-1373 • Rio de Janeiro/RJ</span>
+    <strong style="font-size: 13pt; color: ${esc(safeHexColor((getActiveOfficeObj()||{}).cor_primaria, '#5C1618'))};">${esc(getOfficeBrandMeta().nomeEsc)} — ${esc(getOfficeBrandMeta().subEsc)}</strong><br>
+    <span style="font-size: 10pt; color: #444444;">${esc([getOfficeBrandMeta().oab, getOfficeBrandMeta().whatsapp ? ('Tel/WhatsApp: ' + getOfficeBrandMeta().whatsapp) : '', getOfficeBrandMeta().endereco].filter(Boolean).join(' • '))}</span>
   </div>
   ${paragraphsHtml}
 </body>
