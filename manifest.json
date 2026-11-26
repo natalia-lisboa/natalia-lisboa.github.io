@@ -1,0 +1,26 @@
+{
+  "name": "Nathalia Lisboa Advocacia",
+  "short_name": "Nathalia Lisboa",
+  "description": "Plataforma LegalTech ? Acompanhamento Processual e Portal do Cliente",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FAF8F5",
+  "theme_color": "#5C1618",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -9,6 +9,30 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://zlnaushxdvuznlwmongk.supabase.co wss://zlnaushxdvuznlwmongk.supabase.co https://api-publica.datajud.cnj.jus.br https://comunicaapi.pje.jus.br https://challenges.cloudflare.com;">
   <title>Nathalia Lisboa — Advocacia & Assistência Jurídica | Plataforma LegalTech</title>
+  <!-- PWA & Atalho Nativo na Tela de Início do iPhone (iOS Web Clip) -->
+  <meta name="application-name" content="Nathalia Lisboa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Nathalia Lisboa">
+  <meta name="theme-color" content="#5C1618">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <style>
+    @media all and (display-mode: standalone) {
+      body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        -webkit-tap-highlight-color: transparent;
+      }
+      #admin-portal > header,
+      #client-portal > header {
+        padding-top: calc(0.75rem + env(safe-area-inset-top));
+      }
+    }
+  </style>
   <style>html.rpm-brand-pending #login-screen { opacity: 0; transition: opacity .18s ease; }</style>
   <script>
     (function(){
@@ -468,7 +492,14 @@
           </button>
         </form>
 
-        <div id="login-footer-copy" class="mt-6 pt-4 border-t border-stone-200/70 dark:border-slate-800 text-center text-xs sm:text-sm text-slate-400 font-medium">
+        <div id="login-install-wrap" class="mt-4">
+          <button id="btn-install-mobile-app" type="button" onclick="openMobileInstallGuide()"
+            class="w-full py-2.5 px-4 rounded-xl bg-[#FAF3E3] hover:bg-[#F3E6C9] dark:bg-slate-800 dark:hover:bg-slate-700 text-[#5C1618] dark:text-[#E5C888] border border-[#C8A25A]/45 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer">
+            <i data-lucide="smartphone" class="w-4 h-4 text-[#C8A25A]"></i> Adicionar Atalho na Tela do iPhone / Celular
+          </button>
+        </div>
+
+        <div id="login-footer-copy" class="mt-5 pt-4 border-t border-stone-200/70 dark:border-slate-800 text-center text-xs sm:text-sm text-slate-400 font-medium">
           © 2026 Nathalia Lisboa — Advocacia & Assistência Jurídica
         </div>
       </div>
@@ -1379,6 +1410,35 @@
   <div id="modal-backdrop" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
     <div id="modal-content-box" class="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl border border-stone-200 dark:border-slate-800 my-8 max-h-[90vh] overflow-y-auto"></div>
   </div>
+
+  <!-- Banner Discreto de Atalho para Safari no iPhone (iOS Web Clip) -->
+  <div id="ios-install-banner" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-5 sm:max-w-sm z-50 hidden bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-2xl border border-[#C8A25A]/60 ring-2 ring-[#5C1618]/10">
+    <div class="flex items-start gap-3">
+      <img src="data:image/jpeg;base64,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" alt="Nathalia Lisboa" class="w-12 h-12 rounded-xl border border-stone-200 bg-white p-1 object-contain shrink-0">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between gap-2">
+          <h4 class="text-sm font-extrabold text-[#5C1618] dark:text-[#E5C888]">Usar como App no iPhone</h4>
+          <button type="button" onclick="dismissIosInstallBanner()" class="text-slate-400 hover:text-slate-700 p-1" aria-label="Fechar">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+          Toque no ícone <strong>Compartilhar</strong>
+          <svg class="inline-block w-4 h-4 -mt-0.5 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          e depois em <strong>"Adicionar à Tela de Início"</strong> para abrir em tela cheia.
+        </p>
+        <div class="flex items-center gap-2 mt-3">
+          <button type="button" onclick="openMobileInstallGuide()" class="px-3 py-1.5 rounded-lg bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs font-bold">
+            Ver Passo a Passo
+          </button>
+          <button type="button" onclick="dismissIosInstallBanner()" class="px-3 py-1.5 rounded-lg border border-stone-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold">
+            Agora não
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- FIM BANNER IOS -->
 
   <script>
     // =========================================================================
@@ -8430,6 +8490,160 @@
       renderAcessosView();
       showToast(`${label} conectado! Capacidade interna ampliada em +1 GB.`);
     }
+
+    // -------------------------------------------------------------------------
+    // PWA & ATALHO NATIVO NA TELA DE INÍCIO DO IPHONE (iOS WEB CLIP)
+    // -------------------------------------------------------------------------
+    let _deferredPwaInstallPrompt = null;
+
+    function isStandaloneAppMode() {
+      return Boolean(
+        (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+        window.navigator.standalone === true
+      );
+    }
+
+    function isIosDevice() {
+      const ua = window.navigator.userAgent || '';
+      const isIpadOs = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+      return /iPhone|iPad|iPod/i.test(ua) || isIpadOs;
+    }
+
+    function isIosSafariBrowser() {
+      const ua = window.navigator.userAgent || '';
+      return isIosDevice() && /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua);
+    }
+
+    function dismissIosInstallBanner() {
+      const banner = document.getElementById('ios-install-banner');
+      if (banner) banner.classList.add('hidden');
+      try {
+        localStorage.setItem('nl_ios_install_dismissed_at', String(Date.now()));
+      } catch (_) {}
+    }
+
+    async function openMobileInstallGuide() {
+      const banner = document.getElementById('ios-install-banner');
+      if (banner) banner.classList.add('hidden');
+
+      if (_deferredPwaInstallPrompt) {
+        try {
+          _deferredPwaInstallPrompt.prompt();
+          const choice = await _deferredPwaInstallPrompt.userChoice;
+          _deferredPwaInstallPrompt = null;
+          if (choice && choice.outcome === 'accepted') {
+            showToast('Atalho do aplicativo adicionado à tela inicial do celular!');
+            return;
+          }
+        } catch (_) {}
+      }
+
+      const isIos = isIosDevice();
+      const isChromeOnIos = isIos && !isIosSafariBrowser();
+
+      openModal(`
+        <div class="space-y-5">
+          <div class="flex items-start justify-between gap-3 pb-3 border-b border-stone-200 dark:border-slate-800">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-[#5C1618] text-[#E5C888] flex items-center justify-center shadow-sm shrink-0">
+                <i data-lucide="smartphone" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Adicionar Atalho na Tela do iPhone</h3>
+                <p class="text-xs sm:text-sm text-slate-500">Fica com ícone próprio e abre em tela cheia como um aplicativo.</p>
+              </div>
+            </div>
+            <button type="button" onclick="closeModal()" class="p-1.5 rounded-xl hover:bg-stone-100 dark:hover:bg-slate-800 text-slate-500">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          ${isChromeOnIos ? `
+            <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs sm:text-sm text-amber-900 dark:text-amber-200 font-medium">
+              <strong>Atenção no iPhone:</strong> para criar o atalho em tela cheia, abra este link no navegador <strong>Safari</strong> (navegador padrão da Apple).
+            </div>
+          ` : ''}
+
+          <ol class="space-y-3 text-sm text-slate-700 dark:text-slate-200">
+            <li class="flex items-start gap-3 p-3.5 rounded-2xl bg-[#FAF8F5] dark:bg-slate-800/70 border border-stone-200 dark:border-slate-700">
+              <span class="w-7 h-7 rounded-full bg-[#5C1618] text-[#E5C888] text-xs font-black flex items-center justify-center shrink-0">1</span>
+              <div>
+                <div class="font-bold text-slate-900 dark:text-white">Abra o site no Safari do iPhone</div>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">
+                  Toque no botão <strong>Compartilhar</strong> na barra inferior do Safari (ícone de quadrado com seta para cima
+                  <svg class="inline-block w-4 h-4 -mt-0.5 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>).
+                </p>
+              </div>
+            </li>
+
+            <li class="flex items-start gap-3 p-3.5 rounded-2xl bg-[#FAF8F5] dark:bg-slate-800/70 border border-stone-200 dark:border-slate-700">
+              <span class="w-7 h-7 rounded-full bg-[#5C1618] text-[#E5C888] text-xs font-black flex items-center justify-center shrink-0">2</span>
+              <div>
+                <div class="font-bold text-slate-900 dark:text-white">Toque em "Adicionar à Tela de Início"</div>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">
+                  Role o menu para baixo até encontrar a opção <strong>Adicionar à Tela de Início</strong> (ícone de quadrado com sinal <strong>+</strong>).
+                </p>
+              </div>
+            </li>
+
+            <li class="flex items-start gap-3 p-3.5 rounded-2xl bg-[#FAF8F5] dark:bg-slate-800/70 border border-stone-200 dark:border-slate-700">
+              <span class="w-7 h-7 rounded-full bg-[#5C1618] text-[#E5C888] text-xs font-black flex items-center justify-center shrink-0">3</span>
+              <div>
+                <div class="font-bold text-slate-900 dark:text-white">Confirme em "Adicionar"</div>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">
+                  Toque em <strong>Adicionar</strong> no canto superior direito. O ícone <strong>Nathalia Lisboa</strong> aparecerá na tela inicial do iPhone abrindo em tela cheia, sem barras do navegador.
+                </p>
+              </div>
+            </li>
+          </ol>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-stone-200 dark:border-slate-800">
+            <span class="text-xs text-slate-500">100% gratuito • Sem precisar baixar na App Store</span>
+            <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-xl bg-[#5C1618] hover:bg-[#3E0E10] text-white text-xs sm:text-sm font-bold">
+              Entendi
+            </button>
+          </div>
+        </div>
+      `);
+    }
+
+    function initPwaInstallSupport() {
+      if (isStandaloneAppMode()) {
+        const wrap = document.getElementById('login-install-wrap');
+        if (wrap) wrap.classList.add('hidden');
+        return;
+      }
+
+      if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        });
+      }
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        _deferredPwaInstallPrompt = e;
+      });
+
+      if (isIosSafariBrowser()) {
+        let dismissedAt = 0;
+        try {
+          dismissedAt = Number(localStorage.getItem('nl_ios_install_dismissed_at') || '0');
+        } catch (_) {}
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        if (!dismissedAt || Date.now() - dismissedAt > sevenDaysMs) {
+          setTimeout(() => {
+            const banner = document.getElementById('ios-install-banner');
+            if (banner && !isStandaloneAppMode()) {
+              banner.classList.remove('hidden');
+              refreshIcons();
+            }
+          }, 1800);
+        }
+      }
+    }
+
+    initPwaInstallSupport();
 
   </script>
 </body>
